@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Chart Generator with Download</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #34495e;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-section {
+            flex: 2;
+            min-width: 500px;
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .data-points {
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .data-row {
+            display: flex;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        
+        .data-row input {
+            flex: 1;
+        }
+        
+        .add-btn, .remove-btn {
+            padding: 8px 12px;
+            width: auto;
+        }
+        
+        .remove-btn {
+            background: #e74c3c;
+        }
+        
+        .remove-btn:hover {
+            background: #c0392b;
+        }
+        
+        .download-btn {
+            background: #27ae60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .download-btn:hover {
+            background: #219653;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .button-group button {
+            margin-top: 0;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .input-section, .chart-section {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Data Chart Generator</h1>
+            <p class="description">Enter your data below to generate a beautiful chart. You can customize chart type, labels, colors, and download the chart as an image.</p>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2>Chart Settings</h2>
+                <div class="form-group">
+                    <label for="chart-type">Chart Type</label>
+                    <select id="chart-type">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="polarArea">Polar Area</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="chart-title">Chart Title</label>
+                    <input type="text" id="chart-title" placeholder="Enter chart title" value="Sales Data">
+                </div>
+                
+                <div class="form-group">
+                    <label for="x-axis-label">X-Axis Label</label>
+                    <input type="text" id="x-axis-label" placeholder="Enter X-axis label" value="Months">
+                </div>
+                
+                <div class="form-group">
+                    <label for="y-axis-label">Y-Axis Label</label>
+                    <input type="text" id="y-axis-label" placeholder="Enter Y-axis label" value="Revenue">
+                </div>
+                
+                <h2>Data Points</h2>
+                <div class="data-points" id="data-points">
+                    <div class="data-row">
+                        <input type="text" class="label-input" placeholder="Label" value="January">
+                        <input type="number" class="value-input" placeholder="Value" value="120">
+                        <button class="remove-btn">-</button>
+                    </div>
+                    <div class="data-row">
+                        <input type="text" class="label-input" placeholder="Label" value="February">
+                        <input type="number" class="value-input" placeholder="Value" value="150">
+                        <button class="remove-btn">-</button>
+                    </div>
+                    <div class="data-row">
+                        <input type="text" class="label-input" placeholder="Label" value="March">
+                        <input type="number" class="value-input" placeholder="Value" value="180">
+                        <button class="remove-btn">-</button>
+                    </div>
+                </div>
+                
+                <button id="add-row" class="add-btn">+ Add Data Point</button>
+                <div class="button-group">
+                    <button id="generate-chart">Generate Chart</button>
+                    <button id="download-chart" class="download-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                        </svg>
+                        Download Chart
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chart-section">
+                <h2 class="chart-title">Chart Preview</h2>
+                <div class="chart-container">
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div id="download-info">
+                    <p>Click the "Download Chart" button to save the chart as a PNG image.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // References to DOM elements
+            const chartType = document.getElementById('chart-type');
+            const chartTitle = document.getElementById('chart-title');
+            const xAxisLabel = document.getElementById('x-axis-label');
+            const yAxisLabel = document.getElementById('y-axis-label');
+            const dataPoints = document.getElementById('data-points');
+            const addRowBtn = document.getElementById('add-row');
+            const generateBtn = document.getElementById('generate-chart');
+            const downloadBtn = document.getElementById('download-chart');
+            
+            let myChart = null;
+            
+            // Add new data row
+            addRowBtn.addEventListener('click', function() {
+                const newRow = document.createElement('div');
+                newRow.className = 'data-row';
+                newRow.innerHTML = `
+                    <input type="text" class="label-input" placeholder="Label" value="New Label">
+                    <input type="number" class="value-input" placeholder="Value" value="100">
+                    <button class="remove-btn">-</button>
+                `;
+                dataPoints.appendChild(newRow);
+                
+                // Add event listener to the remove button
+                newRow.querySelector('.remove-btn').addEventListener('click', function() {
+                    dataPoints.removeChild(newRow);
+                });
+            });
+            
+            // Add event listeners to existing remove buttons
+            document.querySelectorAll('.remove-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (dataPoints.children.length > 1) {
+                        dataPoints.removeChild(button.parentElement);
+                    } else {
+                        alert('You need at least one data point.');
+                    }
+                });
+            });
+            
+            // Generate the chart
+            generateBtn.addEventListener('click', function() {
+                const labels = [];
+                const values = [];
+                
+                // Get all data points
+                document.querySelectorAll('.data-row').forEach(row => {
+                    const labelInput = row.querySelector('.label-input');
+                    const valueInput = row.querySelector('.value-input');
+                    
+                    if (labelInput.value && valueInput.value) {
+                        labels.push(labelInput.value);
+                        values.push(parseFloat(valueInput.value));
+                    }
+                });
+                
+                if (labels.length === 0) {
+                    alert('Please add at least one data point with both label and value.');
+                    return;
+                }
+                
+                // Get selected chart type
+                const selectedChartType = chartType.value;
+                
+                // Destroy previous chart if it exists
+                if (myChart) {
+                    myChart.destroy();
+                }
+                
+                // Create the chart
+                const ctx = document.getElementById('myChart').getContext('2d');
+                
+                // Set white background for the canvas
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                
+                myChart = new Chart(ctx, {
+                    type: selectedChartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: yAxisLabel.value || 'Values',
+                            data: values,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)',
+                                'rgba(199, 199, 199, 0.7)',
+                                'rgba(83, 102, 255, 0.7)',
+                                'rgba(40, 159, 64, 0.7)',
+                                'rgba(210, 99, 132, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)',
+                                'rgba(199, 199, 199, 1)',
+                                'rgba(83, 102, 255, 1)',
+                                'rgba(40, 159, 64, 1)',
+                                'rgba(210, 99, 132, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        // Set the background color for the chart area
+                        backgroundColor: 'white',
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: chartTitle.value || 'Data Chart',
+                                font: {
+                                    size: 18
+                                },
+                                color: '#2c3e50'
+                            },
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#2c3e50'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: yAxisLabel.value || 'Values',
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#2c3e50'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: xAxisLabel.value || 'Categories',
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#2c3e50'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Enable download button
+                downloadBtn.disabled = false;
+            });
+            
+            // Download chart as image
+            downloadBtn.addEventListener('click', function() {
+                if (!myChart) {
+                    alert('Please generate a chart first.');
+                    return;
+                }
+                
+                // Create a temporary anchor element
+                const a = document.createElement('a');
+                a.href = myChart.toBase64Image();
+                a.download = 'chart.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            // Generate initial chart on page load
+            generateBtn.click();
+        });
+    </script>
+</body>
+</html>

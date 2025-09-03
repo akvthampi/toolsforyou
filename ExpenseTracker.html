@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expense Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            border: none;
+            font-size: 16px;
+        }
+
+        .nav-tab.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .balance {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .positive {
+            color: #27ae60;
+        }
+
+        .negative {
+            color: #e74c3c;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h4 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-card .amount {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .budget-progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .budget-progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .budget-normal {
+            background: #27ae60;
+        }
+
+        .budget-warning {
+            background: #f39c12;
+        }
+
+        .budget-danger {
+            background: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .nav-tab {
+                flex: none;
+                min-width: 50%;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>₹ Personal Expense Tracker</h1>
+            <p>Manage your finances with ease</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard', this)">Dashboard</button>
+            <button class="nav-tab" onclick="showTab('accounts', this)">Accounts</button>
+            <button class="nav-tab" onclick="showTab('categories', this)">Categories</button>
+            <button class="nav-tab" onclick="showTab('transactions', this)">Transactions</button>
+            <button class="nav-tab" onclick="showTab('budget', this)">Budget</button>
+            <button class="nav-tab" onclick="showTab('transfer', this)">Transfer</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div class="form-section">
+                <h3>Recent Transactions</h3>
+                <div class="table-container">
+                    <table id="recentTransactions">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Account</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Tab -->
+        <div id="accounts" class="tab-content">
+            <div class="form-section">
+                <h3>Add New Account</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="accountName" placeholder="e.g., Checking Account">
+                    </div>
+                    <div class="form-group">
+                        <label>Account Type</label>
+                        <select id="accountType">
+                            <option value="Checking">Checking Account</option>
+                            <option value="Savings">Savings Account</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Loan">Loan Account</option>
+                            <option value="Investment">Investment Account</option>
+                            <option value="Cash">Cash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Opening Balance</label>
+                        <input type="number" id="openingBalance" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addAccount()">Add Account</button>
+            </div>
+
+            <div class="table-container">
+                <table id="accountsTable">
+                    <thead>
+                        <tr>
+                            <th>Account Name</th>
+                            <th>Type</th>
+                            <th>Balance</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Categories Tab -->
+        <div id="categories" class="tab-content">
+            <div class="form-section">
+                <h3>Add New Category</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <input type="text" id="categoryName" placeholder="e.g., Food & Dining">
+                    </div>
+                    <div class="form-group">
+                        <label>Category Type</label>
+                        <select id="categoryType">
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addCategory()">Add Category</button>
+            </div>
+
+            <div class="table-container">
+                <table id="categoriesTable">
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content">
+            <div class="form-section">
+                <h3>Add New Transaction</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="transactionDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="transactionDescription" placeholder="Transaction description">
+                    </div>
+                    <div class="form-group">
+                        <label>Account</label>
+                        <select id="transactionAccount">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="transactionCategory">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="transactionAmount" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
+            </div>
+
+            <div class="table-container">
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Account</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Budget Tab -->
+        <div id="budget" class="tab-content">
+            <div class="form-section">
+                <h3>Set Budget</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="budgetCategory">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Budget Amount</label>
+                        <input type="number" id="budgetAmount" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="setBudget()">Set Budget</button>
+            </div>
+
+            <div id="budgetOverview">
+                <!-- Budget overview will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Transfer Tab -->
+        <div id="transfer" class="tab-content">
+            <div class="form-section">
+                <h3>Transfer Money Between Accounts</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>From Account</label>
+                        <select id="fromAccount">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>To Account</label>
+                        <select id="toAccount">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="transferAmount" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="transferDescription" placeholder="Transfer description">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="transferDate">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="transferMoney()">Transfer Money</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let accounts = [];
+        let categories = [];
+        let transactions = [];
+        let budgets = {};
+
+        // Initialize the app
+        function init() {
+            loadData();
+            renderAccounts();
+            renderCategories();
+            renderTransactions();
+            updateDropdowns();
+            updateDashboard();
+            
+            // Set today's date as default for transaction and transfer forms
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+            document.getElementById('transferDate').value = today;
+        }
+
+        // Load data from localStorage or initialize with defaults
+        function loadData() {
+            const storedAccounts = localStorage.getItem('accounts');
+            const storedCategories = localStorage.getItem('categories');
+            const storedTransactions = localStorage.getItem('transactions');
+            const storedBudgets = localStorage.getItem('budgets');
+
+            if (storedAccounts) {
+                accounts = JSON.parse(storedAccounts);
+            } else {
+                accounts = [
+                    { id: 1, name: 'Checking Account', type: 'Checking', balance: 1000 },
+                    { id: 2, name: 'Savings Account', type: 'Savings', balance: 5000 },
+                    { id: 3, name: 'Credit Card', type: 'Credit Card', balance: -500 }
+                ];
+            }
+
+            if (storedCategories) {
+                categories = JSON.parse(storedCategories);
+            } else {
+                categories = [
+                    { id: 1, name: 'Food & Dining', type: 'expense' },
+                    { id: 2, name: 'Transportation', type: 'expense' },
+                    { id: 3, name: 'Utilities', type: 'expense' },
+                    { id: 4, name: 'Entertainment', type: 'expense' },
+                    { id: 5, name: 'Healthcare', type: 'expense' },
+                    { id: 6, name: 'Shopping', type: 'expense' },
+                    { id: 7, name: 'Salary', type: 'income' },
+                    { id: 8, name: 'Freelance', type: 'income' },
+                    { id: 9, name: 'Investment', type: 'income' }
+                ];
+            }
+
+            if (storedTransactions) {
+                transactions = JSON.parse(storedTransactions);
+            } else {
+                transactions = [];
+            }
+
+            if (storedBudgets) {
+                budgets = JSON.parse(storedBudgets);
+            } else {
+                budgets = {};
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+            localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            localStorage.setItem('budgets', JSON.stringify(budgets));
+        }
+
+        // Tab navigation
+        function showTab(tabName, element) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab and activate nav tab
+            document.getElementById(tabName).classList.add('active');
+            element.classList.add('active');
+
+            // Update dropdowns and data when switching tabs
+            updateDropdowns();
+            if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'budget') updateBudgetOverview();
+        }
+
+        // Account management
+        function addAccount() {
+            const name = document.getElementById('accountName').value.trim();
+            const type = document.getElementById('accountType').value;
+            const balance = parseFloat(document.getElementById('openingBalance').value) || 0;
+
+            if (!name) {
+                alert('Please enter an account name');
+                return;
+            }
+
+            const newAccount = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                balance: balance
+            };
+
+            accounts.push(newAccount);
+            saveData();
+            renderAccounts();
+            updateDropdowns();
+
+            // Clear form
+            document.getElementById('accountName').value = '';
+            document.getElementById('openingBalance').value = '';
+        }
+
+        function deleteAccount(id) {
+            if (confirm('Are you sure you want to delete this account?')) {
+                accounts = accounts.filter(account => account.id !== id);
+                saveData();
+                renderAccounts();
+                updateDropdowns();
+            }
+        }
+
+        function renderAccounts() {
+            const tbody = document.querySelector('#accountsTable tbody');
+            tbody.innerHTML = '';
+
+            accounts.forEach(account => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${account.name}</td>
+                    <td>${account.type}</td>
+                    <td class="balance ${account.balance >= 0 ? 'positive' : 'negative'}">
+                        ₹${account.balance.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteAccount(${account.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Category management
+        function addCategory() {
+            const name = document.getElementById('categoryName').value.trim();
+            const type = document.getElementById('categoryType').value;
+
+            if (!name) {
+                alert('Please enter a category name');
+                return;
+            }
+
+            const newCategory = {
+                id: Date.now(),
+                name: name,
+                type: type
+            };
+
+            categories.push(newCategory);
+            saveData();
+            renderCategories();
+            updateDropdowns();
+
+            // Clear form
+            document.getElementById('categoryName').value = '';
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                categories = categories.filter(category => category.id !== id);
+                saveData();
+                renderCategories();
+                updateDropdowns();
+            }
+        }
+
+        function renderCategories() {
+            const tbody = document.querySelector('#categoriesTable tbody');
+            tbody.innerHTML = '';
+
+            categories.forEach(category => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.name}</td>
+                    <td>${category.type}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteCategory(${category.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Transaction management
+        function addTransaction() {
+            const date = document.getElementById('transactionDate').value;
+            const description = document.getElementById('transactionDescription').value.trim();
+            const accountId = parseInt(document.getElementById('transactionAccount').value);
+            const categoryId = parseInt(document.getElementById('transactionCategory').value);
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+
+            if (!date || !description || !accountId || !categoryId || !amount) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Determine transaction type based on category
+            const category = categories.find(cat => cat.id === categoryId);
+            const type = category ? category.type : 'expense';
+
+            const newTransaction = {
+                id: Date.now(),
+                date: date,
+                description: description,
+                accountId: accountId,
+                categoryId: categoryId,
+                amount: amount,
+                type: type
+            };
+
+            transactions.push(newTransaction);
+
+            // Update account balance
+            const account = accounts.find(acc => acc.id === accountId);
+            if (account) {
+                if (type === 'income') {
+                    account.balance += amount;
+                } else {
+                    account.balance -= amount;
+                }
+            }
+
+            saveData();
+            renderTransactions();
+            renderAccounts();
+            updateDashboard();
+
+            // Clear form fields except date
+            document.getElementById('transactionDescription').value = '';
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionAccount').value = '';
+            document.getElementById('transactionCategory').value = '';
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                const transaction = transactions.find(t => t.id === id);
+                if (transaction) {
+                    // Reverse the transaction effect on account balance
+                    const account = accounts.find(acc => acc.id === transaction.accountId);
+                    if (account) {
+                        if (transaction.type === 'income') {
+                            account.balance -= transaction.amount;
+                        } else {
+                            account.balance += transaction.amount;
+                        }
+                    }
+                }
+
+                transactions = transactions.filter(transaction => transaction.id !== id);
+                saveData();
+                renderTransactions();
+                renderAccounts();
+                updateDashboard();
+            }
+        }
+
+        function renderTransactions() {
+            const tbody = document.querySelector('#transactionsTable tbody');
+            tbody.innerHTML = '';
+
+            // Sort transactions by date (newest first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedTransactions.forEach(transaction => {
+                const account = accounts.find(acc => acc.id === transaction.accountId);
+                const category = categories.find(cat => cat.id === transaction.categoryId);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(transaction.date).toLocaleDateString()}</td>
+                    <td>${transaction.description}</td>
+                    <td>${account ? account.name : 'Unknown'}</td>
+                    <td>${category ? category.name : 'Unknown'}</td>
+                    <td>${transaction.type}</td>
+                    <td class="${transaction.type === 'income' ? 'positive' : 'negative'}">
+                        ${transaction.type === 'income' ? '+' : '-'}₹${transaction.amount.toFixed(2)}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteTransaction(${transaction.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Budget management
+        function setBudget() {
+            const categoryId = parseInt(document.getElementById('budgetCategory').value);
+            const amount = parseFloat(document.getElementById('budgetAmount').value);
+
+            if (!categoryId || !amount || amount <= 0) {
+                alert('Please select a category and enter a valid budget amount');
+                return;
+            }
+
+            budgets[categoryId] = amount;
+            saveData();
+            updateBudgetOverview();
+
+            // Clear form
+            document.getElementById('budgetAmount').value = '';
+            document.getElementById('budgetCategory').value = '';
+        }
+
+        function updateBudgetOverview() {
+            const container = document.getElementById('budgetOverview');
+            container.innerHTML = '';
+
+            if (Object.keys(budgets).length === 0) {
+                container.innerHTML = '<div class="form-section"><p>No budgets set yet. Add a budget above to get started.</p></div>';
+                return;
+            }
+
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            Object.keys(budgets).forEach(categoryId => {
+                const category = categories.find(cat => cat.id === parseInt(categoryId));
+                // Only show budgets for expense categories
+                if (category && category.type === 'expense') {
+                    const budgetAmount = budgets[categoryId];
+
+                    // Calculate spent amount for current month
+                    const spentAmount = transactions
+                        .filter(t => {
+                            const tDate = new Date(t.date);
+                            return t.categoryId === parseInt(categoryId) && 
+                                   t.type === 'expense' &&
+                                   tDate.getMonth() === currentMonth &&
+                                   tDate.getFullYear() === currentYear;
+                        })
+                        .reduce((sum, t) => sum + t.amount, 0);
+
+                    const percentage = (spentAmount / budgetAmount) * 100;
+                    let progressClass = 'budget-normal';
+                    if (percentage >= 100) progressClass = 'budget-danger';
+                    else if (percentage >= 80) progressClass = 'budget-warning';
+
+                    const budgetCard = document.createElement('div');
+                    budgetCard.className = 'form-section';
+                    budgetCard.innerHTML = `
+                        <h4>${category.name}</h4>
+                        <p>Budget: ₹${budgetAmount.toFixed(2)} | Spent: ₹${spentAmount.toFixed(2)} | Remaining: ₹${(budgetAmount - spentAmount).toFixed(2)}</p>
+                        <div class="budget-progress">
+                            <div class="budget-progress-bar ${progressClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                        <small>${percentage.toFixed(1)}% of budget used</small>
+                    `;
+                    container.appendChild(budgetCard);
+                }
+            });
+        }
+
+        // Transfer money
+        function transferMoney() {
+            const fromAccountId = parseInt(document.getElementById('fromAccount').value);
+            const toAccountId = parseInt(document.getElementById('toAccount').value);
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const description = document.getElementById('transferDescription').value.trim();
+            const date = document.getElementById('transferDate').value;
+
+            if (!fromAccountId || !toAccountId || !amount || !description || !date) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (fromAccountId === toAccountId) {
+                alert('Cannot transfer to the same account');
+                return;
+            }
+
+            const fromAccount = accounts.find(acc => acc.id === fromAccountId);
+            const toAccount = accounts.find(acc => acc.id === toAccountId);
+
+            if (!fromAccount || !toAccount) {
+                alert('Invalid accounts selected');
+                return;
+            }
+
+            if (fromAccount.balance < amount) {
+                alert('Insufficient funds in source account');
+                return;
+            }
+
+            // Get a default category for transfers
+            const transferCategory = categories.find(cat => cat.name === 'Transfer') || categories[0];
+            if (!transferCategory) {
+                alert('Please add at least one category before making transfers');
+                return;
+            }
+
+            // Create transfer transactions
+            const transferOut = {
+                id: Date.now(),
+                date: date,
+                description: `Transfer to ${toAccount.name}: ${description}`,
+                accountId: fromAccountId,
+                categoryId: transferCategory.id,
+                amount: amount,
+                type: 'expense'
+            };
+
+            const transferIn = {
+                id: Date.now() + 1,
+                date: date,
+                description: `Transfer from ${fromAccount.name}: ${description}`,
+                accountId: toAccountId,
+                categoryId: transferCategory.id,
+                amount: amount,
+                type: 'income'
+            };
+
+            transactions.push(transferOut);
+            transactions.push(transferIn);
+
+            // Update account balances
+            fromAccount.balance -= amount;
+            toAccount.balance += amount;
+
+            saveData();
+            renderTransactions();
+            renderAccounts();
+            updateDashboard();
+
+            // Clear form fields except date
+            document.getElementById('transferAmount').value = '';
+            document.getElementById('transferDescription').value = '';
+            document.getElementById('fromAccount').value = '';
+            document.getElementById('toAccount').value = '';
+
+            alert('Transfer completed successfully!');
+        }
+
+        // Update dropdowns
+        function updateDropdowns() {
+            // Update transaction account dropdown
+            const transactionAccount = document.getElementById('transactionAccount');
+            transactionAccount.innerHTML = '<option value="">Select Account</option>';
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                transactionAccount.appendChild(option);
+            });
+
+            // Update transaction category dropdown
+            const transactionCategory = document.getElementById('transactionCategory');
+            transactionCategory.innerHTML = '<option value="">Select Category</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                transactionCategory.appendChild(option);
+            });
+
+            // Update budget category dropdown (only expense categories)
+            const budgetCategory = document.getElementById('budgetCategory');
+            budgetCategory.innerHTML = '<option value="">Select Category</option>';
+            categories.forEach(category => {
+                if (category.type === 'expense') {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    budgetCategory.appendChild(option);
+                }
+            });
+
+            // Update transfer account dropdowns
+            const fromAccount = document.getElementById('fromAccount');
+            const toAccount = document.getElementById('toAccount');
+            
+            fromAccount.innerHTML = '<option value="">Select Account</option>';
+            toAccount.innerHTML = '<option value="">Select Account</option>';
+            
+            accounts.forEach(account => {
+                const fromOption = document.createElement('option');
+                fromOption.value = account.id;
+                fromOption.textContent = account.name;
+                fromAccount.appendChild(fromOption);
+                
+                const toOption = document.createElement('option');
+                toOption.value = account.id;
+                toOption.textContent = account.name;
+                toAccount.appendChild(toOption);
+            });
+        }
+
+        // Dashboard functions
+        function updateDashboard() {
+            updateStats();
+            updateRecentTransactions();
+        }
+
+        function updateStats() {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = '';
+            
+            // Calculate total balance
+            const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+            
+            // Calculate total income and expenses for the current month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthlyIncome = transactions
+                .filter(t => {
+                    const tDate = new Date(t.date);
+                    return t.type === 'income' && 
+                           tDate.getMonth() === currentMonth &&
+                           tDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const monthlyExpenses = transactions
+                .filter(t => {
+                    const tDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           tDate.getMonth() === currentMonth &&
+                           tDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            // Create stat cards
+            const stats = [
+                { title: 'Total Balance', value: totalBalance, class: totalBalance >= 0 ? 'positive' : 'negative' },
+                { title: 'Monthly Income', value: monthlyIncome, class: 'positive' },
+                { title: 'Monthly Expenses', value: monthlyExpenses, class: 'negative' },
+                { title: 'Net Cash Flow', value: monthlyIncome - monthlyExpenses, class: (monthlyIncome - monthlyExpenses) >= 0 ? 'positive' : 'negative' }
+            ];
+            
+            stats.forEach(stat => {
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `
+                    <h4>${stat.title}</h4>
+                    <div class="amount ${stat.class}">₹${stat.value.toFixed(2)}</div>
+                `;
+                statsGrid.appendChild(card);
+            });
+        }
+
+        function updateRecentTransactions() {
+            const tbody = document.querySelector('#recentTransactions tbody');
+            tbody.innerHTML = '';
+            
+            // Get 5 most recent transactions
+            const recent = [...transactions]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 5);
+                
+            recent.forEach(transaction => {
+                const account = accounts.find(acc => acc.id === transaction.accountId);
+                const category = categories.find(cat => cat.id === transaction.categoryId);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(transaction.date).toLocaleDateString()}</td>
+                    <td>${transaction.description}</td>
+                    <td>${account ? account.name : 'Unknown'}</td>
+                    <td>${category ? category.name : 'Unknown'}</td>
+                    <td class="${transaction.type === 'income' ? 'positive' : 'negative'}">
+                        ${transaction.type === 'income' ? '+' : '-'}₹${transaction.amount.toFixed(2)}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Initialize the app when the page loads
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raffle Draw System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+        
+        header {
+            background: linear-gradient(to right, #d50000, #b71c1c);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .participant-management {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .participant-management h2 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .input-group button {
+            padding: 12px 20px;
+            background: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group button:hover {
+            background: #283593;
+        }
+        
+        .participants-list {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .participant-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+        }
+        
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+        
+        .participant-item.winner {
+            color: #d50000;
+            font-weight: 700;
+        }
+        
+        .delete-btn {
+            background: #ffebee;
+            color: #d50000;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #d50000;
+            color: white;
+        }
+        
+        .draw-section {
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .draw-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .winner-display {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .winner-display h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .current-winner {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #d50000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+        
+        .winner-animation {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .draw-btn {
+            padding: 15px 40px;
+            background: #d50000;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .draw-btn:hover {
+            background: #b71c1c;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .draw-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .right-panel {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+        }
+        
+        .winners-history {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .winners-history h2 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .history-list {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .winner-name {
+            font-weight: 700;
+            color: #d50000;
+        }
+        
+        .game-controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        .game-controls h2 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            padding: 12px 20px;
+            background: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .control-btn:hover {
+            background: #283593;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.reset {
+            background: #d50000;
+        }
+        
+        .control-btn.reset:hover {
+            background: #b71c1c;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            color: #333;
+            font-weight: 600;
+            padding: 0 10px;
+        }
+        
+        .stats span {
+            background: #e0e0e0;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .current-winner {
+                font-size: 2.5rem;
+            }
+            
+            .control-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group input {
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
+            
+            .input-group button {
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Raffle Draw System</h1>
+            <p class="subtitle">Chit Fund Draw - No Repeat Winners</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="participant-management">
+                    <h2>Participant Management</h2>
+                    <div class="input-group">
+                        <input type="text" id="participant-input" placeholder="Enter participant name">
+                        <button id="add-btn"><i class="fas fa-plus"></i> Add</button>
+                    </div>
+                    
+                    <div class="participants-list" id="participants-list">
+                        <div class="participant-item" style="color: #777; text-align: center; justify-content: center;">
+                            No participants added yet
+                        </div>
+                    </div>
+                    
+                    <div class="stats">
+                        <span>Total: <span id="total-count">0</span></span>
+                        <span>Remaining: <span id="remaining-count">0</span></span>
+                        <span>Winners: <span id="winners-count">0</span></span>
+                    </div>
+                </div>
+                
+                <div class="draw-section">
+                    <h2>Draw Section</h2>
+                    <div class="winner-display">
+                        <h3>Current Winner</h3>
+                        <div class="current-winner" id="current-winner">-</div>
+                    </div>
+                    <button class="draw-btn" id="draw-btn">
+                        <i class="fas fa-star"></i> Draw Winner
+                    </button>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="winners-history">
+                    <h2>Winners History</h2>
+                    <div class="history-list" id="history-list">
+                        <div class="history-item" style="color: #777; text-align: center; justify-content: center;">
+                            No winners drawn yet
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <h2>Draw Controls</h2>
+                    <div class="control-buttons">
+                        <button class="control-btn" id="reset-winners-btn">
+                            <i class="fas fa-redo"></i> Reset Winners
+                        </button>
+                        <button class="control-btn reset" id="reset-all-btn">
+                            <i class="fas fa-trash"></i> Reset All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const participantInput = document.getElementById('participant-input');
+            const addBtn = document.getElementById('add-btn');
+            const participantsList = document.getElementById('participants-list');
+            const drawBtn = document.getElementById('draw-btn');
+            const currentWinnerEl = document.getElementById('current-winner');
+            const historyListEl = document.getElementById('history-list');
+            const resetWinnersBtn = document.getElementById('reset-winners-btn');
+            const resetAllBtn = document.getElementById('reset-all-btn');
+            const totalCountEl = document.getElementById('total-count');
+            const remainingCountEl = document.getElementById('remaining-count');
+            const winnersCountEl = document.getElementById('winners-count');
+            
+            // Data
+            let participants = [];
+            let winners = [];
+            let availableParticipants = [];
+            
+            // Initialize
+            loadData();
+            updateDisplay();
+            
+            // Event listeners
+            addBtn.addEventListener('click', addParticipant);
+            participantInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addParticipant();
+            });
+            
+            drawBtn.addEventListener('click', drawWinner);
+            resetWinnersBtn.addEventListener('click', resetWinners);
+            resetAllBtn.addEventListener('click', resetAll);
+            
+            // Functions
+            function addParticipant() {
+                const name = participantInput.value.trim();
+                if (name === '') return;
+                
+                if (!participants.includes(name)) {
+                    participants.push(name);
+                    availableParticipants.push(name);
+                    saveData();
+                    updateDisplay();
+                    participantInput.value = '';
+                    participantInput.focus();
+                } else {
+                    alert('This participant is already in the list!');
+                }
+            }
+            
+            function drawWinner() {
+                if (availableParticipants.length === 0) {
+                    alert('No participants available for drawing!');
+                    return;
+                }
+                
+                // Random selection
+                const randomIndex = Math.floor(Math.random() * availableParticipants.length);
+                const winner = availableParticipants[randomIndex];
+                
+                // Remove from available participants
+                availableParticipants.splice(randomIndex, 1);
+                winners.push(winner);
+                
+                // Update display with animation
+                currentWinnerEl.textContent = winner;
+                currentWinnerEl.classList.remove('winner-animation');
+                void currentWinnerEl.offsetWidth; // Trigger reflow
+                currentWinnerEl.classList.add('winner-animation');
+                
+                saveData();
+                updateDisplay();
+                
+                // Show confetti effect
+                showConfetti();
+            }
+            
+            function resetWinners() {
+                if (winners.length === 0) return;
+                
+                if (confirm('Reset winners? They will be available for drawing again.')) {
+                    availableParticipants = [...participants];
+                    winners = [];
+                    currentWinnerEl.textContent = '-';
+                    saveData();
+                    updateDisplay();
+                }
+            }
+            
+            function resetAll() {
+                if (confirm('Are you sure you want to remove all participants and winners?')) {
+                    participants = [];
+                    winners = [];
+                    availableParticipants = [];
+                    currentWinnerEl.textContent = '-';
+                    saveData();
+                    updateDisplay();
+                }
+            }
+            
+            function updateDisplay() {
+                // Update participants list
+                participantsList.innerHTML = '';
+                
+                if (participants.length === 0) {
+                    participantsList.innerHTML = `
+                        <div class="participant-item" style="color: #777; text-align: center; justify-content: center;">
+                            No participants added yet
+                        </div>
+                    `;
+                } else {
+                    participants.forEach(participant => {
+                        const isWinner = winners.includes(participant);
+                        const item = document.createElement('div');
+                        item.className = `participant-item ${isWinner ? 'winner' : ''}`;
+                        item.innerHTML = `
+                            <span>${participant}</span>
+                            ${!isWinner ? `<button class="delete-btn" data-name="${participant}">
+                                <i class="fas fa-times"></i>
+                            </button>` : ''}
+                        `;
+                        participantsList.appendChild(item);
+                    });
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const name = this.getAttribute('data-name');
+                            removeParticipant(name);
+                        });
+                    });
+                }
+                
+                // Update winners history
+                historyListEl.innerHTML = '';
+                
+                if (winners.length === 0) {
+                    historyListEl.innerHTML = `
+                        <div class="history-item" style="color: #777; text-align: center; justify-content: center;">
+                            No winners drawn yet
+                        </div>
+                    `;
+                } else {
+                    winners.forEach((winner, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.innerHTML = `
+                            <span>#${index + 1}</span>
+                            <span class="winner-name">${winner}</span>
+                            <span>${formatDate(new Date())}</span>
+                        `;
+                        historyListEl.appendChild(item);
+                    });
+                }
+                
+                // Update stats
+                totalCountEl.textContent = participants.length;
+                remainingCountEl.textContent = availableParticipants.length;
+                winnersCountEl.textContent = winners.length;
+                
+                // Enable/disable draw button
+                drawBtn.disabled = availableParticipants.length === 0;
+            }
+            
+            function removeParticipant(name) {
+                if (confirm(`Remove ${name} from the participants list?`)) {
+                    const partIndex = participants.indexOf(name);
+                    if (partIndex > -1) participants.splice(partIndex, 1);
+                    
+                    const availIndex = availableParticipants.indexOf(name);
+                    if (availIndex > -1) availableParticipants.splice(availIndex, 1);
+                    
+                    const winnerIndex = winners.indexOf(name);
+                    if (winnerIndex > -1) winners.splice(winnerIndex, 1);
+                    
+                    saveData();
+                    updateDisplay();
+                }
+            }
+            
+            function formatDate(date) {
+                return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            }
+            
+            function saveData() {
+                localStorage.setItem('raffleParticipants', JSON.stringify(participants));
+                localStorage.setItem('raffleWinners', JSON.stringify(winners));
+                localStorage.setItem('raffleAvailable', JSON.stringify(availableParticipants));
+            }
+            
+            function loadData() {
+                participants = JSON.parse(localStorage.getItem('raffleParticipants') || '[]');
+                winners = JSON.parse(localStorage.getItem('raffleWinners') || '[]');
+                availableParticipants = JSON.parse(localStorage.getItem('raffleAvailable') || '[]');
+                
+                // If availableParticipants is empty but participants exist, reset available
+                if (availableParticipants.length === 0 && participants.length > 0) {
+                    availableParticipants = [...participants].filter(p => !winners.includes(p));
+                }
+            }
+            
+            function showConfetti() {
+                const confettiCount = 200;
+                const container = document.querySelector('.winner-display');
+                
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    confetti.style.backgroundColor = [
+                        '#d50000', '#1a237e', '#283593', '#b71c1c', '#0d47a1'
+                    ][Math.floor(Math.random() * 5)];
+                    
+                    // Apply confetti styles
+                    confetti.style.position = 'absolute';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.opacity = '0';
+                    
+                    // Animation
+                    confetti.style.animation = `confetti-fall ${2 + Math.random() * 3}s ease-out forwards`;
+                    
+                    container.appendChild(confetti);
+                    
+                    // Remove after animation completes
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+                
+                // Add confetti animation styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes confetti-fall {
+                        0% {
+                            opacity: 1;
+                            transform: translateY(0) rotate(0deg);
+                        }
+                        100% {
+                            opacity: 0;
+                            transform: translateY(100px) rotate(360deg);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        });
+    </script>
+</body>
+</html>

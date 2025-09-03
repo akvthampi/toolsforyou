@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Encyclopedia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #2c3e50, #4a69bd);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .search-box {
+            display: flex;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+        
+        #search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            font-size: 1.1rem;
+            outline: none;
+        }
+        
+        #search-button {
+            background: #4a69bd;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1.1rem;
+        }
+        
+        #search-button:hover {
+            background: #3c58a8;
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .result-header {
+            padding: 20px;
+            background: #4a69bd;
+            color: white;
+        }
+        
+        .result-body {
+            padding: 20px;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .result-extract {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .read-more {
+            display: inline-block;
+            color: #4a69bd;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .read-more:hover {
+            color: #3c58a8;
+            text-decoration: underline;
+        }
+        
+        .loader {
+            text-align: center;
+            display: none;
+            margin: 30px 0;
+        }
+        
+        .loader i {
+            font-size: 2rem;
+            color: #4a69bd;
+        }
+        
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .initial-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #7f8c8d;
+        }
+        
+        .initial-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #4a69bd;
+        }
+        
+        .initial-state h2 {
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .example {
+            background: #eaf0ff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .example:hover {
+            background: #d4e0ff;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .search-box {
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mini Encyclopedia</h1>
+            <p class="tagline">Discover knowledge from Wikipedia</p>
+        </header>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Enter a topic to explore...">
+                <button id="search-button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+        
+        <div class="initial-state" id="initial-state">
+            <i class="fas fa-book-open"></i>
+            <h2>Explore World Knowledge</h2>
+            <p>Search for any topic to learn more about it</p>
+            
+            <div class="examples">
+                <div class="example" data-term="Artificial Intelligence">Artificial Intelligence</div>
+                <div class="example" data-term="Climate Change">Climate Change</div>
+                <div class="example" data-term="Renaissance">Renaissance</div>
+                <div class="example" data-term="Quantum Mechanics">Quantum Mechanics</div>
+            </div>
+        </div>
+        
+        <div class="loader" id="loader">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Searching Wikipedia...</p>
+        </div>
+        
+        <div class="error" id="error">
+            <p id="error-message"></p>
+        </div>
+        
+        <div class="results" id="results">
+            <!-- Results will be displayed here -->
+        </div>
+        
+        <footer>
+            <p>Powered by Wikipedia API | Mini Encyclopedia &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const resultsContainer = document.getElementById('results');
+            const loader = document.getElementById('loader');
+            const errorDiv = document.getElementById('error');
+            const initialState = document.getElementById('initial-state');
+            const examples = document.querySelectorAll('.example');
+            
+            // Focus on search input when page loads
+            searchInput.focus();
+            
+            // Search when button is clicked
+            searchButton.addEventListener('click', performSearch);
+            
+            // Search when Enter key is pressed
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Add event listeners to example terms
+            examples.forEach(example => {
+                example.addEventListener('click', function() {
+                    searchInput.value = this.getAttribute('data-term');
+                    performSearch();
+                });
+            });
+            
+            function performSearch() {
+                const searchTerm = searchInput.value.trim();
+                
+                if (searchTerm === '') {
+                    showError('Please enter a search term');
+                    return;
+                }
+                
+                // Hide initial state and clear previous results
+                initialState.style.display = 'none';
+                resultsContainer.innerHTML = '';
+                hideError();
+                showLoader();
+                
+                // Use Wikipedia API
+                const apiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerm)}&format=json&origin=*`;
+                
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        hideLoader();
+                        displayResults(data.query.search, searchTerm);
+                    })
+                    .catch(error => {
+                        hideLoader();
+                        showError('Failed to fetch data from Wikipedia. Please try again.');
+                        console.error('Error:', error);
+                    });
+            }
+            
+            function displayResults(results, searchTerm) {
+                if (results.length === 0) {
+                    showError(`No results found for "${searchTerm}". Try a different search term.`);
+                    return;
+                }
+                
+                // Show the number of results
+                const resultsCount = document.createElement('p');
+                resultsCount.style.marginBottom = '20px';
+                resultsCount.style.textAlign = 'center';
+                resultsCount.style.color = '#7f8c8d';
+                resultsCount.innerHTML = `Found <strong>${results.length}</strong> results for <strong>"${searchTerm}"</strong>`;
+                resultsContainer.appendChild(resultsCount);
+                
+                // Display each result
+                results.forEach(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'result-card';
+                    
+                    // Create Wikipedia URL
+                    const pageUrl = `https://en.wikipedia.org/?curid=${result.pageid}`;
+                    
+                    // Format the result
+                    resultElement.innerHTML = `
+                        <div class="result-header">
+                            <h2 class="result-title">${result.title}</h2>
+                        </div>
+                        <div class="result-body">
+                            <p class="result-extract">${result.snippet}...</p>
+                            <a href="${pageUrl}" target="_blank" class="read-more">Read more on Wikipedia</a>
+                        </div>
+                    `;
+                    
+                    resultsContainer.appendChild(resultElement);
+                });
+            }
+            
+            function showLoader() {
+                loader.style.display = 'block';
+            }
+            
+            function hideLoader() {
+                loader.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorDiv.style.display = 'block';
+                document.getElementById('error-message').textContent = message;
+            }
+            
+            function hideError() {
+                errorDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

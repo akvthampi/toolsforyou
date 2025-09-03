@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Clipping Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .upload-section {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .waveform-container {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 150px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .time-selection {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .time-input {
+            width: 45%;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        #status {
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Clipping Tool</h1>
+    
+    <div class="container">
+        <div class="upload-section">
+            <input type="file" id="audio-upload" accept="audio/*" />
+            <p>Supported formats: MP3, WAV, OGG</p>
+        </div>
+        
+        <div id="waveform" class="waveform-container hidden">
+            <canvas id="waveform-canvas"></canvas>
+        </div>
+        
+        <div id="controls" class="controls hidden">
+            <button id="play-btn">Play</button>
+            <button id="pause-btn">Pause</button>
+            <button id="stop-btn">Stop</button>
+        </div>
+        
+        <div id="time-selection" class="time-selection hidden">
+            <div class="time-input">
+                <label for="start-time">Start Time (seconds):</label>
+                <input type="number" id="start-time" min="0" step="0.1" value="0" />
+                <input type="range" id="start-slider" min="0" step="0.1" value="0" />
+            </div>
+            
+            <div class="time-input">
+                <label for="end-time">End Time (seconds):</label>
+                <input type="number" id="end-time" min="0" step="0.1" value="0" />
+                <input type="range" id="end-slider" min="0" step="0.1" value="0" />
+            </div>
+        </div>
+        
+        <div id="crop-section" class="hidden">
+            <button id="crop-btn">Crop Audio</button>
+        </div>
+        
+        <div id="download-section" class="download-section hidden">
+            <a id="download-link" download="cropped-audio.wav">Download Cropped Audio</a>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Global variables
+        let audioContext;
+        let audioBuffer = null;
+        let audioSource = null;
+        let isPlaying = false;
+        let startTime = 0;
+        let endTime = 0;
+        
+        // DOM elements
+        const audioUpload = document.getElementById('audio-upload');
+        const waveform = document.getElementById('waveform');
+        const waveformCanvas = document.getElementById('waveform-canvas');
+        const controls = document.getElementById('controls');
+        const timeSelection = document.getElementById('time-selection');
+        const cropSection = document.getElementById('crop-section');
+        const downloadSection = document.getElementById('download-section');
+        const downloadLink = document.getElementById('download-link');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const startTimeInput = document.getElementById('start-time');
+        const endTimeInput = document.getElementById('end-time');
+        const startSlider = document.getElementById('start-slider');
+        const endSlider = document.getElementById('end-slider');
+        const cropBtn = document.getElementById('crop-btn');
+        const status = document.getElementById('status');
+        
+        // Initialize audio context
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            status.textContent = 'Web Audio API is not supported in this browser.';
+        }
+        
+        // Event listeners
+        audioUpload.addEventListener('change', handleFileUpload);
+        playBtn.addEventListener('click', playAudio);
+        pauseBtn.addEventListener('click', pauseAudio);
+        stopBtn.addEventListener('click', stopAudio);
+        startTimeInput.addEventListener('input', updateStartTime);
+        endTimeInput.addEventListener('input', updateEndTime);
+        startSlider.addEventListener('input', updateStartTimeFromSlider);
+        endSlider.addEventListener('input', updateEndTimeFromSlider);
+        cropBtn.addEventListener('click', cropAudio);
+        
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            status.textContent = 'Loading audio file...';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                audioContext.decodeAudioData(arrayBuffer)
+                    .then(function(buffer) {
+                        audioBuffer = buffer;
+                        endTime = buffer.duration;
+                        
+                        // Update UI
+                        startTimeInput.setAttribute('max', buffer.duration);
+                        endTimeInput.setAttribute('max', buffer.duration);
+                        endTimeInput.value = buffer.duration.toFixed(1);
+                        startSlider.setAttribute('max', buffer.duration);
+                        endSlider.setAttribute('max', buffer.duration);
+                        endSlider.value = buffer.duration;
+                        
+                        // Draw waveform
+                        drawWaveform(buffer);
+                        
+                        // Show controls
+                        waveform.classList.remove('hidden');
+                        controls.classList.remove('hidden');
+                        timeSelection.classList.remove('hidden');
+                        cropSection.classList.remove('hidden');
+                        
+                        status.textContent = 'Audio file loaded. Select start and end times.';
+                    })
+                    .catch(function(err) {
+                        status.textContent = 'Error decoding audio data: ' + err.message;
+                    });
+            };
+            reader.onerror = function() {
+                status.textContent = 'Error reading file';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Draw waveform
+        function drawWaveform(buffer) {
+            const width = waveformCanvas.width = waveform.clientWidth;
+            const height = waveformCanvas.height = waveform.clientHeight;
+            const context = waveformCanvas.getContext('2d');
+            
+            // Clear canvas
+            context.clearRect(0, 0, width, height);
+            
+            // Draw background
+            context.fillStyle = '#f8f9fa';
+            context.fillRect(0, 0, width, height);
+            
+            // Draw waveform
+            const channelData = buffer.getChannelData(0);
+            const step = Math.ceil(channelData.length / width);
+            const amp = height / 2;
+            
+            context.strokeStyle = '#3498db';
+            context.lineWidth = 2;
+            context.beginPath();
+            
+            for (let i = 0; i < width; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                
+                for (let j = 0; j < step; j++) {
+                    const index = Math.floor((i * step) + j);
+                    if (index < channelData.length) {
+                        const datum = channelData[index];
+                        if (datum < min) min = datum;
+                        if (datum > max) max = datum;
+                    }
+                }
+                
+                context.moveTo(i, amp * (1 - min));
+                context.lineTo(i, amp * (1 - max));
+            }
+            
+            context.stroke();
+        }
+        
+        // Play audio
+        function playAudio() {
+            if (!audioBuffer || isPlaying) return;
+            
+            stopAudio();
+            
+            audioSource = audioContext.createBufferSource();
+            audioSource.buffer = audioBuffer;
+            audioSource.connect(audioContext.destination);
+            
+            // Set playback range
+            const duration = endTime - startTime;
+            audioSource.start(0, startTime, duration);
+            
+            isPlaying = true;
+            status.textContent = `Playing from ${startTime.toFixed(1)}s to ${endTime.toFixed(1)}s`;
+        }
+        
+        // Pause audio (not truly pausing, just stopping)
+        function pauseAudio() {
+            if (!isPlaying) return;
+            
+            stopAudio();
+            status.textContent = 'Playback paused';
+        }
+        
+        // Stop audio
+        function stopAudio() {
+            if (audioSource) {
+                audioSource.stop();
+                audioSource = null;
+            }
+            isPlaying = false;
+        }
+        
+        // Update start time
+        function updateStartTime() {
+            const newStartTime = parseFloat(startTimeInput.value);
+            
+            if (!isNaN(newStartTime) && newStartTime >= 0 && newStartTime < endTime) {
+                startTime = newStartTime;
+                startSlider.value = newStartTime;
+                status.textContent = `Start time set to ${startTime.toFixed(1)}s`;
+            } else {
+                startTimeInput.value = startTime.toFixed(1);
+            }
+        }
+        
+        // Update end time
+        function updateEndTime() {
+            const newEndTime = parseFloat(endTimeInput.value);
+            
+            if (!isNaN(newEndTime) && newEndTime > startTime && newEndTime <= audioBuffer.duration) {
+                endTime = newEndTime;
+                endSlider.value = newEndTime;
+                status.textContent = `End time set to ${endTime.toFixed(1)}s`;
+            } else {
+                endTimeInput.value = endTime.toFixed(1);
+            }
+        }
+        
+        // Update start time from slider
+        function updateStartTimeFromSlider() {
+            startTime = parseFloat(startSlider.value);
+            startTimeInput.value = startTime.toFixed(1);
+            status.textContent = `Start time set to ${startTime.toFixed(1)}s`;
+        }
+        
+        // Update end time from slider
+        function updateEndTimeFromSlider() {
+            endTime = parseFloat(endSlider.value);
+            endTimeInput.value = endTime.toFixed(1);
+            status.textContent = `End time set to ${endTime.toFixed(1)}s`;
+        }
+        
+        // Crop audio
+        function cropAudio() {
+            if (!audioBuffer) return;
+            
+            status.textContent = 'Cropping audio...';
+            
+            const duration = endTime - startTime;
+            const sampleRate = audioBuffer.sampleRate;
+            const startOffset = Math.floor(startTime * sampleRate);
+            const endOffset = Math.floor(endTime * sampleRate);
+            
+            // Create new buffer for the cropped audio
+            const newBuffer = audioContext.createBuffer(
+                audioBuffer.numberOfChannels,
+                endOffset - startOffset,
+                sampleRate
+            );
+            
+            // Copy data for each channel
+            for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                const oldData = audioBuffer.getChannelData(channel);
+                const newData = newBuffer.getChannelData(channel);
+                
+                for (let i = startOffset, j = 0; i < endOffset; i++, j++) {
+                    newData[j] = oldData[i];
+                }
+            }
+            
+            // Convert to WAV and create download link
+            const wavData = bufferToWav(newBuffer);
+            const blob = new Blob([wavData], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            
+            downloadLink.href = url;
+            downloadLink.download = `cropped-audio-${startTime.toFixed(1)}-${endTime.toFixed(1)}.wav`;
+            downloadSection.classList.remove('hidden');
+            
+            status.textContent = 'Audio cropped successfully! Click the download link.';
+        }
+        
+        // Convert AudioBuffer to WAV format
+        function bufferToWav(buffer) {
+            const numChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const length = buffer.length * numChannels * 2; // 2 bytes per sample
+            const data = new DataView(new ArrayBuffer(44 + length));
+            
+            // Write WAV header
+            writeString(data, 0, 'RIFF');
+            data.setUint32(4, 36 + length, true);
+            writeString(data, 8, 'WAVE');
+            writeString(data, 12, 'fmt ');
+            data.setUint32(16, 16, true);
+            data.setUint16(20, 1, true);
+            data.setUint16(22, numChannels, true);
+            data.setUint32(24, sampleRate, true);
+            data.setUint32(28, sampleRate * numChannels * 2, true);
+            data.setUint16(32, numChannels * 2, true);
+            data.setUint16(34, 16, true);
+            writeString(data, 36, 'data');
+            data.setUint32(40, length, true);
+            
+            // Write audio data
+            const channelData = [];
+            for (let channel = 0; channel < numChannels; channel++) {
+                channelData.push(buffer.getChannelData(channel));
+            }
+            
+            let offset = 44;
+            for (let i = 0; i < buffer.length; i++) {
+                for (let channel = 0; channel < numChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, channelData[channel][i]));
+                    data.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+            
+            return data;
+        }
+        
+        // Helper function to write string to DataView
+        function writeString(data, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                data.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexiFind - Dictionary & Thesaurus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        header {
+            background: #4e54c8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .search-container {
+            padding: 20px;
+            background: #f5f7ff;
+            display: flex;
+            border-bottom: 1px solid #e0e5ff;
+        }
+        
+        #searchInput {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #4e54c8;
+            border-radius: 50px 0 0 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        #searchButton {
+            background: #4e54c8;
+            color: white;
+            border: none;
+            padding: 0 22px;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+        
+        #searchButton:hover {
+            background: #3a3eb3;
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 450px;
+        }
+        
+        .results-container {
+            flex: 3;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 450px;
+        }
+        
+        .history-sidebar {
+            flex: 1;
+            background: #f9faff;
+            padding: 20px;
+            border-left: 1px solid #e0e5ff;
+        }
+        
+        .history-title {
+            font-size: 1.2rem;
+            color: #2d3192;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e5ff;
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .history-item {
+            background: #f0f3ff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .history-item:hover {
+            background: #4e54c8;
+            color: white;
+        }
+        
+        .word-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .word {
+            font-size: 2rem;
+            color: #2d3192;
+            font-weight: 700;
+        }
+        
+        .phonetic {
+            color: #6a6fcd;
+            font-size: 1.1rem;
+            margin-top: 4px;
+        }
+        
+        .audio-btn {
+            background: #4e54c8;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .audio-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .meaning {
+            margin-top: 20px;
+        }
+        
+        .part-of-speech {
+            font-size: 1.3rem;
+            color: #2d3192;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #e0e5ff;
+        }
+        
+        .definition {
+            margin-bottom: 12px;
+            padding-left: 18px;
+            position: relative;
+        }
+        
+        .definition:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #4e54c8;
+        }
+        
+        .example {
+            background: #f0f3ff;
+            padding: 8px 12px;
+            border-left: 3px solid #4e54c8;
+            margin: 8px 0;
+            font-style: italic;
+            border-radius: 0 5px 5px 0;
+            font-size: 0.95rem;
+        }
+        
+        .synonyms, .antonyms {
+            margin-top: 15px;
+        }
+        
+        .synonyms span, .antonyms span {
+            font-weight: 600;
+            color: #2d3192;
+        }
+        
+        .synonym-list, .antonym-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .synonym, .antonym {
+            background: #e0e5ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .synonym:hover, .antonym:hover {
+            background: #4e54c8;
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px 0;
+            color: #6a6fcd;
+        }
+        
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .error-state {
+            color: #ff4d4d;
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .error-state i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .loading-state {
+            text-align: center;
+            padding: 30px 0;
+            color: #6a6fcd;
+        }
+        
+        .loading-state i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            animation: spin 1s infinite linear;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.85rem;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .history-sidebar {
+                border-left: none;
+                border-top: 1px solid #e0e5ff;
+            }
+            
+            .history-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 8px;
+            }
+            
+            .container {
+                border-radius: 12px;
+                margin-top: 10px;
+            }
+            
+            header {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-container {
+                padding: 15px;
+            }
+            
+            #searchInput {
+                padding: 12px 15px;
+            }
+            
+            .results-container, .history-sidebar {
+                padding: 15px;
+            }
+            
+            .word {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LexiFind</h1>
+            <p class="tagline">Dictionary & Thesaurus - Find meanings, synonyms, and more</p>
+        </header>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Enter a word...">
+            <button id="searchButton"><i class="fas fa-search"></i></button>
+        </div>
+        
+        <div class="main-content">
+            <div class="results-container">
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <p>Enter a word above to get its definition, synonyms, and more</p>
+                </div>
+            </div>
+            
+            <div class="history-sidebar">
+                <h3 class="history-title">Recent Searches</h3>
+                <div class="history-list" id="historyList">
+                    <!-- History items will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>LexiFind Dictionary & Thesaurus | Created with HTML, CSS, and JavaScript</p>
+        <p>Powered by <a href="https://dictionaryapi.dev/">Free Dictionary API</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const resultsContainer = document.querySelector('.results-container');
+            const historyList = document.getElementById('historyList');
+            
+            // Initialize search history from localStorage or empty array
+            let searchHistory = JSON.parse(localStorage.getItem('dictionaryHistory')) || [];
+            
+            // Display search history
+            function displayHistory() {
+                historyList.innerHTML = '';
+                // Show only the last 5 searches
+                const recentHistory = searchHistory.slice(-5).reverse();
+                
+                recentHistory.forEach(word => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.textContent = word;
+                    historyItem.addEventListener('click', () => {
+                        searchInput.value = word;
+                        searchWord(word);
+                    });
+                    historyList.appendChild(historyItem);
+                });
+                
+                if (recentHistory.length === 0) {
+                    historyList.innerHTML = '<div class="history-item">No recent searches</div>';
+                }
+            }
+            
+            // Show loading state
+            function showLoading() {
+                resultsContainer.innerHTML = `
+                    <div class="loading-state">
+                        <i class="fas fa-spinner"></i>
+                        <p>Searching for word definition...</p>
+                    </div>
+                `;
+            }
+            
+            // Display word data in the UI
+            function displayWordData(wordData) {
+                // Extract the first entry (some words have multiple entries)
+                const entry = wordData[0];
+                
+                resultsContainer.innerHTML = `
+                    <div class="word-title">
+                        <div>
+                            <h2 class="word">${entry.word}</h2>
+                            ${entry.phonetic ? `<p class="phonetic">${entry.phonetic}</p>` : ''}
+                        </div>
+                        ${entry.phonetics && entry.phonetics.length > 0 && entry.phonetics[0].audio ? 
+                        `<div class="audio-btn" onclick="playAudio('${entry.phonetics[0].audio}')">
+                            <i class="fas fa-volume-up"></i>
+                        </div>` : ''}
+                    </div>
+                `;
+                
+                entry.meanings.forEach(meaning => {
+                    const meaningElement = document.createElement('div');
+                    meaningElement.className = 'meaning';
+                    
+                    meaningElement.innerHTML = `
+                        <h3 class="part-of-speech">${meaning.partOfSpeech}</h3>
+                    `;
+                    
+                    meaning.definitions.forEach((def, index) => {
+                        // Show only the first 3 definitions to avoid clutter
+                        if (index < 3) {
+                            const definitionElement = document.createElement('div');
+                            definitionElement.className = 'definition';
+                            definitionElement.innerHTML = `
+                                <p>${def.definition}</p>
+                                ${def.example ? `<div class="example">${def.example}</div>` : ''}
+                            `;
+                            meaningElement.appendChild(definitionElement);
+                        }
+                    });
+                    
+                    if (meaning.synonyms && meaning.synonyms.length > 0) {
+                        const synonymsElement = document.createElement('div');
+                        synonymsElement.className = 'synonyms';
+                        synonymsElement.innerHTML = `
+                            <p><span>Synonyms:</span></p>
+                            <div class="synonym-list">
+                                ${meaning.synonyms.slice(0, 5).map(syn => `<div class="synonym">${syn}</div>`).join('')}
+                            </div>
+                        `;
+                        meaningElement.appendChild(synonymsElement);
+                    }
+                    
+                    if (meaning.antonyms && meaning.antonyms.length > 0) {
+                        const antonymsElement = document.createElement('div');
+                        antonymsElement.className = 'antonyms';
+                        antonymsElement.innerHTML = `
+                            <p><span>Antonyms:</span></p>
+                            <div class="antonym-list">
+                                ${meaning.antonyms.slice(0, 5).map(ant => `<div class="antonym">${ant}</div>`).join('')}
+                            </div>
+                        `;
+                        meaningElement.appendChild(antonymsElement);
+                    }
+                    
+                    resultsContainer.appendChild(meaningElement);
+                });
+                
+                // Add event listeners to synonyms and antonyms
+                document.querySelectorAll('.synonym, .antonym').forEach(element => {
+                    element.addEventListener('click', () => {
+                        searchInput.value = element.textContent;
+                        searchWord(element.textContent);
+                    });
+                });
+            }
+            
+            // Play audio pronunciation
+            function playAudio(audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.play().catch(e => console.log("Audio play failed:", e));
+            }
+            
+            // Show error state
+            function showError(message) {
+                resultsContainer.innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+            
+            // Search for a word using the API
+            function searchWord(word) {
+                const normalizedWord = word.toLowerCase().trim();
+                
+                if (!normalizedWord) {
+                    showError('Please enter a word to search');
+                    return;
+                }
+                
+                showLoading();
+                
+                // Fetch data from the Free Dictionary API
+                fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${normalizedWord}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                throw new Error(`Sorry, we couldn't find a definition for "${word}"`);
+                            } else {
+                                throw new Error('Failed to fetch word data. Please try again later.');
+                            }
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        displayWordData(data);
+                        
+                        // Add to search history if not already there
+                        if (!searchHistory.includes(normalizedWord)) {
+                            searchHistory.push(normalizedWord);
+                            // Save to localStorage
+                            localStorage.setItem('dictionaryHistory', JSON.stringify(searchHistory));
+                            displayHistory();
+                        }
+                    })
+                    .catch(error => {
+                        showError(error.message);
+                    });
+            }
+            
+            // Event listeners
+            searchButton.addEventListener('click', () => {
+                searchWord(searchInput.value);
+            });
+            
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchWord(searchInput.value);
+                }
+            });
+            
+            // Initialize the history display
+            displayHistory();
+            
+            // Make playAudio function available globally for onclick attributes
+            window.playAudio = playAudio;
+        });
+    </script>
+</body>
+</html>

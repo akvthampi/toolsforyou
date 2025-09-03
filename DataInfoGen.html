@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Infographic Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .input-panel {
+            flex: 1;
+            min-width: 300px;
+            background: #f9fafc;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .preview-panel {
+            flex: 2;
+            min-width: 500px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+        
+        button {
+            background: #6a11cb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #5713a8;
+        }
+        
+        .btn-export {
+            background: #00c853;
+        }
+        
+        .btn-export:hover {
+            background: #009e3d;
+        }
+        
+        .btn-reset {
+            background: #ff3d00;
+        }
+        
+        .btn-reset:hover {
+            background: #d32f02;
+        }
+        
+        .chart-container {
+            position: relative;
+            margin: 20px auto;
+            height: 400px;
+            width: 100%;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .input-panel, .preview-panel {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Data Infographic Generator</h1>
+            <p class="subtitle">Transform your data into beautiful visualizations</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-panel">
+                <h2>Input Data</h2>
+                
+                <div class="form-group">
+                    <label for="data-type">Infographic Type</label>
+                    <select id="data-type">
+                        <option value="bar">Bar Chart</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="line">Line Graph</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="chart-title">Title</label>
+                    <input type="text" id="chart-title" placeholder="Enter chart title" value="Monthly Revenue">
+                </div>
+                
+                <div class="form-group">
+                    <label for="labels">Labels (comma separated)</label>
+                    <input type="text" id="labels" placeholder="e.g. Jan, Feb, Mar, Apr" value="Jan, Feb, Mar, Apr, May, Jun">
+                </div>
+                
+                <div class="form-group">
+                    <label for="values">Values (comma separated)</label>
+                    <input type="text" id="values" placeholder="e.g. 10, 20, 30, 40" value="120, 150, 180, 90, 200, 170">
+                </div>
+                
+                <div class="form-group">
+                    <label>Color Scheme</label>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background-color: #6a11cb;" data-color="default"></div>
+                        <div class="color-option" style="background-color: #ff3d00;" data-color="warm"></div>
+                        <div class="color-option" style="background-color: #00c853;" data-color="green"></div>
+                        <div class="color-option" style="background-color: #ffab00;" data-color="gold"></div>
+                        <div class="color-option" style="background-color: #2962ff;" data-color="blue"></div>
+                    </div>
+                </div>
+                
+                <button id="generate-btn">Generate Infographic</button>
+                <button id="export-btn" class="btn-export">Export as Image</button>
+                <button id="reset-btn" class="btn-reset">Reset</button>
+                
+                <div class="instructions">
+                    <h3>How to use:</h3>
+                    <p>1. Select your preferred infographic type</p>
+                    <p>2. Add a title for your chart</p>
+                    <p>3. Enter labels separated by commas (e.g., Jan, Feb, Mar)</p>
+                    <p>4. Enter corresponding values separated by commas (e.g., 10, 20, 30)</p>
+                    <p>5. Choose a color scheme</p>
+                    <p>6. Click "Generate Infographic" to create your visualization</p>
+                </div>
+            </div>
+            
+            <div class="preview-panel">
+                <h2>Preview</h2>
+                <div class="chart-container">
+                    <canvas id="infographic-canvas"></canvas>
+                </div>
+                <div id="data-summary">
+                    <h3>Data Summary</h3>
+                    <p>Total: <span id="total-value">0</span></p>
+                    <p>Average: <span id="average-value">0</span></p>
+                    <p>Maximum: <span id="max-value">0</span></p>
+                    <p>Minimum: <span id="min-value">0</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Data Infographic Generator | Created with Chart.js</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const canvas = document.getElementById('infographic-canvas');
+            const generateBtn = document.getElementById('generate-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const dataTypeSelect = document.getElementById('data-type');
+            const titleInput = document.getElementById('chart-title');
+            const labelsInput = document.getElementById('labels');
+            const valuesInput = document.getElementById('values');
+            const colorOptions = document.querySelectorAll('.color-option');
+            
+            // Summary elements
+            const totalValue = document.getElementById('total-value');
+            const averageValue = document.getElementById('average-value');
+            const maxValue = document.getElementById('max-value');
+            const minValue = document.getElementById('min-value');
+            
+            let chart = null;
+            let selectedColorScheme = 'default';
+            
+            // Color schemes
+            const colorSchemes = {
+                default: ['#6a11cb', '#2575fc', '#4facfe', '#00cdac', '#6a85b6', '#ff4b1f'],
+                warm: ['#ff3d00', '#ff9e00', '#ffab00', '#ffc400', '#ffd600', '#ffe000'],
+                green: ['#00c853', '#64dd17', '#aeea00', '#76ff03', '#ccff90', '#b2ff59'],
+                gold: ['#ffab00', '#ffc400', '#ffd600', '#ffe000', '#ffea00', '#fff200'],
+                blue: ['#2962ff', '#2979ff', '#448aff', '#3d5afe', '#304ffe', '#283593']
+            };
+            
+            // Initialize with a sample chart
+            generateChart();
+            
+            // Event Listeners
+            generateBtn.addEventListener('click', generateChart);
+            
+            exportBtn.addEventListener('click', function() {
+                if (chart) {
+                    const imageLink = document.createElement('a');
+                    const canvas = document.getElementById('infographic-canvas');
+                    imageLink.href = canvas.toDataURL('image/png');
+                    imageLink.download = 'infographic.png';
+                    imageLink.click();
+                }
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                titleInput.value = 'Monthly Revenue';
+                labelsInput.value = 'Jan, Feb, Mar, Apr, May, Jun';
+                valuesInput.value = '120, 150, 180, 90, 200, 170';
+                selectedColorScheme = 'default';
+                
+                // Reset active color option
+                colorOptions.forEach(option => {
+                    if (option.dataset.color === 'default') {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+                
+                generateChart();
+            });
+            
+            // Color selection
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedColorScheme = this.dataset.color;
+                });
+            });
+            
+            // Generate chart function
+            function generateChart() {
+                const type = dataTypeSelect.value;
+                const title = titleInput.value;
+                const labels = labelsInput.value.split(',').map(item => item.trim());
+                const values = valuesInput.value.split(',').map(item => Number(item.trim()));
+                
+                // Validate data
+                if (labels.length !== values.length) {
+                    alert('Number of labels and values must match!');
+                    return;
+                }
+                
+                if (values.some(isNaN)) {
+                    alert('All values must be numbers!');
+                    return;
+                }
+                
+                // Calculate summary statistics
+                const total = values.reduce((acc, val) => acc + val, 0);
+                const average = total / values.length;
+                const max = Math.max(...values);
+                const min = Math.min(...values);
+                
+                // Update summary
+                totalValue.textContent = total.toFixed(2);
+                averageValue.textContent = average.toFixed(2);
+                maxValue.textContent = max.toFixed(2);
+                minValue.textContent = min.toFixed(2);
+                
+                // Get selected color scheme
+                const colors = colorSchemes[selectedColorScheme];
+                
+                // Destroy previous chart if it exists
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                // Create new chart
+                const ctx = canvas.getContext('2d');
+                chart = new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: title,
+                            data: values,
+                            backgroundColor: colors,
+                            borderColor: type === 'line' ? colors[0] : 'rgba(255, 255, 255, 0.8)',
+                            borderWidth: 2,
+                            pointBackgroundColor: colors,
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: colors[0]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title,
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                padding: 20
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                cornerRadius: 5
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
