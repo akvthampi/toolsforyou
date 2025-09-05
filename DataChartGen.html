@@ -3,183 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Chart Generator with Download</title>
+    <title>Advanced Chart Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-        
+
         .container {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
-        
+
         header {
-            text-align: center;
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
             padding: 20px;
-            color: #2c3e50;
+            text-align: center;
         }
-        
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
-        
-        .description {
-            font-size: 1.1rem;
-            color: #34495e;
-            max-width: 800px;
-            margin: 0 auto;
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
         }
-        
-        .content {
+
+        .main-content {
             display: flex;
             flex-wrap: wrap;
-            gap: 30px;
+            padding: 20px;
         }
-        
+
         .input-section {
             flex: 1;
-            min-width: 300px;
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            min-width: 600px;
+            padding: 20px;
         }
-        
+
         .chart-section {
-            flex: 2;
-            min-width: 500px;
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 600px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
         }
-        
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4a4a4a;
+            border-bottom: 2px solid #6a11cb;
+            padding-bottom: 10px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #2c3e50;
+            color: #4a4a4a;
         }
-        
+
         input, select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
+            transition: all 0.3s;
         }
-        
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background 0.3s;
-            width: 100%;
+
+        input:focus, select:focus {
+            border-color: #6a11cb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2);
+        }
+
+        .data-table-container {
+            overflow-x: auto;
             margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9f9f9;
         }
-        
-        button:hover {
-            background: #2980b9;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
+
+        .data-table {
             width: 100%;
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
+            border-collapse: collapse;
+            min-width: 500px;
         }
-        
-        .chart-title {
+
+        .data-table th, .data-table td {
+            border: 1px solid #e1e1e1;
+            padding: 12px;
             text-align: center;
-            margin-bottom: 20px;
-            color: #2c3e50;
         }
-        
-        .data-points {
-            margin-top: 20px;
-            margin-bottom: 15px;
+
+        .data-table th {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            font-weight: 600;
+            position: relative;
         }
-        
-        .data-row {
-            display: flex;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-        
-        .data-row input {
-            flex: 1;
-        }
-        
-        .add-btn, .remove-btn {
-            padding: 8px 12px;
-            width: auto;
-        }
-        
-        .remove-btn {
-            background: #e74c3c;
-        }
-        
-        .remove-btn:hover {
-            background: #c0392b;
-        }
-        
-        .download-btn {
-            background: #27ae60;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .download-btn:hover {
-            background: #219653;
-        }
-        
-        .button-group {
+
+        .column-header {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .column-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .data-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .data-table input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            padding: 8px;
+            width: 100%;
+        }
+
+        .data-table input:focus {
+            outline: 2px solid #6a11cb;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2575fc 0%, #6a11cb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #2bc0e4 0%, #eaecc6 100%);
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #eaecc6 0%, #2bc0e4 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .color-schemes {
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 10px;
         }
-        
-        .button-group button {
-            margin-top: 0;
+
+        .color-scheme {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
         }
-        
-        @media (max-width: 900px) {
-            .content {
+
+        .color-scheme:hover {
+            transform: scale(1.1);
+        }
+
+        .color-scheme.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            margin: 20px 0;
+            min-height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
                 flex-direction: column;
             }
             
@@ -192,13 +276,76 @@
 <body>
     <div class="container">
         <header>
-            <h1>Data Chart Generator</h1>
-            <p class="description">Enter your data below to generate a beautiful chart. You can customize chart type, labels, colors, and download the chart as an image.</p>
+            <h1>Advanced Chart Generator</h1>
+            <p class="subtitle">Create beautiful, colorful charts with ease</p>
         </header>
-        
-        <div class="content">
+
+        <div class="main-content">
             <div class="input-section">
-                <h2>Chart Settings</h2>
+                <h2 class="section-title">Data Input</h2>
+                
+                <div class="form-group">
+                    <label for="chart-title">Chart Title</label>
+                    <input type="text" id="chart-title" placeholder="e.g., Annual Revenue, Monthly Sales" value="Sales Performance">
+                </div>
+                
+                <div class="form-group">
+                    <label>Data Table</label>
+                    
+                    <div class="table-actions">
+                        <button id="add-row" class="btn btn-primary btn-sm">Add Row</button>
+                        <button id="add-column" class="btn btn-secondary btn-sm">Add Column</button>
+                    </div>
+                    
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr id="table-header">
+                                    <th>Label</th>
+                                    <th>
+                                        <div class="column-header">
+                                            <input type="text" class="column-name-input" value="Q1" placeholder="Column Name">
+                                            <button class="btn btn-danger btn-sm remove-column">×</button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="column-header">
+                                            <input type="text" class="column-name-input" value="Q2" placeholder="Column Name">
+                                            <button class="btn btn-danger btn-sm remove-column">×</button>
+                                        </div>
+                                    </th>
+                                    <th>
+                                        <div class="column-header">
+                                            <input type="text" class="column-name-input" value="Q3" placeholder="Column Name">
+                                            <button class="btn btn-danger btn-sm remove-column">×</button>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-body">
+                                <tr>
+                                    <td><input type="text" class="label-input" value="Potatoes"></td>
+                                    <td><input type="number" class="value-input" value="1200"></td>
+                                    <td><input type="number" class="value-input" value="1500"></td>
+                                    <td><input type="number" class="value-input" value="1800"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" class="label-input" value="Onions"></td>
+                                    <td><input type="number" class="value-input" value="800"></td>
+                                    <td><input type="number" class="value-input" value="950"></td>
+                                    <td><input type="number" class="value-input" value="1100"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="text" class="label-input" value="Tomatoes"></td>
+                                    <td><input type="number" class="value-input" value="2000"></td>
+                                    <td><input type="number" class="value-input" value="2100"></td>
+                                    <td><input type="number" class="value-input" value="1900"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                     <label for="chart-type">Chart Type</label>
                     <select id="chart-type">
@@ -206,256 +353,274 @@
                         <option value="line">Line Chart</option>
                         <option value="pie">Pie Chart</option>
                         <option value="doughnut">Doughnut Chart</option>
-                        <option value="polarArea">Polar Area</option>
+                        <option value="polarArea">Polar Area Chart</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
-                    <label for="chart-title">Chart Title</label>
-                    <input type="text" id="chart-title" placeholder="Enter chart title" value="Sales Data">
-                </div>
-                
-                <div class="form-group">
-                    <label for="x-axis-label">X-Axis Label</label>
-                    <input type="text" id="x-axis-label" placeholder="Enter X-axis label" value="Months">
-                </div>
-                
-                <div class="form-group">
-                    <label for="y-axis-label">Y-Axis Label</label>
-                    <input type="text" id="y-axis-label" placeholder="Enter Y-axis label" value="Revenue">
-                </div>
-                
-                <h2>Data Points</h2>
-                <div class="data-points" id="data-points">
-                    <div class="data-row">
-                        <input type="text" class="label-input" placeholder="Label" value="January">
-                        <input type="number" class="value-input" placeholder="Value" value="120">
-                        <button class="remove-btn">-</button>
-                    </div>
-                    <div class="data-row">
-                        <input type="text" class="label-input" placeholder="Label" value="February">
-                        <input type="number" class="value-input" placeholder="Value" value="150">
-                        <button class="remove-btn">-</button>
-                    </div>
-                    <div class="data-row">
-                        <input type="text" class="label-input" placeholder="Label" value="March">
-                        <input type="number" class="value-input" placeholder="Value" value="180">
-                        <button class="remove-btn">-</button>
+                    <label>Color Scheme</label>
+                    <div class="color-schemes">
+                        <div class="color-scheme active" style="background: linear-gradient(45deg, #ff6384, #36a2eb, #ffce56, #4bc0c0);" data-scheme="vibrant"></div>
+                        <div class="color-scheme" style="background: linear-gradient(45deg, #4bc0c0, #9966ff, #ff9f40, #ffcd56);" data-scheme="pastel"></div>
+                        <div class="color-scheme" style="background: linear-gradient(45deg, #ff6384, #c9cbcf, #ff6384, #c9cbcf);" data-scheme="mono"></div>
+                        <div class="color-scheme" style="background: linear-gradient(45deg, #2bc0e4, #eaecc6, #2bc0e4, #eaecc6);" data-scheme="ocean"></div>
+                        <div class="color-scheme" style="background: linear-gradient(45deg, #8e2de2, #4a00e0, #8e2de2, #4a00e0);" data-scheme="purple"></div>
                     </div>
                 </div>
                 
-                <button id="add-row" class="add-btn">+ Add Data Point</button>
-                <div class="button-group">
-                    <button id="generate-chart">Generate Chart</button>
-                    <button id="download-chart" class="download-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                        </svg>
-                        Download Chart
-                    </button>
-                </div>
+                <button id="generate-chart" class="btn btn-primary">Generate Chart</button>
             </div>
             
             <div class="chart-section">
-                <h2 class="chart-title">Chart Preview</h2>
+                <h2 class="section-title">Chart Preview</h2>
                 <div class="chart-container">
-                    <canvas id="myChart"></canvas>
+                    <canvas id="chart"></canvas>
                 </div>
-                <div id="download-info">
-                    <p>Click the "Download Chart" button to save the chart as a PNG image.</p>
+                
+                <div class="actions">
+                    <button id="download-chart" class="btn btn-secondary">Download Chart</button>
                 </div>
             </div>
         </div>
+        
+        <footer>
+            <p>© 2023 Advanced Chart Generator | Create beautiful data visualizations</p>
+        </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // References to DOM elements
-            const chartType = document.getElementById('chart-type');
-            const chartTitle = document.getElementById('chart-title');
-            const xAxisLabel = document.getElementById('x-axis-label');
-            const yAxisLabel = document.getElementById('y-axis-label');
-            const dataPoints = document.getElementById('data-points');
-            const addRowBtn = document.getElementById('add-row');
-            const generateBtn = document.getElementById('generate-chart');
-            const downloadBtn = document.getElementById('download-chart');
-            
-            let myChart = null;
-            
-            // Add new data row
-            addRowBtn.addEventListener('click', function() {
-                const newRow = document.createElement('div');
-                newRow.className = 'data-row';
-                newRow.innerHTML = `
-                    <input type="text" class="label-input" placeholder="Label" value="New Label">
-                    <input type="number" class="value-input" placeholder="Value" value="100">
-                    <button class="remove-btn">-</button>
+            // Initialize variables
+            let chart = null;
+            const colorSchemes = {
+                vibrant: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#ff9f40', '#ffcd56', '#c9cbcf'],
+                pastel: ['#4bc0c0', '#9966ff', '#ff9f40', '#ffcd56', '#ff6384', '#36a2eb', '#ffce56', '#c9cbcf'],
+                mono: ['#ff6384', '#c9cbcf', '#ff6384', '#c9cbcf', '#ff6384', '#c9cbcf', '#ff6384', '#c9cbcf'],
+                ocean: ['#2bc0e4', '#eaecc6', '#2bc0e4', '#eaecc6', '#2bc0e4', '#eaecc6', '#2bc0e4', '#eaecc6'],
+                purple: ['#8e2de2', '#4a00e0', '#8e2de2', '#4a00e0', '#8e2de2', '#4a00e0', '#8e2de2', '#4a00e0']
+            };
+            let currentColorScheme = 'vibrant';
+
+            // Add row to the table
+            document.getElementById('add-row').addEventListener('click', function() {
+                const tbody = document.getElementById('data-body');
+                const newRow = document.createElement('tr');
+                
+                // Add label cell
+                newRow.innerHTML = '<td><input type="text" class="label-input" placeholder="Label"></td>';
+                
+                // Add value cells based on current column count
+                const columnCount = document.querySelectorAll('#table-header th').length - 1;
+                for (let i = 0; i < columnCount; i++) {
+                    newRow.innerHTML += '<td><input type="number" class="value-input" placeholder="Value"></td>';
+                }
+                
+                tbody.appendChild(newRow);
+            });
+
+            // Add column to the table
+            document.getElementById('add-column').addEventListener('click', function() {
+                const headerRow = document.getElementById('table-header');
+                const newHeaderCell = document.createElement('th');
+                
+                // Create column header with input and remove button
+                newHeaderCell.innerHTML = `
+                    <div class="column-header">
+                        <input type="text" class="column-name-input" value="Q${headerRow.children.length}" placeholder="Column Name">
+                        <button class="btn btn-danger btn-sm remove-column">×</button>
+                    </div>
                 `;
-                dataPoints.appendChild(newRow);
+                headerRow.appendChild(newHeaderCell);
                 
-                // Add event listener to the remove button
-                newRow.querySelector('.remove-btn').addEventListener('click', function() {
-                    dataPoints.removeChild(newRow);
+                // Add value cells to each row
+                const rows = document.querySelectorAll('#data-body tr');
+                rows.forEach(row => {
+                    const newCell = document.createElement('td');
+                    newCell.innerHTML = '<input type="number" class="value-input" placeholder="Value">';
+                    row.appendChild(newCell);
+                });
+                
+                // Add event listener to the new remove button
+                newHeaderCell.querySelector('.remove-column').addEventListener('click', function() {
+                    removeColumn(headerRow.children.length - 1);
                 });
             });
-            
-            // Add event listeners to existing remove buttons
-            document.querySelectorAll('.remove-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    if (dataPoints.children.length > 1) {
-                        dataPoints.removeChild(button.parentElement);
-                    } else {
-                        alert('You need at least one data point.');
-                    }
-                });
-            });
-            
-            // Generate the chart
-            generateBtn.addEventListener('click', function() {
-                const labels = [];
-                const values = [];
+
+            // Remove column function
+            function removeColumn(columnIndex) {
+                // Don't remove the label column
+                if (columnIndex === 0) return;
                 
-                // Get all data points
-                document.querySelectorAll('.data-row').forEach(row => {
-                    const labelInput = row.querySelector('.label-input');
-                    const valueInput = row.querySelector('.value-input');
-                    
-                    if (labelInput.value && valueInput.value) {
-                        labels.push(labelInput.value);
-                        values.push(parseFloat(valueInput.value));
-                    }
-                });
-                
-                if (labels.length === 0) {
-                    alert('Please add at least one data point with both label and value.');
+                // Remove header cell
+                const headerRow = document.getElementById('table-header');
+                if (headerRow.children.length <= 2) {
+                    alert("You must have at least one value column.");
                     return;
                 }
+                headerRow.removeChild(headerRow.children[columnIndex]);
                 
-                // Get selected chart type
-                const selectedChartType = chartType.value;
+                // Remove data cells from each row
+                const rows = document.querySelectorAll('#data-body tr');
+                rows.forEach(row => {
+                    row.removeChild(row.children[columnIndex]);
+                });
+            }
+
+            // Add event listeners to existing remove buttons
+            document.querySelectorAll('.remove-column').forEach(button => {
+                button.addEventListener('click', function() {
+                    const headerCell = this.closest('th');
+                    const columnIndex = Array.from(headerCell.parentNode.children).indexOf(headerCell);
+                    removeColumn(columnIndex);
+                });
+            });
+
+            // Color scheme selection
+            document.querySelectorAll('.color-scheme').forEach(scheme => {
+                scheme.addEventListener('click', function() {
+                    document.querySelectorAll('.color-scheme').forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                    currentColorScheme = this.getAttribute('data-scheme');
+                });
+            });
+
+            // Generate chart function
+            document.getElementById('generate-chart').addEventListener('click', function() {
+                // Get chart title
+                const chartTitle = document.getElementById('chart-title').value;
                 
-                // Destroy previous chart if it exists
-                if (myChart) {
-                    myChart.destroy();
+                // Get chart type
+                const chartType = document.getElementById('chart-type').value;
+                
+                // Get data from table
+                const labels = [];
+                const datasets = [];
+                
+                // Get column names
+                const columnNames = [];
+                document.querySelectorAll('#table-header .column-name-input').forEach(input => {
+                    columnNames.push(input.value || `Value Set ${columnNames.length + 1}`);
+                });
+                
+                const rows = document.querySelectorAll('#data-body tr');
+                const valueCount = document.querySelectorAll('#table-header th').length - 1;
+                
+                // Initialize datasets array
+                for (let i = 0; i < valueCount; i++) {
+                    // Use modulo to cycle through colors if there are more datasets than colors
+                    const colorIndex = i % colorSchemes[currentColorScheme].length;
+                    
+                    datasets.push({
+                        label: columnNames[i] || `Value Set ${i+1}`,
+                        data: [],
+                        backgroundColor: colorSchemes[currentColorScheme][colorIndex],
+                        borderColor: colorSchemes[currentColorScheme][colorIndex],
+                        borderWidth: 2
+                    });
                 }
                 
-                // Create the chart
-                const ctx = document.getElementById('myChart').getContext('2d');
+                // Extract data from table
+                rows.forEach(row => {
+                    const labelInput = row.querySelector('.label-input');
+                    const valueInputs = row.querySelectorAll('.value-input');
+                    
+                    if (labelInput.value) {
+                        labels.push(labelInput.value);
+                        
+                        valueInputs.forEach((input, index) => {
+                            if (index < datasets.length) {
+                                datasets[index].data.push(parseFloat(input.value) || 0);
+                            }
+                        });
+                    }
+                });
                 
-                // Set white background for the canvas
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                // Destroy previous chart if exists
+                if (chart) {
+                    chart.destroy();
+                }
                 
-                myChart = new Chart(ctx, {
-                    type: selectedChartType,
+                // Create new chart
+                const ctx = document.getElementById('chart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: chartType,
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: yAxisLabel.value || 'Values',
-                            data: values,
-                            backgroundColor: [
-                                'rgba(255, 99, 132, 0.7)',
-                                'rgba(54, 162, 235, 0.7)',
-                                'rgba(255, 206, 86, 0.7)',
-                                'rgba(75, 192, 192, 0.7)',
-                                'rgba(153, 102, 255, 0.7)',
-                                'rgba(255, 159, 64, 0.7)',
-                                'rgba(199, 199, 199, 0.7)',
-                                'rgba(83, 102, 255, 0.7)',
-                                'rgba(40, 159, 64, 0.7)',
-                                'rgba(210, 99, 132, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 99, 132, 1)',
-                                'rgba(54, 162, 235, 1)',
-                                'rgba(255, 206, 86, 1)',
-                                'rgba(75, 192, 192, 1)',
-                                'rgba(153, 102, 255, 1)',
-                                'rgba(255, 159, 64, 1)',
-                                'rgba(199, 199, 199, 1)',
-                                'rgba(83, 102, 255, 1)',
-                                'rgba(40, 159, 64, 1)',
-                                'rgba(210, 99, 132, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        // Set the background color for the chart area
-                        backgroundColor: 'white',
                         plugins: {
                             title: {
                                 display: true,
-                                text: chartTitle.value || 'Data Chart',
+                                text: chartTitle,
                                 font: {
-                                    size: 18
+                                    size: 20
                                 },
-                                color: '#2c3e50'
+                                padding: {
+                                    top: 10,
+                                    bottom: 30
+                                }
                             },
                             legend: {
-                                position: 'top',
+                                position: 'bottom',
                                 labels: {
-                                    color: '#2c3e50'
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    // Generate colors for each legend item
+                                    generateLabels: function(chart) {
+                                        const datasets = chart.data.datasets;
+                                        return datasets.map((dataset, i) => {
+                                            return {
+                                                text: dataset.label,
+                                                fillStyle: dataset.backgroundColor,
+                                                strokeStyle: dataset.borderColor,
+                                                lineWidth: 2,
+                                                hidden: !chart.isDatasetVisible(i),
+                                                index: i
+                                            };
+                                        });
+                                    }
                                 }
                             }
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: yAxisLabel.value || 'Values',
-                                    color: '#2c3e50'
+                        // Fix for bar chart label alignment
+                        scales: chartType === 'bar' || chartType === 'line' ? {
+                            x: {
+                                ticks: {
+                                    maxRotation: 0,
+                                    minRotation: 0,
+                                    padding: 10,
+                                    autoSkip: false
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                },
-                                ticks: {
-                                    color: '#2c3e50'
+                                    display: false
                                 }
                             },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: xAxisLabel.value || 'Categories',
-                                    color: '#2c3e50'
-                                },
+                            y: {
+                                beginAtZero: true,
                                 grid: {
                                     color: 'rgba(0, 0, 0, 0.1)'
-                                },
-                                ticks: {
-                                    color: '#2c3e50'
                                 }
                             }
-                        }
+                        } : {}
                     }
                 });
-                
-                // Enable download button
-                downloadBtn.disabled = false;
             });
             
-            // Download chart as image
-            downloadBtn.addEventListener('click', function() {
-                if (!myChart) {
-                    alert('Please generate a chart first.');
-                    return;
+            // Download chart function
+            document.getElementById('download-chart').addEventListener('click', function() {
+                if (chart) {
+                    const link = document.createElement('a');
+                    link.download = `${document.getElementById('chart-title').value || 'chart'}.png`;
+                    link.href = document.getElementById('chart').toDataURL('image/png');
+                    link.click();
                 }
-                
-                // Create a temporary anchor element
-                const a = document.createElement('a');
-                a.href = myChart.toBase64Image();
-                a.download = 'chart.png';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
             });
             
             // Generate initial chart on page load
-            generateBtn.click();
+            document.getElementById('generate-chart').click();
         });
     </script>
 </body>
