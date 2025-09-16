@@ -3,1240 +3,1744 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow Pro | Professional Task Manager</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Professional Task Manager</title>
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --warning: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gray: #6c757d;
-            --overdue: #e63946;
-            --today: #ff9e00;
-            --upcoming: #2a9d8f;
-            --completed: #4caf50;
-            --sidebar: #2d3748;
-            --content: #f5f7fa;
-        }
-        
         body {
-            background: var(--content);
-            color: var(--dark);
-            line-height: 1.6;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #333;
+            line-height: 1.4;
+            padding: 12px;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
         
-        /* Login Screen */
-        #login-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            padding: 20px;
-        }
-        
-        .auth-container {
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 450px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px;
             overflow: hidden;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 15px;
+            grid-template-areas: 
+                "header header"
+                "sidebar main"
+                "status status";
+            min-height: 90vh;
         }
         
-        .auth-header {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 25px;
+        header {
+            grid-area: header;
             text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eaeaea;
         }
         
-        .auth-header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-        }
-        
-        .auth-form {
-            padding: 25px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
+        h1 {
+            color: #2c5364;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
+            font-size: 1.8rem;
         }
         
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            transition: border 0.3s ease;
+        .description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
         }
         
-        .form-group input:focus {
-            border-color: var(--primary);
-            outline: none;
+        .database-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
         
         .btn {
-            padding: 12px 25px;
+            padding: 8px 15px;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
         
         .btn-primary {
-            background: var(--primary);
+            background: linear-gradient(to right, #2c5364, #203a43);
             color: white;
         }
         
         .btn-primary:hover {
-            background: var(--secondary);
-        }
-        
-        .btn-block {
-            width: 100%;
-        }
-        
-        .auth-footer {
-            text-align: center;
-            padding: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .auth-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        .auth-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        /* App Screen */
-        #app-screen {
-            display: none;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        
-        /* Header */
-        .app-header {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .app-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .app-logo i {
-            color: var(--primary);
-            font-size: 1.8rem;
-        }
-        
-        .app-logo h1 {
-            font-size: 1.5rem;
-            color: var(--dark);
-        }
-        
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .user-email {
-            font-size: 0.85rem;
-            color: var(--gray);
-        }
-        
-        .logout-btn {
-            background: var(--light);
-            color: var(--dark);
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .logout-btn:hover {
-            background: #e9ecef;
-        }
-        
-        /* Main Content */
-        .app-main {
-            display: flex;
-            flex: 1;
-        }
-        
-        /* Sidebar */
-        .app-sidebar {
-            width: 250px;
-            background: var(--sidebar);
-            color: white;
-            padding: 20px 0;
-        }
-        
-        .sidebar-menu {
-            list-style: none;
-        }
-        
-        .menu-item {
-            padding: 12px 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        
-        .menu-item:hover, .menu-item.active {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .menu-item i {
-            width: 20px;
-            text-align: center;
-        }
-        
-        .menu-item.active {
-            border-left: 4px solid var(--primary);
-        }
-        
-        /* Content Area */
-        .app-content {
-            flex: 1;
-            padding: 30px;
-            background: var(--content);
-        }
-        
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        
-        .section-title {
-            font-size: 1.5rem;
-            color: var(--dark);
-        }
-        
-        .add-task-btn {
-            background: var(--primary);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .add-task-btn:hover {
-            background: var(--secondary);
-        }
-        
-        /* Task Groups */
-        .task-groups {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .task-group {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-        
-        .group-header {
-            padding: 15px 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .overdue .group-header {
-            background: var(--overdue);
-        }
-        
-        .today .group-header {
-            background: var(--today);
-        }
-        
-        .upcoming .group-header {
-            background: var(--upcoming);
-        }
-        
-        .completed-section .group-header {
-            background: var(--completed);
-        }
-        
-        .group-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        
-        .task-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-        
-        .task-list {
-            padding: 15px;
-            min-height: 200px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .task-item {
-            background: var(--light);
-            border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--primary);
-            position: relative;
-        }
-        
-        .task-item.overdue {
-            border-left-color: var(--overdue);
-        }
-        
-        .task-item.today {
-            border-left-color: var(--today);
-        }
-        
-        .task-item.upcoming {
-            border-left-color: var(--upcoming);
-        }
-        
-        .task-item.completed {
-            border-left-color: var(--completed);
-            opacity: 0.8;
-        }
-        
-        .task-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            padding-right: 60px;
-        }
-        
-        .task-item.completed .task-title {
-            text-decoration: line-through;
-        }
-        
-        .task-due {
-            font-size: 0.85rem;
-            color: var(--gray);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .task-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 8px;
-        }
-        
-        .task-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s ease;
-        }
-        
-        .complete-btn {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--completed);
-        }
-        
-        .complete-btn:hover {
-            background: rgba(76, 175, 80, 0.2);
-        }
-        
-        .edit-btn {
-            background: rgba(var(--primary-rgb), 0.1);
-            color: var(--primary);
-        }
-        
-        .edit-btn:hover {
-            background: rgba(var(--primary-rgb), 0.2);
-        }
-        
-        .delete-btn {
-            background: rgba(230, 57, 70, 0.1);
-            color: #e63946;
-        }
-        
-        .delete-btn:hover {
-            background: rgba(230, 57, 70, 0.2);
-        }
-        
-        /* Completed Tasks Section */
-        .completed-section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-top: 20px;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray);
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .modal-footer {
-            padding: 15px 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+            transform: translateY(-2px);
         }
         
         .btn-secondary {
-            background: var(--light);
-            color: var(--dark);
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
         }
         
         .btn-secondary:hover {
             background: #e9ecef;
         }
         
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: var(--gray);
+        .btn-success {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            color: white;
         }
         
-        .empty-state i {
-            font-size: 3rem;
+        .btn-danger {
+            background: linear-gradient(to right, #F44336, #C62828);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(to right, #FF9800, #F57C00);
+            color: white;
+        }
+        
+        .btn-info {
+            background: linear-gradient(to right, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .btn-print {
+            background: linear-gradient(to right, #9C27B0, #7B1FA2);
+            color: white;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
             margin-bottom: 15px;
-            opacity: 0.5;
         }
         
-        /* Responsive */
-        @media (max-width: 992px) {
-            .task-groups {
+        .summary-card {
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .summary-card.total {
+            background: linear-gradient(to right, #E3F2FD, #BBDEFB);
+            border-left: 4px solid #2196F3;
+        }
+        
+        .summary-card.completed {
+            background: linear-gradient(to right, #E8F5E9, #C8E6C9);
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .summary-card.pending {
+            background: linear-gradient(to right, #FFF3E0, #FFE0B2);
+            border-left: 4px solid #FF9800;
+        }
+        
+        .summary-card.overdue {
+            background: linear-gradient(to right, #FFEBEE, #FFCDD2);
+            border-left: 4px solid #F44336;
+        }
+        
+        .summary-card h3 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #455A64;
+        }
+        
+        .summary-card .amount {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        
+        .summary-card.total .amount {
+            color: #1565C0;
+        }
+        
+        .summary-card.completed .amount {
+            color: #2E7D32;
+        }
+        
+        .summary-card.pending .amount {
+            color: #EF6C00;
+        }
+        
+        .summary-card.overdue .amount {
+            color: #C62828;
+        }
+        
+        .sidebar {
+            grid-area: sidebar;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .main-content {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .view-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .view-btn {
+            padding: 8px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .view-btn.active {
+            background: #2c5364;
+            color: white;
+        }
+        
+        .form-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-title {
+            margin-bottom: 12px;
+            color: #495057;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.85rem;
+        }
+        
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2c5364;
+            box-shadow: 0 0 0 2px rgba(44, 83, 100, 0.2);
+        }
+        
+        .task-list-container {
+            flex: 1;
+            overflow: auto;
+        }
+        
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .task-table th, 
+        .task-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .task-table th {
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            font-size: 0.85rem;
+        }
+        
+        .task-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .task-table tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .priority-high {
+            border-left: 4px solid #F44336;
+        }
+        
+        .priority-medium {
+            border-left: 4px solid #FF9800;
+        }
+        
+        .priority-low {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-todo {
+            background-color: #FFEBEE !important;
+        }
+        
+        .status-inprogress {
+            background-color: #FFF3E0 !important;
+        }
+        
+        .status-done {
+            background-color: #E8F5E9 !important;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .calendar-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .calendar-cell {
+            aspect-ratio: 1;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .calendar-cell:hover {
+            background-color: #e9ecef;
+        }
+        
+        .calendar-cell.today {
+            background-color: #E3F2FD;
+            font-weight: bold;
+        }
+        
+        .calendar-cell.selected {
+            background-color: #2c5364;
+            color: white;
+        }
+        
+        .calendar-cell.has-tasks::after {
+            content: "";
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background-color: #F44336;
+            border-radius: 50%;
+        }
+        
+        .task-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .task-dot.priority-high {
+            background-color: #F44336;
+        }
+        
+        .task-dot.priority-medium {
+            background-color: #FF9800;
+        }
+        
+        .task-dot.priority-low {
+            background-color: #4CAF50;
+        }
+        
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .kanban-column {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .kanban-header {
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .kanban-tasks {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .kanban-task {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        
+        .kanban-task:hover {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 3px;
+        }
+        
+        .status-bar {
+            grid-area: status;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-left: 3px solid #2c5364;
+            font-size: 0.85rem;
+        }
+        
+        .status-message {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.85rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #203a43;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        
+        .file-label:hover {
+            background: #1a3038;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            color: white;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+        }
+        
+        .notification.error {
+            background: linear-gradient(to right, #F44336, #C62828);
+        }
+        
+        .search-container {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 8px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .icon {
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .print-controls {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .subtask-list {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+        
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
                 grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main"
+                    "sidebar"
+                    "status";
             }
             
-            .app-sidebar {
-                width: 200px;
+            .sidebar {
+                order: 3;
+            }
+            
+            .kanban-board {
+                grid-template-columns: 1fr;
             }
         }
         
         @media (max-width: 768px) {
-            .app-main {
+            .container {
+                padding: 10px;
+            }
+            
+            .database-actions {
                 flex-direction: column;
             }
             
-            .app-sidebar {
+            .btn {
                 width: 100%;
-                padding: 10px 0;
+                margin-bottom: 8px;
             }
             
-            .sidebar-menu {
-                display: flex;
-                overflow-x: auto;
+            .task-table th, 
+            .task-table td {
+                padding: 4px 6px;
             }
             
-            .menu-item {
-                padding: 10px 15px;
-                white-space: nowrap;
+            .form-grid {
+                grid-template-columns: 1fr;
             }
             
-            .menu-item.active {
-                border-left: none;
-                border-bottom: 4px solid var(--primary);
-            }
-            
-            .content-header {
+            .actions {
                 flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+            }
+            
+            .print-controls {
+                flex-direction: column;
+            }
+            
+            .view-controls {
+                flex-wrap: wrap;
             }
         }
         
-        @media (max-width: 576px) {
-            .auth-container {
-                margin: 10px;
+        /* Print styles */
+        @media print {
+            body * {
+                visibility: hidden;
             }
             
-            .app-header {
-                padding: 15px;
+            #printable-tasks, #printable-tasks * {
+                visibility: visible;
             }
             
-            .app-content {
-                padding: 20px;
+            #printable-tasks {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
             }
             
-            .user-info {
-                display: none;
+            .no-print {
+                display: none !important;
             }
+        }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        
+        .print-table th, .print-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .print-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .print-period {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .print-summary {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        
+        .download-link {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="login-screen">
-        <div class="auth-container" id="login-container">
-            <div class="auth-header">
-                <h1>TaskFlow Pro</h1>
-                <p>Your professional task management solution</p>
-            </div>
-            <div class="auth-form">
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="Enter your email">
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password">
-                </div>
-                <button class="btn btn-primary btn-block" id="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Login
+    <div class="container">
+        <header>
+            <h1>Professional Task Manager</h1>
+            <p class="description">Manage your tasks with advanced features and calendar integration</p>
+            
+            <div class="database-actions no-print">
+                <input type="file" id="dbFile" accept=".json" class="file-input">
+                <label for="dbFile" class="file-label">
+                    <span class="icon">📁</span>Load Tasks
+                </label>
+                <button id="createDb" class="btn btn-primary">
+                    <span class="icon">➕</span>New Task List
+                </button>
+                <button id="saveDb" class="btn btn-secondary">
+                    <span class="icon">💾</span>Save Tasks
+                </button>
+                <button id="exampleData" class="btn btn-secondary">
+                    <span class="icon">🔍</span>Example Data
                 </button>
             </div>
-            <div class="auth-footer">
-                <p>Don't have an account? <a id="show-register">Register now</a></p>
-            </div>
-        </div>
-
-        <div class="auth-container" id="register-container" style="display: none;">
-            <div class="auth-header">
-                <h1>Create Account</h1>
-                <p>Join TaskFlow Pro today</p>
-            </div>
-            <div class="auth-form">
-                <div class="form-group">
-                    <label for="register-name">Full Name</label>
-                    <input type="text" id="register-name" placeholder="Enter your full name">
+            
+            <div class="summary-cards no-print">
+                <div class="summary-card total">
+                    <h3>Total Tasks</h3>
+                    <div class="amount" id="totalTasks">0</div>
                 </div>
-                <div class="form-group">
-                    <label for="register-email">Email</label>
-                    <input type="email" id="register-email" placeholder="Enter your email">
+                <div class="summary-card completed">
+                    <h3>Completed</h3>
+                    <div class="amount" id="completedTasks">0</div>
                 </div>
-                <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" placeholder="Create a password">
+                <div class="summary-card pending">
+                    <h3>In Progress</h3>
+                    <div class="amount" id="inProgressTasks">0</div>
                 </div>
-                <div class="form-group">
-                    <label for="register-confirm">Confirm Password</label>
-                    <input type="password" id="register-confirm" placeholder="Confirm your password">
-                </div>
-                <button class="btn btn-primary btn-block" id="register-btn">
-                    <i class="fas fa-user-plus"></i> Register
-                </button>
-            </div>
-            <div class="auth-footer">
-                <p>Already have an account? <a id="show-login">Login now</a></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- App Screen -->
-    <div id="app-screen">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="app-logo">
-                <i class="fas fa-tasks"></i>
-                <h1>TaskFlow Pro</h1>
-            </div>
-            <div class="user-menu">
-                <div class="user-info">
-                    <div class="user-name" id="current-user">John Doe</div>
-                    <div class="user-email" id="current-email">john.doe@example.com</div>
-                </div>
-                <div class="logout-btn" id="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <div class="summary-card overdue">
+                    <h3>Overdue</h3>
+                    <div class="amount" id="overdueTasks">0</div>
                 </div>
             </div>
         </header>
-
-        <!-- Main Content -->
-        <main class="app-main">
-            <!-- Sidebar -->
-            <nav class="app-sidebar">
-                <ul class="sidebar-menu">
-                    <li class="menu-item active" data-category="all">
-                        <i class="fas fa-list"></i> All Tasks
-                    </li>
-                    <li class="menu-item" data-category="overdue">
-                        <i class="fas fa-exclamation-circle"></i> Overdue
-                    </li>
-                    <li class="menu-item" data-category="today">
-                        <i class="fas fa-calendar-day"></i> Today
-                    </li>
-                    <li class="menu-item" data-category="upcoming">
-                        <i class="fas fa-calendar-alt"></i> Upcoming
-                    </li>
-                    <li class="menu-item" data-category="completed">
-                        <i class="fas fa-check-circle"></i> Completed
-                    </li>
-                </ul>
-            </nav>
-
-            <!-- Content Area -->
-            <section class="app-content">
-                <div class="content-header">
-                    <h2 class="section-title" id="section-title">All Tasks</h2>
-                    <button class="add-task-btn" id="add-task-btn">
-                        <i class="fas fa-plus"></i> Add Task
-                    </button>
+        
+        <div class="sidebar no-print">
+            <div class="form-container">
+                <div class="form-title">
+                    <span>Calendar</span>
                 </div>
-
-                <div class="task-groups">
-                    <!-- Overdue Tasks -->
-                    <div class="task-group overdue">
-                        <div class="group-header">
-                            <div class="group-title">Overdue</div>
-                            <div class="task-count" id="overdue-count">0</div>
-                        </div>
-                        <div class="task-list" id="overdue-tasks">
-                            <div class="empty-state">
-                                <i class="fas fa-check-circle"></i>
-                                <p>No overdue tasks</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Today's Tasks -->
-                    <div class="task-group today">
-                        <div class="group-header">
-                            <div class="group-title">Today</div>
-                            <div class="task-count" id="today-count">0</div>
-                        </div>
-                        <div class="task-list" id="today-tasks">
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-day"></i>
-                                <p>No tasks for today</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Upcoming Tasks -->
-                    <div class="task-group upcoming">
-                        <div class="group-header">
-                            <div class="group-title">Upcoming</div>
-                            <div class="task-count" id="upcoming-count">0</div>
-                        </div>
-                        <div class="task-list" id="upcoming-tasks">
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-alt"></i>
-                                <p>No upcoming tasks</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="calendar-header">
+                    <button id="prevMonth" class="btn btn-sm btn-secondary">←</button>
+                    <h3 id="currentMonth">November 2023</h3>
+                    <button id="nextMonth" class="btn btn-sm btn-secondary">→</button>
                 </div>
-
-                <!-- Completed Tasks -->
-                <div class="completed-section">
-                    <div class="group-header">
-                        <div class="group-title">Recently Completed (Last 10 Days)</div>
-                        <div class="task-count" id="completed-count">0</div>
-                    </div>
-                    <div class="task-list" id="completed-tasks">
-                        <div class="empty-state">
-                            <i class="fas fa-check-circle"></i>
-                            <p>No completed tasks in the last 10 days</p>
-                        </div>
-                    </div>
+                <div class="calendar-weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
                 </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Task Modal -->
-    <div class="modal" id="task-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modal-title">Add New Task</h3>
-                <button class="close-modal">&times;</button>
+                <div class="calendar" id="calendar">
+                    <!-- Calendar will be generated by JavaScript -->
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="task-title">Task Title</label>
-                    <input type="text" id="task-title" placeholder="Enter task title">
+            
+            <div class="form-container">
+                <div class="form-title">
+                    <span>Filters</span>
                 </div>
                 <div class="form-group">
-                    <label for="task-description">Description</label>
-                    <textarea id="task-description" rows="3" placeholder="Enter task description" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="task-due">Due Date</label>
-                    <input type="date" id="task-due">
-                </div>
-                <div class="form-group">
-                    <label for="task-priority">Priority</label>
-                    <select id="task-priority" style="width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
-                        <option value="low">Low</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="high">High</option>
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus">
+                        <option value="">All Statuses</option>
+                        <option value="todo">To Do</option>
+                        <option value="inprogress">In Progress</option>
+                        <option value="done">Done</option>
                     </select>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-task">Cancel</button>
-                <button class="btn btn-primary" id="save-task">Save Task</button>
+                <div class="form-group">
+                    <label for="filterPriority">Priority</label>
+                    <select id="filterPriority">
+                        <option value="">All Priorities</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterAssignee">Assignee</label>
+                    <select id="filterAssignee">
+                        <option value="">All Assignees</option>
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
+                <button id="clearFilters" class="btn btn-secondary">Clear Filters</button>
             </div>
         </div>
+        
+        <div class="main-content">
+            <div class="print-controls no-print">
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" placeholder="Enter company name">
+                </div>
+                <div class="form-group">
+                    <button id="printBtn" class="btn btn-print">
+                        <span class="icon">🖨️</span>Print Tasks
+                    </button>
+                </div>
+            </div>
+            
+            <div class="view-controls no-print">
+                <button class="view-btn active" data-view="list">List View</button>
+                <button class="view-btn" data-view="kanban">Kanban Board</button>
+                <button class="view-btn" data-view="calendar">Calendar View</button>
+            </div>
+            
+            <div class="form-container no-print">
+                <div class="form-title">
+                    <span id="formTitle">Add Task</span>
+                    <button type="button" id="cancelEdit" class="btn btn-secondary btn-sm hidden">
+                        <span class="icon">✖</span>Cancel
+                    </button>
+                </div>
+                <form id="taskForm">
+                    <input type="hidden" id="editId" value="">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" id="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Due Date</label>
+                            <input type="date" id="dueDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select id="priority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status">
+                                <option value="todo">To Do</option>
+                                <option value="inprogress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignee">Assignee</label>
+                            <input type="text" id="assignee" placeholder="Assign to">
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Tags (comma separated)</label>
+                            <input type="text" id="tags" placeholder="e.g., work, urgent">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="icon">💾</span>Save Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="search-container no-print">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search tasks...">
+                <button id="clearSearch" class="btn btn-secondary">
+                    <span class="icon">✖</span>Clear
+                </button>
+            </div>
+            
+            <div class="task-list-container">
+                <div id="listView">
+                    <table class="task-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Due Date</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assignee</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 20px;">
+                                    No tasks found.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="kanbanView" class="hidden">
+                    <div class="kanban-board">
+                        <div class="kanban-column">
+                            <div class="kanban-header status-todo">To Do</div>
+                            <div class="kanban-tasks" id="todoTasks">
+                                <!-- To Do tasks will be populated here -->
+                            </div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="kanban-header status-inprogress">In Progress</div>
+                            <div class="kanban-tasks" id="inProgressTasks">
+                                <!-- In Progress tasks will be populated here -->
+                            </div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="kanban-header status-done">Done</div>
+                            <div class="kanban-tasks" id="doneTasks">
+                                <!-- Done tasks will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="calendarView" class="hidden">
+                    <!-- Calendar view will be implemented in a future version -->
+                    <div style="text-align: center; padding: 40px;">
+                        <h3>Calendar View</h3>
+                        <p>This view will show tasks on a calendar in a future version.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar no-print">
+            <div class="status-message" id="statusMessage">No task list loaded</div>
+            <div id="taskCount">0 tasks</div>
+        </div>
+        
+        <!-- Printable tasks section (hidden by default) -->
+        <div id="printable-tasks" style="display: none;">
+            <div class="print-header">
+                <h2 id="print-company-name">Company Name</h2>
+                <h3>Task Report</h3>
+                <div class="print-period" id="print-period">For the period: </div>
+            </div>
+            
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Due Date</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assignee</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="print-table-body">
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div class="print-summary">
+                <p>Total Tasks: <span id="print-total-tasks">0</span></p>
+                <p>Completed Tasks: <span id="print-completed-tasks">0</span></p>
+                <p>In Progress Tasks: <span id="print-inprogress-tasks">0</span></p>
+                <p>Overdue Tasks: <span id="print-overdue-tasks">0</span></p>
+            </div>
+        </div>
+
+        <!-- Hidden download link for saving files -->
+        <a id="downloadLink" class="download-link"></a>
     </div>
-
+    
+    <div class="notification" id="notification"></div>
+    
     <script>
-        // Database simulation using localStorage
-        const Database = {
-            // User methods
-            getUsers: () => {
-                const users = localStorage.getItem('taskflow_users');
-                return users ? JSON.parse(users) : [];
-            },
-            
-            saveUsers: (users) => {
-                localStorage.setItem('taskflow_users', JSON.stringify(users));
-            },
-            
-            // Task methods
-            getTasks: (userId) => {
-                const tasks = localStorage.getItem(`taskflow_tasks_${userId}`);
-                return tasks ? JSON.parse(tasks) : [];
-            },
-            
-            saveTasks: (userId, tasks) => {
-                localStorage.setItem(`taskflow_tasks_${userId}`, JSON.stringify(tasks));
-            },
-            
-            // Current user
-            setCurrentUser: (user) => {
-                localStorage.setItem('taskflow_current_user', JSON.stringify(user));
-            },
-            
-            getCurrentUser: () => {
-                const user = localStorage.getItem('taskflow_current_user');
-                return user ? JSON.parse(user) : null;
-            },
-            
-            clearCurrentUser: () => {
-                localStorage.removeItem('taskflow_current_user');
-            }
-        };
+        // Global variables
+        let tasks = [];
+        let nextId = 1;
+        let assignees = [];
+        let currentDate = new Date();
+        let currentView = 'list';
 
-        // App functionality
-        const TaskFlowApp = {
-            currentUser: null,
-            currentCategory: 'all',
-            editingTaskId: null,
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            const today = new Date();
+            document.getElementById('dueDate').valueAsDate = today;
             
-            init: function() {
-                this.checkAuthStatus();
-                this.bindEvents();
-            },
+            // Set default date range for printing (current month)
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
             
-            checkAuthStatus: function() {
-                const user = Database.getCurrentUser();
-                if (user) {
-                    this.currentUser = user;
-                    this.showAppScreen();
-                    this.loadTasks();
-                } else {
-                    this.showLoginScreen();
-                }
-            },
+            document.getElementById('startDate').valueAsDate = firstDay;
+            document.getElementById('endDate').valueAsDate = lastDay;
             
-            bindEvents: function() {
-                // Auth events
-                document.getElementById('show-register').addEventListener('click', () => this.showRegister());
-                document.getElementById('show-login').addEventListener('click', () => this.showLogin());
-                document.getElementById('login-btn').addEventListener('click', () => this.login());
-                document.getElementById('register-btn').addEventListener('click', () => this.register());
-                document.getElementById('logout-btn').addEventListener('click', () => this.logout());
-                
-                // Task events
-                document.getElementById('add-task-btn').addEventListener('click', () => this.openTaskModal());
-                document.getElementById('cancel-task').addEventListener('click', () => this.closeTaskModal());
-                document.getElementById('save-task').addEventListener('click', () => this.saveTask());
-                document.querySelector('.close-modal').addEventListener('click', () => this.closeTaskModal());
-                
-                // Category events
-                document.querySelectorAll('.menu-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-                        e.currentTarget.classList.add('active');
-                        this.currentCategory = e.currentTarget.dataset.category;
-                        document.getElementById('section-title').textContent = e.currentTarget.textContent.trim();
-                        this.loadTasks();
-                    });
+            // Event listeners
+            document.getElementById('createDb').addEventListener('click', createDatabase);
+            document.getElementById('saveDb').addEventListener('click', saveDatabase);
+            document.getElementById('dbFile').addEventListener('change', loadDatabase);
+            document.getElementById('exampleData').addEventListener('click', loadExampleData);
+            document.getElementById('taskForm').addEventListener('submit', saveTask);
+            document.getElementById('cancelEdit').addEventListener('click', cancelEdit);
+            document.getElementById('searchInput').addEventListener('input', filterTasks);
+            document.getElementById('clearSearch').addEventListener('click', clearSearch);
+            document.getElementById('printBtn').addEventListener('click', printTasks);
+            document.getElementById('applyFilters').addEventListener('click', applyFilters);
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+            document.getElementById('prevMonth').addEventListener('click', prevMonth);
+            document.getElementById('nextMonth').addEventListener('click', nextMonth);
+            
+            // View controls
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchView(this.dataset.view);
                 });
-            },
+            });
             
-            showLoginScreen: function() {
-                document.getElementById('login-screen').style.display = 'flex';
-                document.getElementById('app-screen').style.display = 'none';
-            },
+            // Initial UI update
+            updateCalendar();
             
-            showAppScreen: function() {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-screen').style.display = 'flex';
-                document.getElementById('current-user').textContent = this.currentUser.name;
-                document.getElementById('current-email').textContent = this.currentUser.email;
-            },
+            // Create a new database on load
+            createDatabase();
+        });
+        
+        // Create a new database
+        function createDatabase() {
+            tasks = [];
+            nextId = 1;
+            assignees = [];
+            updateUI();
+            showNotification('New task list created successfully.', 'success');
+        }
+        
+        // Save database to file
+        function saveDatabase() {
+            if (tasks.length === 0) {
+                showNotification('No tasks to save.', 'error');
+                return;
+            }
             
-            showLogin: function() {
-                document.getElementById('login-container').style.display = 'block';
-                document.getElementById('register-container').style.display = 'none';
-            },
-            
-            showRegister: function() {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('register-container').style.display = 'block';
-            },
-            
-            login: function() {
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                
-                if (!email || !password) {
-                    alert('Please enter both email and password');
-                    return;
-                }
-                
-                const users = Database.getUsers();
-                const user = users.find(u => u.email === email && u.password === password);
-                
-                if (user) {
-                    this.currentUser = user;
-                    Database.setCurrentUser(user);
-                    this.showAppScreen();
-                    this.loadTasks();
-                } else {
-                    alert('Invalid email or password');
-                }
-            },
-            
-            register: function() {
-                const name = document.getElementById('register-name').value;
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-password').value;
-                const confirm = document.getElementById('register-confirm').value;
-                
-                if (!name || !email || !password || !confirm) {
-                    alert('Please fill all fields');
-                    return;
-                }
-                
-                if (password !== confirm) {
-                    alert('Passwords do not match');
-                    return;
-                }
-                
-                const users = Database.getUsers();
-                
-                if (users.some(u => u.email === email)) {
-                    alert('Email already registered');
-                    return;
-                }
-                
-                const newUser = {
-                    id: Date.now().toString(),
-                    name,
-                    email,
-                    password
+            try {
+                const data = {
+                    tasks: tasks,
+                    nextId: nextId,
+                    assignees: assignees
                 };
                 
-                users.push(newUser);
-                Database.saveUsers(users);
+                const dataStr = JSON.stringify(data);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
                 
-                alert('Registration successful! Please login.');
-                this.showLogin();
-            },
-            
-            logout: function() {
-                Database.clearCurrentUser();
-                this.currentUser = null;
-                this.showLoginScreen();
-            },
-            
-            openTaskModal: function(taskId = null) {
-                this.editingTaskId = taskId;
-                const modal = document.getElementById('task-modal');
-                const title = document.getElementById('modal-title');
+                // Create a download link and trigger click
+                const downloadLink = document.getElementById('downloadLink');
+                const url = URL.createObjectURL(dataBlob);
+                downloadLink.href = url;
+                downloadLink.download = 'tasks.json';
+                downloadLink.click();
                 
-                if (taskId) {
-                    title.textContent = 'Edit Task';
-                    const tasks = Database.getTasks(this.currentUser.id);
-                    const task = tasks.find(t => t.id === taskId);
+                // Clean up
+                setTimeout(function() {
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                showNotification('Task list saved successfully.', 'success');
+            } catch (error) {
+                showNotification('Error saving database: ' + error.message, 'error');
+            }
+        }
+        
+        // Load database from file
+        function loadDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    tasks = data.tasks;
+                    nextId = data.nextId;
+                    assignees = data.assignees || [];
                     
-                    if (task) {
-                        document.getElementById('task-title').value = task.title;
-                        document.getElementById('task-description').value = task.description || '';
-                        document.getElementById('task-due').value = task.dueDate;
-                        document.getElementById('task-priority').value = task.priority;
-                    }
-                } else {
-                    title.textContent = 'Add New Task';
-                    document.getElementById('task-title').value = '';
-                    document.getElementById('task-description').value = '';
-                    
-                    // Set default due date to tomorrow
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    document.getElementById('task-due').value = tomorrow.toISOString().split('T')[0];
-                    
-                    document.getElementById('task-priority').value = 'medium';
+                    updateUI();
+                    showNotification('Task list loaded successfully.', 'success');
+                } catch (error) {
+                    showNotification('Error loading database: ' + error.message, 'error');
                 }
-                
-                modal.style.display = 'flex';
-            },
+            };
+            reader.readAsText(file);
+        }
+        
+        // Load example data
+        function loadExampleData() {
+            createDatabase();
             
-            closeTaskModal: function() {
-                document.getElementById('task-modal').style.display = 'none';
-                this.editingTaskId = null;
-            },
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
             
-            saveTask: function() {
-                const title = document.getElementById('task-title').value;
-                const description = document.getElementById('task-description').value;
-                const dueDate = document.getElementById('task-due').value;
-                const priority = document.getElementById('task-priority').value;
-                
-                if (!title || !dueDate) {
-                    alert('Please fill required fields');
-                    return;
+            const sampleTasks = [
+                {
+                    id: nextId++, 
+                    title: 'Complete project proposal', 
+                    description: 'Draft and send proposal to client', 
+                    dueDate: nextWeek.toISOString().slice(0,10), 
+                    priority: 'high', 
+                    status: 'inprogress', 
+                    tags: ['work', 'urgent'], 
+                    assignee: 'John Doe',
+                    subtasks: [
+                        {id: 1, title: 'Research client needs', completed: true},
+                        {id: 2, title: 'Draft outline', completed: false},
+                        {id: 3, title: 'Review with team', completed: false}
+                    ],
+                    timeTracked: 120,
+                    comments: [
+                        {user: 'John Doe', date: today.toISOString().slice(0,10), text: 'Started research'}
+                    ],
+                    attachments: []
+                },
+                {
+                    id: nextId++, 
+                    title: 'Prepare meeting agenda', 
+                    description: 'Create agenda for weekly team meeting', 
+                    dueDate: tomorrow.toISOString().slice(0,10), 
+                    priority: 'medium', 
+                    status: 'todo', 
+                    tags: ['work', 'meeting'], 
+                    assignee: 'Jane Smith',
+                    subtasks: [],
+                    timeTracked: 0,
+                    comments: [],
+                    attachments: []
+                },
+                {
+                    id: nextId++, 
+                    title: 'Fix login bug', 
+                    description: 'Investigate and fix the login authentication issue', 
+                    dueDate: today.toISOString().slice(0,10), 
+                    priority: 'high', 
+                    status: 'done', 
+                    tags: ['development', 'bug'], 
+                    assignee: 'Mike Johnson',
+                    subtasks: [
+                        {id: 1, title: 'Reproduce the issue', completed: true},
+                        {id: 2, title: 'Identify root cause', completed: true},
+                        {id: 3, title: 'Implement fix', completed: true},
+                        {id: 4, title: 'Test solution', completed: true}
+                    ],
+                    timeTracked: 240,
+                    comments: [
+                        {user: 'Mike Johnson', date: yesterday.toISOString().slice(0,10), text: 'Issue reproduced'},
+                        {user: 'Mike Johnson', date: today.toISOString().slice(0,10), text: 'Fix implemented and tested'}
+                    ],
+                    attachments: []
+                },
+                {
+                    id: nextId++, 
+                    title: 'Update documentation', 
+                    description: 'Update API documentation with latest changes', 
+                    dueDate: nextWeek.toISOString().slice(0,10), 
+                    priority: 'low', 
+                    status: 'todo', 
+                    tags: ['documentation'], 
+                    assignee: 'Sarah Wilson',
+                    subtasks: [],
+                    timeTracked: 0,
+                    comments: [],
+                    attachments: []
                 }
+            ];
+            
+            tasks = sampleTasks;
+            assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'];
+            updateUI();
+            showNotification('Example data loaded successfully.', 'success');
+        }
+        
+        // Save task to database
+        function saveTask(event) {
+            event.preventDefault();
+            
+            try {
+                const editId = document.getElementById('editId').value;
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                const dueDate = document.getElementById('dueDate').value;
+                const priority = document.getElementById('priority').value;
+                const status = document.getElementById('status').value;
+                const assignee = document.getElementById('assignee').value;
+                const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
                 
-                const tasks = Database.getTasks(this.currentUser.id);
-                
-                if (this.editingTaskId) {
+                if (editId) {
                     // Update existing task
-                    const index = tasks.findIndex(t => t.id === this.editingTaskId);
+                    const index = tasks.findIndex(t => t.id == editId);
                     if (index !== -1) {
                         tasks[index] = {
                             ...tasks[index],
                             title,
                             description,
                             dueDate,
-                            priority
+                            priority,
+                            status,
+                            assignee,
+                            tags
                         };
                     }
+                    
+                    showNotification('Task updated successfully.', 'success');
                 } else {
-                    // Add new task
+                    // Insert new task
                     tasks.push({
-                        id: Date.now().toString(),
+                        id: nextId++,
                         title,
                         description,
                         dueDate,
                         priority,
-                        completed: false,
-                        createdAt: new Date().toISOString()
+                        status,
+                        assignee,
+                        tags,
+                        subtasks: [],
+                        timeTracked: 0,
+                        comments: [],
+                        attachments: []
                     });
-                }
-                
-                Database.saveTasks(this.currentUser.id, tasks);
-                this.closeTaskModal();
-                this.loadTasks();
-            },
-            
-            editTask: function(taskId) {
-                this.openTaskModal(taskId);
-            },
-            
-            toggleTaskCompletion: function(taskId) {
-                const tasks = Database.getTasks(this.currentUser.id);
-                const index = tasks.findIndex(t => t.id === taskId);
-                
-                if (index !== -1) {
-                    tasks[index].completed = !tasks[index].completed;
-                    if (tasks[index].completed) {
-                        tasks[index].completedAt = new Date().toISOString();
-                    } else {
-                        delete tasks[index].completedAt;
+                    
+                    // Add to assignees if new
+                    if (assignee && !assignees.includes(assignee)) {
+                        assignees.push(assignee);
                     }
                     
-                    Database.saveTasks(this.currentUser.id, tasks);
-                    this.loadTasks();
-                }
-            },
-            
-            deleteTask: function(taskId) {
-                if (confirm('Are you sure you want to delete this task?')) {
-                    const tasks = Database.getTasks(this.currentUser.id);
-                    const updatedTasks = tasks.filter(t => t.id !== taskId);
-                    Database.saveTasks(this.currentUser.id, updatedTasks);
-                    this.loadTasks();
-                }
-            },
-            
-            loadTasks: function() {
-                if (!this.currentUser) return;
-                
-                const tasks = Database.getTasks(this.currentUser.id);
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const dayAfterTomorrow = new Date(tomorrow);
-                dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
-                
-                // Calculate date 10 days ago for completed tasks
-                const tenDaysAgo = new Date(today);
-                tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-                
-                let filteredTasks = tasks;
-                
-                // Filter tasks based on current category
-                if (this.currentCategory === 'overdue') {
-                    filteredTasks = tasks.filter(task => new Date(task.dueDate) < today && !task.completed);
-                } else if (this.currentCategory === 'today') {
-                    filteredTasks = tasks.filter(task => {
-                        const taskDate = new Date(task.dueDate);
-                        return taskDate >= today && taskDate < tomorrow && !task.completed;
-                    });
-                } else if (this.currentCategory === 'upcoming') {
-                    filteredTasks = tasks.filter(task => {
-                        const taskDate = new Date(task.dueDate);
-                        return taskDate >= tomorrow && taskDate < dayAfterTomorrow && !task.completed;
-                    });
-                } else if (this.currentCategory === 'completed') {
-                    filteredTasks = tasks.filter(task => task.completed);
+                    showNotification('Task saved successfully.', 'success');
                 }
                 
-                // Group tasks
-                const overdueTasks = tasks.filter(task => new Date(task.dueDate) < today && !task.completed);
-                const todayTasks = tasks.filter(task => {
-                    const taskDate = new Date(task.dueDate);
-                    return taskDate >= today && taskDate < tomorrow && !task.completed;
-                });
-                const upcomingTasks = tasks.filter(task => {
-                    const taskDate = new Date(task.dueDate);
-                    return taskDate >= tomorrow && taskDate < dayAfterTomorrow && !task.completed;
-                });
-                const completedTasks = tasks.filter(task => {
-                    if (!task.completed) return false;
-                    if (!task.completedAt) return true;
+                // Reset form
+                document.getElementById('taskForm').reset();
+                document.getElementById('editId').value = '';
+                document.getElementById('dueDate').valueAsDate = new Date();
+                document.getElementById('cancelEdit').classList.add('hidden');
+                document.getElementById('formTitle').textContent = 'Add Task';
+                
+                updateUI();
+            } catch (error) {
+                showNotification('Error saving task: ' + error.message, 'error');
+            }
+        }
+        
+        // Edit task
+        function editTask(id) {
+            try {
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                    document.getElementById('editId').value = task.id;
+                    document.getElementById('title').value = task.title;
+                    document.getElementById('description').value = task.description || '';
+                    document.getElementById('dueDate').value = task.dueDate || '';
+                    document.getElementById('priority').value = task.priority || 'medium';
+                    document.getElementById('status').value = task.status || 'todo';
+                    document.getElementById('assignee').value = task.assignee || '';
+                    document.getElementById('tags').value = task.tags ? task.tags.join(', ') : '';
                     
-                    const completedDate = new Date(task.completedAt);
-                    return completedDate >= tenDaysAgo;
-                });
-                
-                // Update counts
-                document.getElementById('overdue-count').textContent = overdueTasks.length;
-                document.getElementById('today-count').textContent = todayTasks.length;
-                document.getElementById('upcoming-count').textContent = upcomingTasks.length;
-                document.getElementById('completed-count').textContent = completedTasks.length;
-                
-                // Render tasks
-                if (this.currentCategory === 'all') {
-                    this.renderTasks('overdue-tasks', overdueTasks);
-                    this.renderTasks('today-tasks', todayTasks);
-                    this.renderTasks('upcoming-tasks', upcomingTasks);
-                    this.renderCompletedTasks('completed-tasks', completedTasks);
-                } else if (this.currentCategory === 'completed') {
-                    this.renderCompletedTasks('completed-tasks', filteredTasks);
-                    document.getElementById('overdue-tasks').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Switch to "All Tasks" view</p></div>';
-                    document.getElementById('today-tasks').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Switch to "All Tasks" view</p></div>';
-                    document.getElementById('upcoming-tasks').innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Switch to "All Tasks" view</p></div>';
+                    document.getElementById('formTitle').textContent = 'Edit Task';
+                    document.getElementById('cancelEdit').classList.remove('hidden');
+                }
+            } catch (error) {
+                showNotification('Error loading task: ' + error.message, 'error');
+            }
+        }
+        
+        // Delete task
+        function deleteTask(id) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+            
+            try {
+                tasks = tasks.filter(t => t.id !== id);
+                updateUI();
+                showNotification('Task deleted successfully.', 'success');
+            } catch (error) {
+                showNotification('Error deleting task: ' + error.message, 'error');
+            }
+        }
+        
+        // Cancel edit
+        function cancelEdit() {
+            document.getElementById('taskForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('dueDate').valueAsDate = new Date();
+            document.getElementById('cancelEdit').classList.add('hidden');
+            document.getElementById('formTitle').textContent = 'Add Task';
+        }
+        
+        // Filter tasks based on search input
+        function filterTasks() {
+            updateUI();
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            updateUI();
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterPriority').value = '';
+            document.getElementById('filterAssignee').value = '';
+            document.getElementById('searchInput').value = '';
+            updateUI();
+        }
+        
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            updateUI();
+        }
+        
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+            
+            // Update active button
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                if (btn.dataset.view === view) {
+                    btn.classList.add('active');
                 } else {
-                    this.renderTasks('overdue-tasks', overdueTasks);
-                    this.renderTasks('today-tasks', todayTasks);
-                    this.renderTasks('upcoming-tasks', upcomingTasks);
-                    this.renderCompletedTasks('completed-tasks', completedTasks);
+                    btn.classList.remove('active');
                 }
-            },
+            });
             
-            renderTasks: function(containerId, tasks) {
-                const container = document.getElementById(containerId);
+            // Show/hide views
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('kanbanView').classList.add('hidden');
+            document.getElementById('calendarView').classList.add('hidden');
+            
+            document.getElementById(view + 'View').classList.remove('hidden');
+            
+            updateUI();
+        }
+        
+        // Print tasks
+        function printTasks() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const companyName = document.getElementById('companyName').value || 'Company Name';
+            
+            if (!startDate || !endDate) {
+                showNotification('Please select start and end dates for the period.', 'error');
+                return;
+            }
+            
+            // Filter tasks by date range
+            const filteredTasks = tasks.filter(t => {
+                if (!t.dueDate) return false;
+                return t.dueDate >= startDate && t.dueDate <= endDate;
+            });
+            
+            // Calculate totals
+            const totalTasks = filteredTasks.length;
+            const completedTasks = filteredTasks.filter(t => t.status === 'done').length;
+            const inProgressTasks = filteredTasks.filter(t => t.status === 'inprogress').length;
+            
+            const today = new Date().toISOString().slice(0, 10);
+            const overdueTasks = filteredTasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate < today).length;
+            
+            // Update printable section
+            document.getElementById('print-company-name').textContent = companyName;
+            document.getElementById('print-period').textContent = `For the period: ${formatDateForPrint(startDate)} to ${formatDateForPrint(endDate)}`;
+            document.getElementById('print-total-tasks').textContent = totalTasks;
+            document.getElementById('print-completed-tasks').textContent = completedTasks;
+            document.getElementById('print-inprogress-tasks').textContent = inProgressTasks;
+            document.getElementById('print-overdue-tasks').textContent = overdueTasks;
+            
+            // Create the printable table
+            const tableBody = document.getElementById('print-table-body');
+            tableBody.innerHTML = '';
+            
+            filteredTasks.forEach(task => {
+                const row = document.createElement('tr');
                 
-                if (tasks.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-${containerId === 'overdue-tasks' ? 'check-circle' : 
-                                            containerId === 'today-tasks' ? 'calendar-day' : 'calendar-alt'}"></i>
-                            <p>No ${containerId.replace('-tasks', '')} tasks</p>
-                        </div>
-                    `;
-                    return;
+                row.innerHTML = `
+                    <td>${task.title}</td>
+                    <td>${task.dueDate ? formatDateForPrint(task.dueDate) : ''}</td>
+                    <td>${task.priority}</td>
+                    <td>${task.status}</td>
+                    <td>${task.assignee || ''}</td>
+                    <td>${task.description || ''}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Show the printable section and print
+            const printableElement = document.getElementById('printable-tasks');
+            printableElement.style.display = 'block';
+            
+            window.print();
+            
+            // Hide the printable section after printing
+            printableElement.style.display = 'none';
+        }
+        
+        // Format date for printing
+        function formatDateForPrint(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+        
+        // Update calendar
+        function updateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Update month header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            
+            // Create calendar cells
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-cell';
+                calendar.appendChild(emptyCell);
+            }
+            
+            // Add cells for each day of the month
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                cell.textContent = day;
+                
+                const cellDate = new Date(year, month, day);
+                
+                // Check if it's today
+                if (cellDate.getTime() === today.getTime()) {
+                    cell.classList.add('today');
                 }
                 
-                container.innerHTML = '';
-                
-                tasks.forEach(task => {
+                // Check if there are tasks on this day
+                const hasTasks = tasks.some(task => {
+                    if (!task.dueDate) return false;
                     const taskDate = new Date(task.dueDate);
-                    const now = new Date();
-                    const isOverdue = taskDate < new Date(now.getFullYear(), now.getMonth(), now.getDate()) && !task.completed;
-                    
-                    const taskEl = document.createElement('div');
-                    taskEl.className = `task-item ${isOverdue ? 'overdue' : 
-                                        taskDate.toDateString() === now.toDateString() ? 'today' : 'upcoming'}`;
-                    
-                    taskEl.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-due">
-                            <i class="fas fa-calendar"></i>
-                            ${taskDate.toLocaleDateString()}
-                        </div>
-                        <div class="task-actions">
-                            <div class="task-btn complete-btn" onclick="TaskFlowApp.toggleTaskCompletion('${task.id}')">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="task-btn edit-btn" onclick="TaskFlowApp.editTask('${task.id}')">
-                                <i class="fas fa-edit"></i>
-                            </div>
-                            <div class="task-btn delete-btn" onclick="TaskFlowApp.deleteTask('${task.id}')">
-                                <i class="fas fa-trash"></i>
-                            </div>
-                        </div>
-                    `;
-                    
-                    container.appendChild(taskEl);
+                    return taskDate.getDate() === day && 
+                           taskDate.getMonth() === month && 
+                           taskDate.getFullYear() === year;
                 });
-            },
-            
-            renderCompletedTasks: function(containerId, tasks) {
-                const container = document.getElementById(containerId);
                 
-                if (tasks.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-check-circle"></i>
-                            <p>No completed tasks in the last 10 days</p>
-                        </div>
-                    `;
-                    return;
+                if (hasTasks) {
+                    cell.classList.add('has-tasks');
                 }
                 
-                container.innerHTML = '';
+                // Add click event to show tasks for this day
+                cell.addEventListener('click', function() {
+                    // Filter and show tasks for this date
+                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    document.getElementById('startDate').value = dateStr;
+                    document.getElementById('endDate').value = dateStr;
+                    updateUI();
+                });
                 
-                tasks.forEach(task => {
-                    const taskDate = new Date(task.dueDate);
-                    const completedDate = task.completedAt ? new Date(task.completedAt) : null;
+                calendar.appendChild(cell);
+            }
+        }
+        
+        // Navigate to previous month
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        }
+        
+        // Navigate to next month
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        }
+        
+        // Update UI with data from database
+        function updateUI() {
+            // Get filters
+            const statusFilter = document.getElementById('filterStatus').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+            const assigneeFilter = document.getElementById('filterAssignee').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            // Filter tasks
+            let filteredTasks = tasks;
+            
+            if (statusFilter) {
+                filteredTasks = filteredTasks.filter(t => t.status === statusFilter);
+            }
+            
+            if (priorityFilter) {
+                filteredTasks = filteredTasks.filter(t => t.priority === priorityFilter);
+            }
+            
+            if (assigneeFilter) {
+                filteredTasks = filteredTasks.filter(t => t.assignee === assigneeFilter);
+            }
+            
+            if (searchTerm) {
+                filteredTasks = filteredTasks.filter(t => 
+                    t.title.toLowerCase().includes(searchTerm) ||
+                    (t.description && t.description.toLowerCase().includes(searchTerm)) ||
+                    (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchTerm))) ||
+                    (t.assignee && t.assignee.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            // Update assignee filter dropdown
+            const assigneeFilterEl = document.getElementById('filterAssignee');
+            assigneeFilterEl.innerHTML = '<option value="">All Assignees</option>';
+            
+            assignees.forEach(assignee => {
+                const option = document.createElement('option');
+                option.value = assignee;
+                option.textContent = assignee;
+                assigneeFilterEl.appendChild(option);
+            });
+            
+            // Calculate totals
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(t => t.status === 'done').length;
+            const inProgressTasks = tasks.filter(t => t.status === 'inprogress').length;
+            
+            const today = new Date().toISOString().slice(0, 10);
+            const overdueTasks = tasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate < today).length;
+            
+            // Update summary cards
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('inProgressTasks').textContent = inProgressTasks;
+            document.getElementById('overdueTasks').textContent = overdueTasks;
+            
+            // Update based on current view
+            if (currentView === 'list') {
+                updateListView(filteredTasks);
+            } else if (currentView === 'kanban') {
+                updateKanbanView(filteredTasks);
+            }
+            
+            // Update status bar
+            document.getElementById('statusMessage').textContent = tasks.length > 0 ? 'Task list loaded' : 'No task list loaded';
+            document.getElementById('taskCount').textContent = `${tasks.length} tasks`;
+            
+            // Update calendar
+            updateCalendar();
+        }
+        
+        // Update list view
+        function updateListView(filteredTasks) {
+            const tableBody = document.getElementById('taskTableBody');
+            tableBody.innerHTML = '';
+            
+            if (filteredTasks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No tasks found.</td></tr>';
+            } else {
+                // Sort by due date (oldest first)
+                filteredTasks.sort((a, b) => {
+                    if (!a.dueDate) return 1;
+                    if (!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
+                
+                filteredTasks.forEach(task => {
+                    const row = document.createElement('tr');
+                    row.classList.add(`priority-${task.priority}`);
+                    row.classList.add(`status-${task.status}`);
                     
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'task-item completed';
-                    
-                    taskEl.innerHTML = `
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-due">
-                            <i class="fas fa-calendar"></i>
-                            Due: ${taskDate.toLocaleDateString()}
-                            ${completedDate ? ' | Completed: ' + completedDate.toLocaleDateString() : ''}
-                        </div>
-                        <div class="task-actions">
-                            <div class="task-btn complete-btn" onclick="TaskFlowApp.toggleTaskCompletion('${task.id}')">
-                                <i class="fas fa-undo"></i>
-                            </div>
-                            <div class="task-btn delete-btn" onclick="TaskFlowApp.deleteTask('${task.id}')">
-                                <i class="fas fa-trash"></i>
-                            </div>
-                        </div>
+                    row.innerHTML = `
+                        <td>
+                            <div><strong>${task.title}</strong></div>
+                            <small>${task.description || 'No description'}</small>
+                            ${task.tags && task.tags.length > 0 ? `<div><small>Tags: ${task.tags.join(', ')}</small></div>` : ''}
+                        </td>
+                        <td>${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</td>
+                        <td><span class="task-dot priority-${task.priority}"></span> ${task.priority}</td>
+                        <td>${task.status}</td>
+                        <td>${task.assignee || 'Unassigned'}</td>
+                        <td class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
+                        </td>
                     `;
                     
-                    container.appendChild(taskEl);
+                    tableBody.appendChild(row);
                 });
             }
-        };
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            TaskFlowApp.init();
-        });
+        }
+        
+        // Update kanban view
+        function updateKanbanView(filteredTasks) {
+            const todoTasks = filteredTasks.filter(t => t.status === 'todo');
+            const inProgressTasks = filteredTasks.filter(t => t.status === 'inprogress');
+            const doneTasks = filteredTasks.filter(t => t.status === 'done');
+            
+            // Update To Do column
+            const todoContainer = document.getElementById('todoTasks');
+            todoContainer.innerHTML = '';
+            
+            if (todoTasks.length === 0) {
+                todoContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
+            } else {
+                todoTasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'kanban-task';
+                    taskEl.innerHTML = `
+                        <div><strong>${task.title}</strong></div>
+                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
+                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
+                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
+                        </div>
+                    `;
+                    todoContainer.appendChild(taskEl);
+                });
+            }
+            
+            // Update In Progress column
+            const inProgressContainer = document.getElementById('inProgressTasks');
+            inProgressContainer.innerHTML = '';
+            
+            if (inProgressTasks.length === 0) {
+                inProgressContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
+            } else {
+                inProgressTasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'kanban-task';
+                    taskEl.innerHTML = `
+                        <div><strong>${task.title}</strong></div>
+                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
+                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
+                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
+                        </div>
+                    `;
+                    inProgressContainer.appendChild(taskEl);
+                });
+            }
+            
+            // Update Done column
+            const doneContainer = document.getElementById('doneTasks');
+            doneContainer.innerHTML = '';
+            
+            if (doneTasks.length === 0) {
+                doneContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
+            } else {
+                doneTasks.forEach(task => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'kanban-task';
+                    taskEl.innerHTML = `
+                        <div><strong>${task.title}</strong></div>
+                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
+                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
+                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
+                        <div class="actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
+                        </div>
+                    `;
+                    doneContainer.appendChild(taskEl);
+                });
+            }
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+        
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
