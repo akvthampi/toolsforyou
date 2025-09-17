@@ -21,7 +21,7 @@
       --panel-grad1:rgba(255,255,255,.04);
       --panel-grad2:rgba(255,255,255,.02);
     }
-    *{box-sizing:border-box}
+    *{box-sizing:border-box; margin: 0; padding: 0;}
     html,body{height:100%}
     body{
       margin:0;
@@ -31,12 +31,12 @@
                   var(--bg);
       color:var(--text);
     }
-    .app{max-width:1200px;margin:28px auto;padding:0 16px 24px}
-    .header{text-align:center;margin-bottom:16px}
-    .title{font-weight:700;font-size:1.6rem;margin:0 0 6px}
-    .subtitle{color:var(--muted);margin:0}
+    .app{width:100%; margin:0; padding:20px;}
+    .header{text-align:center;margin-bottom:20px; padding:0 10px;}
+    .title{font-weight:700;font-size:2rem;margin:0 0 10px}
+    .subtitle{color:var(--muted);margin:0; font-size:1.1rem;}
 
-    .container{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px}
+    .container{display:grid;grid-template-columns: 1.1fr .9fr;gap:20px; width:100%;}
     @media (max-width: 980px){.container{grid-template-columns:1fr}}
 
     .panel{
@@ -48,20 +48,21 @@
       overflow:hidden;
       min-height: 500px;
     }
-    .panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
-    .panel-title{font-weight:700}
-    .panel-body{padding:12px}
+    .panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .panel-title{font-weight:700; font-size:1.2rem;}
+    .panel-body{padding:16px}
 
-    .searchbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .searchbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
     .input{
-      flex:1;min-width:240px;padding:12px 14px;border-radius:12px;
+      flex:1;min-width:240px;padding:12px 16px;border-radius:12px;
       border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.6);
       color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s;
+      font-size: 1rem;
     }
     .input:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
     .btn{
-      appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer;
-      transition:transform .08s, background .2s, box-shadow .2s
+      appearance:none;border:none;border-radius:12px;padding:12px 18px;font-weight:600;cursor:pointer;
+      transition:transform .08s, background .2s, box-shadow .2s; font-size: 1rem;
     }
     .btn:active{transform:translateY(1px) scale(.99)}
     .btn.primary{background:linear-gradient(180deg, var(--primary), var(--primary-600));color:white;box-shadow:0 8px 18px rgba(99,102,241,.35)}
@@ -69,10 +70,7 @@
     .btn.ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.12)}
     .btn.ghost:hover{background:rgba(255,255,255,.09)}
 
-    .recipes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    @media (max-width:1180px){ .recipes-grid{grid-template-columns:repeat(2,1fr)} }
-    @media (max-width:720px){ .recipes-grid{grid-template-columns:1fr} }
-
+    .recipes-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:16px}
     .recipe-card{
       background:rgba(255,255,255,.03);
       border:1px solid rgba(255,255,255,.08);
@@ -80,58 +78,58 @@
       transition:transform .08s, box-shadow .2s, border-color .2s;
       cursor:pointer;
     }
-    .recipe-card:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(99,102,241,.18);border-color:rgba(99,102,241,.45)}
+    .recipe-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(99,102,241,.18);border-color:rgba(99,102,241,.45)}
     .recipe-thumb{width:100%;height:160px;object-fit:cover;display:block}
-    .recipe-content{padding:10px}
-    .recipe-title{font-weight:700;margin:0 0 8px;font-size:1rem}
+    .recipe-content{padding:12px}
+    .recipe-title{font-weight:700;margin:0 0 10px;font-size:1.1rem}
     .card-actions{display:flex;justify-content:flex-end}
-    .btn.add{background:rgba(99,102,241,.16);color:#fff;border:1px solid rgba(99,102,241,.5);padding:8px 10px;border-radius:10px}
+    .btn.add{background:rgba(99,102,241,.16);color:#fff;border:1px solid rgba(99,102,241,.5);padding:8px 12px;border-radius:10px; font-size: 0.9rem;}
     .btn.add:hover{background:rgba(99,102,241,.25)}
-    .empty-state{color:var(--muted);padding:12px;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:12px;margin-top:10px}
+    .empty-state{color:var(--muted);padding:16px;text-align:center;border:1px dashed rgba(255,255,255,.12);border-radius:12px;margin-top:16px; font-size: 1rem;}
 
-    .planner-grid{display:grid;grid-template-columns: repeat(7, 1fr);gap:10px;padding:10px}
-    @media (max-width:1180px){ .planner-grid{grid-template-columns: repeat(4, 1fr)} }
-    @media (max-width:900px){ .planner-grid{grid-template-columns: repeat(3, 1fr)} }
-    @media (max-width:720px){ .planner-grid{grid-template-columns: repeat(2, 1fr)} }
+    .planner-grid{display:grid;grid-template-columns: repeat(7, 1fr);gap:12px;padding:12px}
+    @media (max-width:1400px){ .planner-grid{grid-template-columns: repeat(4, 1fr)} }
+    @media (max-width:1100px){ .planner-grid{grid-template-columns: repeat(3, 1fr)} }
+    @media (max-width:800px){ .planner-grid{grid-template-columns: repeat(2, 1fr)} }
     @media (max-width:520px){ .planner-grid{grid-template-columns: 1fr} }
     .day-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .day-header{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:700}
-    .meal-slot{padding:10px;min-height:120px;border-bottom:1px dashed rgba(255,255,255,.08);transition: background .2s, outline .2s}
+    .day-header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:700; font-size: 1.1rem;}
+    .meal-slot{padding:12px;min-height:130px;border-bottom:1px dashed rgba(255,255,255,.08);transition: background .2s, outline .2s; position: relative;}
     .meal-slot:last-child{border-bottom:none}
-    .slot-title{color:var(--muted);font-size:.9rem;margin-bottom:6px}
+    .slot-title{color:var(--muted);font-size:.95rem;margin-bottom:8px}
     .meal-slot.dragover{outline:2px dashed var(--primary);outline-offset:-6px;background:rgba(99,102,241,.08)}
-    .meal-slot.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.9rem;}
+    .meal-slot.empty:after{content:"Drop recipe here";color:var(--muted);font-size:.9rem;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;}
 
-    .meal-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px;margin-bottom:8px;cursor:grab}
+    .meal-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;margin-bottom:10px;cursor:grab}
     .meal-item:active{cursor:grabbing}
-    .meal-thumb{width:32px;height:32px;border-radius:8px;object-fit:cover}
-    .meal-name{flex:1;font-size:.95rem}
-    .meal-remove{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;padding:4px 8px;border-radius:8px;cursor:pointer}
+    .meal-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover}
+    .meal-name{flex:1;font-size:1rem}
+    .meal-remove{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;padding:5px 9px;border-radius:8px;cursor:pointer; font-size: 0.9rem;}
     .meal-remove:hover{background:rgba(255,255,255,.1);color:#ffb4b4;border-color:rgba(239,68,68,.6)}
 
     .assign-popup{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:30}
-    .assign-card{width:min(480px, 92vw);background: linear-gradient(180deg, var(--panel-grad1), var(--panel-grad2));border:1px solid var(--card-border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
-    .assign-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.6);color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s}
+    .assign-card{width:min(480px, 92vw);background: linear-gradient(180deg, var(--panel-grad1), var(--panel-grad2));border:1px solid var(--card-border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
+    .assign-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.6);color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s; font-size: 1rem;}
     .select:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
-    .assign-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .assign-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:16px}
 
     .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);z-index:40}
     .modal-card{width:min(900px, 95vw);max-height:90vh;overflow:auto;background: rgba(15, 23, 42, 0.95);border:1px solid var(--card-border);border-radius:16px;box-shadow:var(--shadow)}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
-    .modal-title{font-weight:700;font-size:1.4rem}
-    .modal-close{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .modal-title{font-weight:700;font-size:1.5rem}
+    .modal-close{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;padding:6px 12px;border-radius:10px;cursor:pointer; font-size: 1rem;}
     .modal-close:hover{background:rgba(255,255,255,.1)}
-    .modal-body{padding:14px}
-    .modal-top{display:grid;grid-template-columns: 320px 1fr;gap:14px}
+    .modal-body{padding:16px}
+    .modal-top{display:grid;grid-template-columns: 320px 1fr;gap:16px}
     @media (max-width:780px){ .modal-top{grid-template-columns:1fr} }
     .modal-img{width:100%;height:240px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,.12)}
-    .ingredients{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .ingredients{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     @media (max-width:600px){ .ingredients{grid-template-columns:1fr} }
-    .ing-item{background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:8px}
-    .section-caption{color:var(--muted);margin:10px 0 6px;font-weight:600;font-size:1.1rem}
+    .ing-item{background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.12);border-radius:10px;padding:10px; font-size: 0.95rem;}
+    .section-caption{color:var(--muted);margin:12px 0 8px;font-weight:600;font-size:1.2rem}
 
-    .footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:16px}
+    .footer{text-align:center;color:var(--muted);font-size:.95rem;margin-top:20px; padding: 0 10px;}
   </style>
 </head>
 <body>
@@ -260,27 +258,27 @@
       }));
     };
 
-    const mealItem = (meal) => {
+    const mealItem = (meal, day, slot) => {
       const item = create('div','meal-item');
       item.draggable = true;
       item.dataset.uid = meal._uid;
       const img = create('img','meal-thumb'); img.src = meal.strMealThumb || ''; img.alt = 'Thumb';
       const name = create('div','meal-name'); name.textContent = meal.strMeal;
       const rm = create('button','meal-remove'); rm.textContent = 'x';
+      
+      // Fixed remove functionality
       rm.addEventListener('click', (e) => {
         e.stopPropagation();
-        const slotEl = item.closest('.meal-slot');
-        const day = slotEl?.dataset.day;
-        const slot = slotEl?.dataset.slot;
-        if(day && slot){
-          const arr = planner[day][slot];
-          const idx = arr.findIndex(m => m._uid === meal._uid);
-          if(idx >= 0) arr.splice(idx,1);
+        const arr = planner[day][slot];
+        const idx = arr.findIndex(m => m._uid === meal._uid);
+        if(idx >= 0) {
+          arr.splice(idx,1);
           item.remove();
           savePlanner();
           updateEmptySlots();
         }
       });
+      
       item.addEventListener('dragstart', (e) => {
         e.dataTransfer.effectAllowed = 'move';
         const payload = { idMeal: meal.idMeal, strMeal: meal.strMeal, strMealThumb: meal.strMealThumb, _uid: meal._uid };
@@ -303,15 +301,6 @@
           slot.classList.remove('empty');
         } else {
           slot.classList.add('empty');
-          // Remove any existing empty state text
-          const existingEmptyText = slot.querySelector('.empty-slot-text');
-          if (existingEmptyText) {
-            existingEmptyText.remove();
-          }
-          // Add empty state text
-          const emptyText = create('div', 'empty-slot-text');
-          emptyText.textContent = 'Drop recipe here';
-          slot.appendChild(emptyText);
         }
       });
     };
@@ -323,8 +312,11 @@
         const head = create('div','day-header'); head.textContent = day;
         dayCard.appendChild(head);
         SLOTS.forEach(slot => {
-          const slotEl = create('div','meal-slot'); slotEl.dataset.day = day; slotEl.dataset.slot = slot;
-          const title = create('div','slot-title'); title.textContent = slot[0].toUpperCase() + slot.slice(1);
+          const slotEl = create('div','meal-slot'); 
+          slotEl.dataset.day = day; 
+          slotEl.dataset.slot = slot;
+          const title = create('div','slot-title'); 
+          title.textContent = slot[0].toUpperCase() + slot.slice(1);
           slotEl.appendChild(title);
 
           // DnD
@@ -347,12 +339,12 @@
             const uid = data._uid || `${data.idMeal}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
             const meal = { idMeal: data.idMeal, strMeal: data.strMeal, strMealThumb: data.strMealThumb, _uid: uid };
             planner[day][slot].push(meal);
-            slotEl.appendChild(mealItem(meal));
+            slotEl.appendChild(mealItem(meal, day, slot));
             savePlanner();
             updateEmptySlots();
           });
 
-          planner[day][slot].forEach(m => slotEl.appendChild(mealItem(m)));
+          planner[day][slot].forEach(m => slotEl.appendChild(mealItem(m, day, slot)));
           dayCard.appendChild(slotEl);
         });
         plannerGrid.appendChild(dayCard);
@@ -528,10 +520,8 @@
       savePlanner();
       const slotEl = document.querySelector(`.meal-slot[data-day="${day}"][data-slot="${slot}"]`);
       if(slotEl) {
-        slotEl.appendChild(mealItem(m));
+        slotEl.appendChild(mealItem(m, day, slot));
         slotEl.classList.remove('empty');
-        const emptyText = slotEl.querySelector('.empty-slot-text');
-        if (emptyText) emptyText.remove();
       }
       closeAssignPopup();
     });
