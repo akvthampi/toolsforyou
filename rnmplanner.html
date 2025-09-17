@@ -216,11 +216,11 @@
   <script>
     // API and helpers
     const API = {
-      searchByName: (q) => \`https://www.themealdb.com/api/json/v1/1/search.php?s=\${encodeURIComponent(q || '')}\`,
-      lookupById:   (id) => \`https://www.themealdb.com/api/json/v1/1/lookup.php?i=\${id}\`,
-      searchByFirst:(ch) => \`https://www.themealdb.com/api/json/v1/1/search.php?f=\${encodeURIComponent(ch)}\`,
+      searchByName: (q) => `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q || '')}`,
+      lookupById:   (id) => `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`,
+      searchByFirst:(ch) => `https://www.themealdb.com/api/json/v1/1/search.php?f=${encodeURIComponent(ch)}`,
       random:       () => 'https://www.themealdb.com/api/json/v1/1/random.php'
-    }; // TheMealDB endpoints with meals array or null [web:84][web:86].
+    }; // TheMealDB endpoints with meals array or null.
 
     const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
     const SLOTS = ['breakfast','lunch','dinner'];
@@ -241,11 +241,11 @@
         if(!planner[d]) planner[d] = {};
         SLOTS.forEach(s => { if(!Array.isArray(planner[d][s])) planner[d][s] = []; });
       });
-    }; // Defensive localStorage load [web:156][web:153].
+    }; // Defensive localStorage load.
 
     const savePlanner = () => {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(planner)); } catch {}
-    }; // Persist changes [web:156].
+    }; // Persist changes.
 
     // Planner rendering
     const plannerGrid = $('#planner-grid');
@@ -302,17 +302,23 @@
           slotEl.appendChild(title);
 
           // DnD
-          slotEl.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; slotEl.classList.add('dragover'); }); // Required [web:152][web:159][web:154].
+          slotEl.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move'; 
+            slotEl.classList.add('dragover'); 
+          });
           slotEl.addEventListener('dragleave', () => slotEl.classList.remove('dragover'));
           slotEl.addEventListener('drop', (e) => {
             e.preventDefault();
             slotEl.classList.remove('dragover');
-            let txt = ''; try { txt = e.dataTransfer.getData('text/plain'); } catch {}
+            let txt = ''; 
+            try { txt = e.dataTransfer.getData('text/plain'); } catch {}
             if(!txt) return;
-            let data=null; try { data = JSON.parse(txt); } catch {}
+            let data=null; 
+            try { data = JSON.parse(txt); } catch {}
             if(!data || !data.idMeal) return;
             if(data._uid) removeMealByUid(data._uid);
-            const uid = data._uid || (\`\${data.idMeal}-\${Date.now()}-\${Math.random().toString(36).slice(2,6)}\`);
+            const uid = data._uid || `${data.idMeal}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
             const meal = { idMeal: data.idMeal, strMeal: data.strMeal, strMealThumb: data.strMealThumb, _uid: uid };
             planner[day][slot].push(meal);
             slotEl.appendChild(mealItem(meal));
@@ -334,25 +340,42 @@
     const randomBtn = $('#random-btn');
 
     const fetchJSON = async (url) => {
-      const res = await fetch(url);
-      if(!res.ok) throw new Error('Network error');
-      return res.json();
-    }; // HTTPS + default fetch options [web:84][web:85].
+      try {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('Network error');
+        return res.json();
+      } catch (error) {
+        console.error('Fetch error:', error);
+        return { meals: null };
+      }
+    };
 
     const searchMeals = async (q) => {
-      try { const data = await fetchJSON(API.searchByName(q)); return Array.isArray(data.meals) ? data.meals : []; }
-      catch { return []; }
-    }; // meals may be null [web:84][web:87].
+      try { 
+        const data = await fetchJSON(API.searchByName(q)); 
+        return Array.isArray(data.meals) ? data.meals : []; 
+      } catch { 
+        return []; 
+      }
+    };
 
     const lookupMeal = async (id) => {
-      try { const data = await fetchJSON(API.lookupById(id)); return (data.meals && data.meals[0]) || null; }
-      catch { return null; }
-    }; // full details [web:84][web:86].
+      try { 
+        const data = await fetchJSON(API.lookupById(id)); 
+        return (data.meals && data.meals[0]) || null; 
+      } catch { 
+        return null; 
+      }
+    };
 
     const randomMeal = async () => {
-      try { const data = await fetchJSON(API.random()); return (data.meals && data.meals[0]) || null; }
-      catch { return null; }
-    }; // one meal [web:84].
+      try { 
+        const data = await fetchJSON(API.random()); 
+        return (data.meals && data.meals[0]) || null; 
+      } catch { 
+        return null; 
+      }
+    };
 
     const renderResults = (meals) => {
       resultsGrid.innerHTML = '';
@@ -363,14 +386,22 @@
       resultsEmpty.style.display = 'none';
       meals.forEach(meal => {
         const card = create('div','recipe-card');
-        const img = create('img','recipe-thumb'); img.src = meal.strMealThumb || ''; img.alt = meal.strMeal || 'Meal';
+        const img = create('img','recipe-thumb'); 
+        img.src = meal.strMealThumb || ''; 
+        img.alt = meal.strMeal || 'Meal';
         const content = create('div','recipe-content');
-        const title = create('div','recipe-title'); title.textContent = meal.strMeal || 'Recipe';
+        const title = create('div','recipe-title'); 
+        title.textContent = meal.strMeal || 'Recipe';
         const actions = create('div','card-actions');
-        const addBtn = create('button','btn add'); addBtn.type='button'; addBtn.textContent='Add to Plan';
+        const addBtn = create('button','btn add'); 
+        addBtn.type='button'; 
+        addBtn.textContent='Add to Plan';
 
         card.addEventListener('click', () => openModal(meal));
-        addBtn.addEventListener('click', (e) => { e.stopPropagation(); openAssignPopup(meal); });
+        addBtn.addEventListener('click', (e) => { 
+          e.stopPropagation(); 
+          openAssignPopup(meal); 
+        });
 
         actions.appendChild(addBtn);
         content.append(title, actions);
@@ -387,12 +418,12 @@
     const buildIngredientsList = (meal) => {
       const out = [];
       for(let i=1;i<=20;i++){
-        const ing = (meal[\`strIngredient\${i}\`]||'').trim();
-        const meas = (meal[\`strMeasure\${i}\`]||'').trim();
+        const ing = (meal[`strIngredient${i}`]||'').trim();
+        const meas = (meal[`strMeasure${i}`]||'').trim();
         if(ing) out.push({ing, meas});
       }
       return out;
-    }; // numbered ingredient fields [web:84][web:86].
+    };
 
     const openModal = async (meal) => {
       const full = meal.idMeal ? await lookupMeal(meal.idMeal) : meal;
@@ -402,17 +433,23 @@
       modalIngs.innerHTML = '';
       const list = buildIngredientsList(full);
       if(list.length === 0){
-        const i = create('div','ing-item'); i.textContent='No ingredients listed.'; modalIngs.appendChild(i);
+        const i = create('div','ing-item'); 
+        i.textContent='No ingredients listed.'; 
+        modalIngs.appendChild(i);
       } else {
         list.forEach(({ing,meas}) => {
-          const i = create('div','ing-item'); i.textContent = meas ? \`\${ing} — \${meas}\` : ing; modalIngs.appendChild(i);
+          const i = create('div','ing-item'); 
+          i.textContent = meas ? `${ing} — ${meas}` : ing; 
+          modalIngs.appendChild(i);
         });
       }
       modalInstr.textContent = full.strInstructions || 'No instructions provided.';
       modal.style.display = 'flex';
     };
     modalClose.addEventListener('click', () => modal.style.display='none');
-    modal.addEventListener('click', (e) => { if(e.target === modal) modal.style.display='none'; });
+    modal.addEventListener('click', (e) => { 
+      if(e.target === modal) modal.style.display='none'; 
+    });
 
     // Assign popup
     const assignPopup = $('#assign-popup');
@@ -424,39 +461,73 @@
 
     const populateAssignDays = () => {
       assignDay.innerHTML = '';
-      DAYS.forEach(d => { const opt=document.createElement('option'); opt.value=d; opt.textContent=d; assignDay.appendChild(opt); });
+      DAYS.forEach(d => { 
+        const opt=document.createElement('option'); 
+        opt.value=d; 
+        opt.textContent=d; 
+        assignDay.appendChild(opt); 
+      });
     };
-    const openAssignPopup = (meal) => { pendingAssignMeal = meal; assignPopup.style.display='flex'; };
-    const closeAssignPopup = () => { pendingAssignMeal=null; assignPopup.style.display='none'; };
+    
+    const openAssignPopup = (meal) => { 
+      pendingAssignMeal = meal; 
+      assignPopup.style.display='flex'; 
+    };
+    
+    const closeAssignPopup = () => { 
+      pendingAssignMeal=null; 
+      assignPopup.style.display='none'; 
+    };
+    
     assignCancel.addEventListener('click', closeAssignPopup);
-    assignPopup.addEventListener('click', (e) => { if(e.target === assignPopup) closeAssignPopup(); });
+    assignPopup.addEventListener('click', (e) => { 
+      if(e.target === assignPopup) closeAssignPopup(); 
+    });
+    
     assignConfirm.addEventListener('click', () => {
       if(!pendingAssignMeal) return;
       const day = assignDay.value, slot = assignSlot.value;
-      const uid = \`\${pendingAssignMeal.idMeal}-\${Date.now()}-\${Math.random().toString(36).slice(2,6)}\`;
-      const m = { idMeal: pendingAssignMeal.idMeal, strMeal: pendingAssignMeal.strMeal, strMealThumb: pendingAssignMeal.strMealThumb, _uid: uid };
+      const uid = `${pendingAssignMeal.idMeal}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
+      const m = { 
+        idMeal: pendingAssignMeal.idMeal, 
+        strMeal: pendingAssignMeal.strMeal, 
+        strMealThumb: pendingAssignMeal.strMealThumb, 
+        _uid: uid 
+      };
       planner[day][slot].push(m);
       savePlanner();
-      const slotEl = document.querySelector(\`.meal-slot[data-day="\${day}"][data-slot="\${slot}"]\`);
+      const slotEl = document.querySelector(`.meal-slot[data-day="${day}"][data-slot="${slot}"]`);
       if(slotEl) slotEl.appendChild(mealItem(m));
       closeAssignPopup();
     });
 
     // Search controls
-    const doSearch = async () => { renderResults(await searchMeals(searchInput.value.trim())); };
-    $('#search-btn').addEventListener('click', doSearch);
-    $('#search-input').addEventListener('keydown', (e) => { if(e.key==='Enter') doSearch(); });
-    $('#random-btn').addEventListener('click', async () => { const m = await randomMeal(); renderResults(m ? [m] : []); });
+    const doSearch = async () => { 
+      renderResults(await searchMeals(searchInput.value.trim())); 
+    };
+    
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', (e) => { 
+      if(e.key==='Enter') doSearch(); 
+    });
+    randomBtn.addEventListener('click', async () => { 
+      const m = await randomMeal(); 
+      renderResults(m ? [m] : []); 
+    });
 
     // Init
     populateAssignDays();
     safeLoadPlanner();
     renderPlanner();
+    
+    // Initial load with some recipes
     (async () => {
       try {
-        const data = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?f=a').then(r=>r.json());
+        const data = await fetchJSON('https://www.themealdb.com/api/json/v1/1/search.php?f=b');
         renderResults(Array.isArray(data.meals) ? data.meals : []);
-      } catch { renderResults([]); }
+      } catch { 
+        renderResults([]); 
+      }
     })();
   </script>
 </body>
