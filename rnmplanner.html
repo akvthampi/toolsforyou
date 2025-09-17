@@ -93,19 +93,19 @@
     @media (max-width:800px){ .planner-grid{grid-template-columns: repeat(2, 1fr)} }
     @media (max-width:520px){ .planner-grid{grid-template-columns: 1fr} }
     .day-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .day-header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:700; font-size: 1.1rem;}
+    .day-header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:700; font-size: 1.1rem; background: rgba(255,255,255,0.05);}
     .meal-slot{padding:12px;min-height:130px;border-bottom:1px dashed rgba(255,255,255,.08);transition: background .2s, outline .2s; position: relative;}
     .meal-slot:last-child{border-bottom:none}
-    .slot-title{color:var(--muted);font-size:.95rem;margin-bottom:8px}
+    .slot-title{color:var(--muted);font-size:.95rem;margin-bottom:8px; font-weight: 600;}
     .meal-slot.dragover{outline:2px dashed var(--primary);outline-offset:-6px;background:rgba(99,102,241,.08)}
     .meal-slot.empty:after{content:"Drop recipe here";color:var(--muted);font-size:.9rem;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;}
 
-    .meal-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;margin-bottom:10px;cursor:grab}
+    .meal-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;margin-bottom:10px;cursor:grab}
     .meal-item:active{cursor:grabbing}
-    .meal-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover}
+    .meal-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover; border: 1px solid rgba(255,255,255,0.1);}
     .meal-name{flex:1;font-size:1rem}
-    .meal-remove{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;padding:5px 9px;border-radius:8px;cursor:pointer; font-size: 0.9rem;}
-    .meal-remove:hover{background:rgba(255,255,255,.1);color:#ffb4b4;border-color:rgba(239,68,68,.6)}
+    .meal-remove{background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,.4);color:#ff6b6b;padding:5px 9px;border-radius:8px;cursor:pointer; font-size: 0.9rem;}
+    .meal-remove:hover{background:rgba(239,68,68,0.3);color:#ff5252;}
 
     .assign-popup{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.7);z-index:30}
     .assign-card{width:min(480px, 92vw);background: linear-gradient(180deg, var(--panel-grad1), var(--panel-grad2));border:1px solid var(--card-border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
@@ -266,16 +266,26 @@
       const name = create('div','meal-name'); name.textContent = meal.strMeal;
       const rm = create('button','meal-remove'); rm.textContent = 'x';
       
-      // Fixed remove functionality
+      // Fixed remove functionality - store day and slot in the button itself
+      rm.dataset.day = day;
+      rm.dataset.slot = slot;
+      rm.dataset.uid = meal._uid;
+      
       rm.addEventListener('click', (e) => {
         e.stopPropagation();
-        const arr = planner[day][slot];
-        const idx = arr.findIndex(m => m._uid === meal._uid);
-        if(idx >= 0) {
-          arr.splice(idx,1);
-          item.remove();
-          savePlanner();
-          updateEmptySlots();
+        const day = e.target.dataset.day;
+        const slot = e.target.dataset.slot;
+        const uid = e.target.dataset.uid;
+        
+        if(day && slot && uid){
+          const arr = planner[day][slot];
+          const idx = arr.findIndex(m => m._uid === uid);
+          if(idx >= 0) {
+            arr.splice(idx,1);
+            item.remove();
+            savePlanner();
+            updateEmptySlots();
+          }
         }
       });
       
