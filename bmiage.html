@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>BMI & Age Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#0f172a;
+      --muted:#94a3b8;
+      --text:#e2e8f0;
+      --primary:#6366f1;
+      --primary-600:#5558ec;
+      --success:#22c55e;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 10% -10%, #1d2955, transparent 60%), radial-gradient(800px 600px at 120% 10%, #1a3a6e, transparent 50%), var(--bg);
+      color:var(--text);
+    }
+    .app{max-width:980px;margin:32px auto;padding:0 16px 24px}
+    /* Tabs */
+    .tabs{display:flex;gap:12px;align-items:center;justify-content:center;margin-bottom:16px}
+    [role="tab"]{
+      appearance:none;border:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text);padding:12px 18px;border-radius:12px;cursor:pointer;
+      font-weight:600;letter-spacing:.2px;transition:all .2s ease;
+    }
+    [role="tab"]:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}
+    [role="tab"][aria-selected="true"]{
+      background:linear-gradient(180deg, rgba(99,102,241,.25), rgba(99,102,241,.10));
+      border-color:rgba(99,102,241,.55);box-shadow:0 8px 20px rgba(99,102,241,.25)
+    }
+    /* Card/Panel */
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);
+      box-shadow:var(--shadow);overflow:hidden;padding:10px 10px 24px;backdrop-filter:blur(6px)
+    }
+    .panel{padding:18px}
+    .panel[hidden]{display:none}
+    .panel-title{margin:6px 6px 18px;font-size:1.35rem;font-weight:600}
+    /* Form */
+    .form{display:block}
+    .fieldset{border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:12px 12px 4px;margin:8px 6px 12px}
+    .legend{padding:0 8px;color:var(--muted);font-size:.9rem}
+    .radio{display:inline-flex;align-items:center;gap:8px;margin:0 12px 8px 0;cursor:pointer}
+    .radio input{accent-color:var(--primary)}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin:10px 6px}
+    .grid.two{grid-template-columns:repeat(2,1fr)}
+    .field .label{display:block;margin-bottom:6px;color:var(--muted);font-size:.95rem}
+    .input{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(2,6,23,.6);color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s
+    }
+    .input:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+    .with-unit{position:relative}
+    .unit{
+      position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:2px 8px;border-radius:8px;
+      font-size:.85rem;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)
+    }
+    /* Buttons */
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:8px 6px 6px}
+    .btn{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer;transition:transform .08s, background .2s, box-shadow .2s}
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btn.primary{background:linear-gradient(180deg, var(--primary), var(--primary-600));color:white;box-shadow:0 8px 18px rgba(99,102,241,.35)}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.ghost{background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+    .btn.ghost:hover{background:rgba(255,255,255,.09)}
+    /* Messages & Results */
+    .error{min-height:20px;margin:8px 6px 0;color:var(--danger);font-weight:500}
+    .result{margin:14px 6px 0;padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .result-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+    .result-row:last-child{border-bottom:none}
+    .result-label{color:var(--muted)}
+    .result-value{font-weight:700;font-size:1.4rem}
+    .result-chip{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;letter-spacing:.2px;color:white}
+    .chip-under{background:linear-gradient(180deg,#3b82f6,#2563eb)}
+    .chip-normal{background:linear-gradient(180deg,#22c55e,#16a34a)}
+    .chip-over{background:linear-gradient(180deg,#f59e0b,#d97706)}
+    .chip-obese{background:linear-gradient(180deg,#ef4444,#dc2626)}
+    .footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:16px}
+    /* Responsive */
+    @media (max-width:900px){.app{max-width:780px}}
+    @media (max-width:720px){.grid.two{grid-template-columns:1fr}.panel-title{font-size:1.25rem}}
+    @media (max-width:420px){[role="tab"]{padding:10px 14px}.input{padding:11px 12px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="tabs" role="tablist" aria-label="Calculator Tabs">
+      <button id="tab-bmi" role="tab" aria-selected="true" aria-controls="panel-bmi" tabindex="0">BMI Calculator</button>
+      <button id="tab-age" role="tab" aria-selected="false" aria-controls="panel-age" tabindex="-1">Age Calculator</button>
+    </header>
+
+    <section class="card">
+      <!-- BMI Panel -->
+      <section id="panel-bmi" class="panel" role="tabpanel" aria-labelledby="tab-bmi" tabindex="0">
+        <h1 class="panel-title">BMI Calculator</h1>
+
+        <form class="form" id="bmi-form" novalidate>
+          <fieldset class="fieldset">
+            <legend class="legend">Units</legend>
+            <label class="radio">
+              <input type="radio" name="unit" value="metric" checked>
+              <span>Metric (kg, cm)</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="unit" value="imperial">
+              <span>Imperial (lb, ft/in)</span>
+            </label>
+          </fieldset>
+
+          <div class="grid">
+            <div class="field">
+              <label for="weight" class="label">Weight</label>
+              <div class="with-unit">
+                <input type="number" id="weight" class="input" placeholder="e.g., 70" step="0.1" min="0" inputmode="decimal">
+                <span class="unit" id="weight-unit">kg</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid" id="height-metric">
+            <div class="field">
+              <label for="height-cm" class="label">Height</label>
+              <div class="with-unit">
+                <input type="number" id="height-cm" class="input" placeholder="e.g., 170" step="0.1" min="0" inputmode="decimal">
+                <span class="unit">cm</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid two" id="height-imperial" hidden>
+            <div class="field">
+              <label for="height-ft" class="label">Height (feet)</label>
+              <div class="with-unit">
+                <input type="number" id="height-ft" class="input" placeholder="e.g., 5" step="1" min="0" inputmode="numeric">
+                <span class="unit">ft</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="height-in" class="label">Height (inches)</label>
+              <div class="with-unit">
+                <input type="number" id="height-in" class="input" placeholder="e.g., 8" step="0.1" min="0" inputmode="decimal">
+                <span class="unit">in</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" id="bmi-calc" class="btn primary">Calculate BMI</button>
+            <button type="reset" id="bmi-clear" class="btn ghost">Clear</button>
+          </div>
+
+          <p id="bmi-error" class="error" aria-live="polite"></p>
+
+          <div id="bmi-result" class="result" aria-live="polite">
+            <div class="result-row">
+              <span class="result-label">BMI</span>
+              <span class="result-value" id="bmi-value">—</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Category</span>
+              <span class="result-chip" id="bmi-category">—</span>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Age Panel -->
+      <section id="panel-age" class="panel" role="tabpanel" aria-labelledby="tab-age" tabindex="0" hidden>
+        <h1 class="panel-title">Age Calculator</h1>
+
+        <form class="form" id="age-form" novalidate>
+          <div class="grid">
+            <div class="field">
+              <label for="dob" class="label">Date of Birth</label>
+              <input type="date" id="dob" class="input">
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" id="age-calc" class="btn primary">Calculate Age</button>
+            <button type="reset" id="age-clear" class="btn ghost">Clear</button>
+          </div>
+
+          <p id="age-error" class="error" aria-live="polite"></p>
+
+          <div id="age-result" class="result" aria-live="polite">
+            <div class="result-row">
+              <span class="result-label">Result</span>
+              <span class="result-value" id="age-value">—</span>
+            </div>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <p>Copyright &copy; 2025, Anil Kumar VT</p>
+    </footer>
+  </main>
+
+  <script>
+    // Shorthand selectors
+    const $ = (s, c=document) => c.querySelector(s);
+    const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
+
+    // Tabs setup following WAI-ARIA pattern
+    const tabs = $$('.tabs [role="tab"]');
+    const panels = $$('.card [role="tabpanel"]');
+
+    const activateTab = (newTab) => {
+      // Deactivate all tabs
+      tabs.forEach(tab => {
+        tab.setAttribute('aria-selected','false');
+        tab.setAttribute('tabindex','-1');
+      });
+      // Hide all panels
+      panels.forEach(p => p.hidden = true);
+
+      // Activate the requested tab
+      newTab.setAttribute('aria-selected','true');
+      newTab.setAttribute('tabindex','0');
+      newTab.focus({preventScroll:true});
+
+      // Show associated panel
+      const panelId = newTab.getAttribute('aria-controls');
+      const panel = document.getElementById(panelId);
+      if (panel) panel.hidden = false;
+    };
+
+    // Click to activate
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => activateTab(tab));
+      // Arrow key nav
+      tab.addEventListener('keydown', (e) => {
+        const idx = tabs.indexOf ? tabs.indexOf(tab) : tabs.findIndex(t => t === tab);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const dir = e.key === 'ArrowRight' ? 1 : -1;
+          const nextIndex = (idx + dir + tabs.length) % tabs.length;
+          activateTab(tabs[nextIndex]);
+        }
+        if (e.key === 'Home') { e.preventDefault(); activateTab(tabs[0]); }
+        if (e.key === 'End') { e.preventDefault(); activateTab(tabs[tabs.length-1]); }
+      });
+    });
+
+    // Ensure initial state: first tab active, second hidden
+    activateTab($('#tab-bmi'));
+
+    // BMI calculator refs
+    const weightInput = $('#weight');
+    const heightCM = $('#height-cm');
+    const heightFT = $('#height-ft');
+    const heightIN = $('#height-in');
+    const heightMetricGroup = $('#height-metric');
+    const heightImperialGroup = $('#height-imperial');
+    const weightUnit = $('#weight-unit');
+    const bmiError = $('#bmi-error');
+    const bmiValue = $('#bmi-value');
+    const bmiCategory = $('#bmi-category');
+
+    // Units toggle
+    $$('input[name="unit"]').forEach(r => {
+      r.addEventListener('change', (e) => {
+        const unit = e.target.value;
+        if (unit === 'metric') {
+          heightMetricGroup.hidden = false;
+          heightImperialGroup.hidden = true;
+          weightUnit.textContent = 'kg';
+          heightFT.value = '';
+          heightIN.value = '';
+        } else {
+          heightMetricGroup.hidden = true;
+          heightImperialGroup.hidden = false;
+          weightUnit.textContent = 'lb';
+          heightCM.value = '';
+        }
+        showBMIError('');
+        showBMIResult(null, null);
+      });
+    });
+
+    // Helpers
+    const isPositive = v => typeof v === 'number' && isFinite(v) && v > 0;
+    const bmiMetric = (kg, cm) => {
+      const m = cm / 100;
+      return kg / (m * m);
+    };
+    const bmiImperial = (lb, ft, inch) => {
+      const totalIn = ft * 12 + inch;
+      return 703 * (lb / (totalIn * totalIn));
+    };
+    const bmiToCategory = (bmi) => {
+      if (bmi < 18.5) return {label:'Underweight', cls:'chip-under'};
+      if (bmi < 25) return {label:'Normal weight', cls:'chip-normal'};
+      if (bmi < 30) return {label:'Overweight', cls:'chip-over'};
+      return {label:'Obesity', cls:'chip-obese'};
+    };
+    const showBMIResult = (value, categoryObj) => {
+      if (value == null || categoryObj == null) {
+        bmiValue.textContent = '—';
+        bmiCategory.textContent = '—';
+        bmiCategory.className = 'result-chip';
+        return;
+      }
+      bmiValue.textContent = value.toFixed(1);
+      bmiCategory.textContent = categoryObj.label;
+      bmiCategory.className = `result-chip ${categoryObj.cls}`;
+    };
+    const showBMIError = (msg) => { bmiError.textContent = msg; };
+
+    // BMI calculate/clear
+    $('#bmi-calc').addEventListener('click', () => {
+      showBMIError('');
+      const unit = ($('input[name="unit"]:checked') || {}).value || 'metric';
+      const weight = parseFloat(weightInput.value);
+      if (!isPositive(weight)) {
+        showBMIError('Please enter a valid positive weight.');
+        showBMIResult(null, null);
+        return;
+      }
+      let bmi = null;
+      if (unit === 'metric') {
+        const cm = parseFloat(heightCM.value);
+        if (!isPositive(cm)) {
+          showBMIError('Please enter a valid positive height in centimeters.');
+          showBMIResult(null, null);
+          return;
+        }
+        bmi = bmiMetric(weight, cm);
+      } else {
+        const ft = parseFloat(heightFT.value);
+        const inch = parseFloat(heightIN.value);
+        if (!isFinite(ft) || ft < 0 || !isFinite(inch) || inch < 0) {
+          showBMIError('Please enter non-negative feet and inches, with at least one positive.');
+          showBMIResult(null, null);
+          return;
+        }
+        const totalIn = (ft * 12) + inch;
+        if (!(totalIn > 0)) {
+          showBMIError('Total height must be greater than zero.');
+          showBMIResult(null, null);
+          return;
+        }
+        bmi = bmiImperial(weight, ft, inch);
+      }
+      if (!isFinite(bmi) || bmi <= 0) {
+        showBMIError('Could not compute BMI with the provided inputs. Please check values.');
+        showBMIResult(null, null);
+        return;
+      }
+      const category = bmiToCategory(bmi);
+      showBMIResult(bmi, category);
+    });
+    $('#bmi-clear').addEventListener('click', () => {
+      showBMIError('');
+      showBMIResult(null, null);
+    });
+
+    // Age calculator
+    const dobInput = $('#dob');
+    const ageError = $('#age-error');
+    const ageValue = $('#age-value');
+    const showAgeError = (msg) => { ageError.textContent = msg; };
+    const isValidDOB = (date) => {
+      if (!(date instanceof Date) || isNaN(date.getTime())) return false;
+      const today = new Date(); today.setHours(0,0,0,0);
+      const d = new Date(date); d.setHours(0,0,0,0);
+      return d <= today;
+    };
+    const diffYMD = (fromDate, toDate) => {
+      let start = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      let end = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+      if (end < start) return {years:0, months:0, days:0};
+      let years = end.getFullYear() - start.getFullYear();
+      let months = end.getMonth() - start.getMonth();
+      let days = end.getDate() - start.getDate();
+      if (days < 0) {
+        const prevMonthDays = new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+        days += prevMonthDays;
+        months -= 1;
+      }
+      if (months < 0) {
+        months += 12;
+        years -= 1;
+      }
+      return {years, months, days};
+    };
+    $('#age-calc').addEventListener('click', () => {
+      showAgeError('');
+      ageValue.textContent = '—';
+      const dobStr = dobInput.value;
+      if (!dobStr) { showAgeError('Please select a date of birth.'); return; }
+      const dob = new Date(dobStr);
+      if (!isValidDOB(dob)) { showAgeError('The selected date must not be in the future.'); return; }
+      const today = new Date();
+      const {years, months, days} = diffYMD(dob, today);
+      ageValue.textContent = `You are ${years} years, ${months} months, and ${days} days old.`;
+    });
+    $('#age-clear').addEventListener('click', () => {
+      showAgeError(''); ageValue.textContent = '—';
+    });
+  </script>
+</body>
+</html>

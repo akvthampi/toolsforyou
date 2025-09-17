@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Macronutrient Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Nunito:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ========== Base Theme (same look & feel as earlier apps) ========== */
+    :root{
+      --bg:#0f172a;
+      --muted:#94a3b8;
+      --text:#e2e8f0;
+      --primary:#6366f1;
+      --primary-600:#5558ec;
+      --success:#22c55e;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --card-border: rgba(255,255,255,.08);
+      --card-grad1: rgba(255,255,255,.04);
+      --card-grad2: rgba(255,255,255,.02);
+
+      /* Chart colors */
+      --c-protein:#22c55e;
+      --c-carbs:#3b82f6;
+      --c-fat:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Roboto',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 10% -10%, #1d2955, transparent 60%), radial-gradient(800px 600px at 120% 10%, #1a3a6e, transparent 50%), var(--bg);
+      color:var(--text);
+    }
+    .app{max-width:980px;margin:32px auto;padding:0 16px 24px}
+    .header{text-align:center;margin-bottom:16px}
+    .title{font-weight:700;font-size:1.5rem;margin:0 0 6px}
+    .subtitle{color:var(--muted);margin:0}
+
+    /* ========== Card Container ========== */
+    .card{
+      background: linear-gradient(180deg, var(--card-grad1), var(--card-grad2));
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      padding: 14px 14px 22px;
+      backdrop-filter: blur(6px);
+    }
+
+    /* Sections */
+    .section{padding: 12px}
+    .section-title{margin:8px 6px 14px;font-size:1.15rem;font-weight:600}
+
+    /* Form */
+    form{display:block}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 6px}
+    .row.single{grid-template-columns:1fr}
+    .field{display:block}
+    .label{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;color:var(--muted);font-size:.95rem}
+    .input{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(2,6,23,.6);color:var(--text);outline:none;transition:border-color .2s, box-shadow .2s
+    }
+    .input:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+    .hint{color:var(--muted);font-size:.9rem;margin:4px 6px 0}
+    .error{color:var(--danger);font-size:.85rem;min-height:18px;margin-left:8px}
+
+    /* Goal cards */
+    .goals{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:10px 6px}
+    .goal{
+      position:relative;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(2,6,23,.6);
+      border-radius:12px;
+      padding:12px 12px 10px;
+      cursor:pointer;
+      transition:transform .08s, box-shadow .2s, border-color .2s, background .2s;
+    }
+    .goal:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(99,102,241,.18);border-color:rgba(99,102,241,.45)}
+    .goal input{position:absolute;opacity:0;pointer-events:none}
+    .goal-title{font-weight:700;margin:0 0 6px}
+    .goal-split{color:var(--muted);font-size:.95rem}
+    .goal.active{
+      background: linear-gradient(180deg, rgba(99,102,241,.18), rgba(99,102,241,.10));
+      border-color: rgba(99,102,241,.65);
+      box-shadow:0 8px 22px rgba(99,102,241,.25);
+    }
+
+    /* Buttons */
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 6px 0}
+    .btn{
+      appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer;
+      transition:transform .08s, background .2s, box-shadow .2s
+    }
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btn.primary{background:linear-gradient(180deg, var(--primary), var(--primary-600));color:white;box-shadow:0 8px 18px rgba(99,102,241,.35)}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .btn.ghost{background:rgba(255,255,255,.05);color: var(--text);border:1px solid rgba(255,255,255,.12)}
+    .btn.ghost:hover{background:rgba(255,255,255,.09)}
+
+    /* Results */
+    .results{display:none;opacity:0;transform:translateY(8px);transition:opacity .25s ease, transform .25s ease}
+    .results.show{display:block;opacity:1;transform:translateY(0)}
+    .result-wrap{
+      margin: 14px 6px 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    /* Donut chart using conic-gradient and CSS vars */
+    .chart-wrap{
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+    .donut{
+      --p: 40; /* protein percent */
+      --c: 40; /* carbs percent */
+      --f: 20; /* fat percent */
+      --degP: calc(var(--p) * 3.6deg);
+      --degC: calc((var(--p) + var(--c)) * 3.6deg);
+      width: 220px;
+      height: 220px;
+      border-radius:50%;
+      background:
+        conic-gradient(
+          var(--c-protein) 0deg var(--degP),
+          var(--c-carbs) var(--degP) var(--degC),
+          var(--c-fat) var(--degC) 360deg
+        );
+      position:relative;
+      margin: 0 auto;
+      box-shadow:0 12px 30px rgba(0,0,0,.3);
+    }
+    .donut::after{
+      content:'';
+      position:absolute;inset:22px;
+      background: radial-gradient(180px 140px at 50% -30%, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius:50%;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .donut-center{
+      position:absolute;inset:48px;
+      background: rgba(2,6,23,.65);
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.08);
+      display:flex;align-items:center;justify-content:center;
+      text-align:center;padding:8px;
+    }
+    .donut-center .big{
+      font-weight:800;font-size:1.4rem;line-height:1.2
+    }
+    .legend{
+      display:grid;gap:10px
+    }
+    .legend-item{
+      display:flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.03);
+      border:1px dashed rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:10px 12px;
+    }
+    .swatch{
+      width:14px;height:14px;border-radius:3px;flex:0 0 14px
+    }
+    .swatch.protein{background:var(--c-protein)}
+    .swatch.carbs{background:var(--c-carbs)}
+    .swatch.fat{background:var(--c-fat)}
+    .legend-label{flex:1;color:var(--muted);font-weight:600}
+    .legend-val{font-weight:700}
+
+    /* Table */
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .table th, .table td{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-align:left;
+    }
+    .table th{
+      background:rgba(255,255,255,.05);
+      color:var(--muted);
+      font-weight:700;
+    }
+    .table tr:last-child td{border-bottom:none}
+
+    .footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:16px}
+
+    /* Responsive */
+    @media (max-width:900px){.app{max-width:780px}}
+    @media (max-width:720px){
+      .row{grid-template-columns:1fr}
+      .goals{grid-template-columns:1fr}
+      .chart-wrap{grid-template-columns:1fr}
+      .donut{margin:0 auto}
+    }
+    @media (max-width:420px){.input{padding:11px 12px}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1 class="title">Macronutrient Calculator</h1>
+      <p class="subtitle">Enter a daily calorie goal, choose a macro split, and get grams of protein, carbs, and fat.</p>
+    </header>
+
+    <section class="card">
+      <!-- Step 1 + Step 2 -->
+      <section id="form-section" class="section">
+        <h2 class="section-title">Step 1: Daily Calorie Intake</h2>
+
+        <form id="macro-form" novalidate>
+          <div class="row single">
+            <div class="field">
+              <label for="calories" class="label">
+                <span>Total Daily Calorie Goal</span>
+                <span id="cal-error" class="error"></span>
+              </label>
+              <input type="number" id="calories" class="input" placeholder="e.g., 2000" min="0" step="1" inputmode="numeric">
+              <p class="hint">This is the total calories per day to maintain, lose, or gain weight (from a TDEE calculator or personal goal).</p>
+            </div>
+          </div>
+
+          <h2 class="section-title" style="margin-top:18px">Step 2: Choose Your Goal / Macro Split</h2>
+
+          <div class="goals" role="radiogroup" aria-label="Macro Splits">
+            <label class="goal" tabindex="0" data-key="balanced">
+              <input type="radio" name="goal" value="balanced">
+              <div class="goal-title">Balanced Diet (Maintenance)</div>
+              <div class="goal-split">Carbs 40% • Protein 30% • Fat 30%</div>
+            </label>
+
+            <label class="goal" tabindex="0" data-key="lowcarb">
+              <input type="radio" name="goal" value="lowcarb">
+              <div class="goal-title">Low Carb (Weight Loss)</div>
+              <div class="goal-split">Carbs 25% • Protein 40% • Fat 35%</div>
+            </label>
+
+            <label class="goal" tabindex="0" data-key="highprotein">
+              <input type="radio" name="goal" value="highprotein">
+              <div class="goal-title">High Protein (Muscle Gain)</div>
+              <div class="goal-split">Carbs 35% • Protein 40% • Fat 25%</div>
+            </label>
+
+            <label class="goal" tabindex="0" data-key="keto">
+              <input type="radio" name="goal" value="keto">
+              <div class="goal-title">Keto (Low Carb / High Fat)</div>
+              <div class="goal-split">Carbs 5% • Protein 25% • Fat 70%</div>
+            </label>
+          </div>
+          <div style="margin:6px 6px 0">
+            <span id="goal-error" class="error"></span>
+          </div>
+
+          <div class="actions">
+            <button type="button" id="calc" class="btn primary">Calculate Macros</button>
+            <button type="reset" id="clear" class="btn ghost">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Results -->
+      <section id="results-section" class="section results" aria-live="polite">
+        <h2 class="section-title">Your Daily Macro Targets</h2>
+
+        <div class="result-wrap">
+          <div class="chart-wrap">
+            <div class="donut" id="donut" style="--p:40;--c:40;--f:20;">
+              <div class="donut-center">
+                <div>
+                  <div class="big" id="donut-total">2000 kcal</div>
+                  <div class="hint" id="donut-note">Protein • Carbs • Fat</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend">
+              <div class="legend-item">
+                <span class="swatch protein"></span>
+                <span class="legend-label">Protein</span>
+                <span class="legend-val" id="protein-val">— g (—%)</span>
+              </div>
+              <div class="legend-item">
+                <span class="swatch carbs"></span>
+                <span class="legend-label">Carbohydrates</span>
+                <span class="legend-val" id="carb-val">— g (—%)</span>
+              </div>
+              <div class="legend-item">
+                <span class="swatch fat"></span>
+                <span class="legend-label">Fat</span>
+                <span class="legend-val" id="fat-val">— g (—%)</span>
+              </div>
+            </div>
+          </div>
+
+          <table class="table" aria-label="Macro Table">
+            <thead>
+              <tr>
+                <th>Macronutrient</th>
+                <th>Grams/Day</th>
+                <th>Calories</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Protein</td>
+                <td id="protein-g">— g</td>
+                <td id="protein-kc">—</td>
+              </tr>
+              <tr>
+                <td>Carbohydrates</td>
+                <td id="carb-g">— g</td>
+                <td id="carb-kc">—</td>
+              </tr>
+              <tr>
+                <td>Fat</td>
+                <td id="fat-g">— g</td>
+                <td id="fat-kc">—</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p class="hint" style="margin-top:12px">
+            Macro gram targets are derived using the 4/4/9 method: carbs 4 kcal/g, protein 4 kcal/g, fat 9 kcal/g.
+          </p>
+
+          <div class="actions">
+            <button type="button" id="recalc" class="btn primary">Recalculate</button>
+            <button type="button" id="reset-all" class="btn ghost">Start Over</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <p>Built with semantic HTML, modern CSS, and vanilla JS.</p>
+    </footer>
+  </main>
+
+  <script>
+    // DOM helpers
+    const $ = (s, c=document) => c.querySelector(s);
+    const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
+
+    // Elements
+    const formSection = $('#form-section');
+    const resultsSection = $('#results-section');
+    const form = $('#macro-form');
+    const caloriesEl = $('#calories');
+    const calErr = $('#cal-error');
+    const goalErr = $('#goal-error');
+    const calcBtn = $('#calc');
+    const clearBtn = $('#clear');
+    const recalcBtn = $('#recalc');
+    const resetAllBtn = $('#reset-all');
+
+    // Goal cards
+    const goalCards = $$('.goal');
+    const goalInputs = $$('input[name="goal"]');
+
+    // Results elements
+    const donut = $('#donut');
+    const donutTotal = $('#donut-total');
+    const proteinVal = $('#protein-val');
+    const carbVal = $('#carb-val');
+    const fatVal = $('#fat-val');
+    const proteinG = $('#protein-g');
+    const carbG = $('#carb-g');
+    const fatG = $('#fat-g');
+    const proteinKc = $('#protein-kc');
+    const carbKc = $('#carb-kc');
+    const fatKc = $('#fat-kc');
+
+    // Macro presets
+    const PRESETS = {
+      balanced:   { name:'Balanced',    c:0.40, p:0.30, f:0.30 },
+      lowcarb:    { name:'Low Carb',    c:0.25, p:0.40, f:0.35 },
+      highprotein:{ name:'High Protein',c:0.35, p:0.40, f:0.25 },
+      keto:       { name:'Keto',        c:0.05, p:0.25, f:0.70 }
+    };
+
+    // Utility
+    const isPositive = v => typeof v === 'number' && isFinite(v) && v > 0;
+    const round = n => Math.round(n);
+
+    // Clear error messages
+    const clearErrors = () => { calErr.textContent = ''; goalErr.textContent = ''; };
+
+    // Select goal card behavior
+    goalCards.forEach(card => {
+      const input = $('input[type="radio"]', card);
+      const activate = () => {
+        goalCards.forEach(c => c.classList.remove('active'));
+        input.checked = true;
+        card.classList.add('active');
+      };
+      card.addEventListener('click', activate);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+      });
+    });
+
+    // Compute macros from calories and preset
+    const computeMacros = (calories, preset) => {
+      const cCal = calories * preset.c;
+      const pCal = calories * preset.p;
+      const fCal = calories * preset.f;
+
+      const carbsG = round(cCal / 4);
+      const proteinG = round(pCal / 4);
+      const fatG = round(fCal / 9);
+
+      return {
+        calories,
+        percents: { c: preset.c*100, p: preset.p*100, f: preset.f*100 },
+        calSplit: { c: round(cCal), p: round(pCal), f: round(fCal) },
+        grams: { c: carbsG, p: proteinG, f: fatG }
+      };
+    };
+
+    // Validate inputs
+    const validate = () => {
+      clearErrors();
+      const cal = parseFloat(caloriesEl.value);
+      let ok = true;
+      if (!isPositive(cal)) {
+        calErr.textContent = 'Enter a valid calorie target.';
+        ok = false;
+      }
+      const sel = $('input[name="goal"]:checked');
+      if (!sel) {
+        goalErr.textContent = 'Please choose a macro split.';
+        ok = false;
+      }
+      return ok;
+    };
+
+    // Show results UI
+    const showResults = (res) => {
+      // Update donut
+      const p = Math.round(res.percents.p);
+      const c = Math.round(res.percents.c);
+      const f = 100 - p - c; // ensure total 100
+      donut.style.setProperty('--p', p.toString());
+      donut.style.setProperty('--c', c.toString());
+      donut.style.setProperty('--f', f.toString());
+      donutTotal.textContent = `${round(res.calories).toLocaleString()} kcal`;
+
+      // Legend values
+      proteinVal.textContent = `${res.grams.p} g (${p}%)`;
+      carbVal.textContent = `${res.grams.c} g (${c}%)`;
+      fatVal.textContent = `${res.grams.f} g (${f}%)`;
+
+      // Table
+      proteinG.textContent = `${res.grams.p} g`;
+      carbG.textContent = `${res.grams.c} g`;
+      fatG.textContent = `${res.grams.f} g`;
+      proteinKc.textContent = `${res.calSplit.p.toLocaleString()}`;
+      carbKc.textContent = `${res.calSplit.c.toLocaleString()}`;
+      fatKc.textContent = `${res.calSplit.f.toLocaleString()}`;
+
+      // Swap views
+      formSection.style.display = 'none';
+      resultsSection.classList.add('show');
+    };
+
+    // Back to form
+    const showForm = () => {
+      resultsSection.classList.remove('show');
+      setTimeout(() => { formSection.style.display = ''; }, 200);
+    };
+
+    // Actions
+    calcBtn.addEventListener('click', () => {
+      if (!validate()) return;
+      const cal = parseFloat(caloriesEl.value);
+      const key = ($('input[name="goal"]:checked')||{}).value;
+      const preset = PRESETS[key];
+      const res = computeMacros(cal, preset);
+      showResults(res);
+    });
+
+    clearBtn.addEventListener('click', () => clearErrors());
+
+    recalcBtn.addEventListener('click', () => showForm());
+
+    resetAllBtn.addEventListener('click', () => {
+      form.reset();
+      goalCards.forEach(c => c.classList.remove('active'));
+      clearErrors();
+      showForm();
+      // Reset results text
+      proteinVal.textContent = '— g (—%)';
+      carbVal.textContent = '— g (—%)';
+      fatVal.textContent = '— g (—%)';
+      proteinG.textContent = '— g';
+      carbG.textContent = '— g';
+      fatG.textContent = '— g';
+      proteinKc.textContent = '—';
+      carbKc.textContent = '—';
+      fatKc.textContent = '—';
+      donut.style.setProperty('--p','40');
+      donut.style.setProperty('--c','40');
+      donut.style.setProperty('--f','20');
+      donutTotal.textContent = '— kcal';
+    });
+
+    // Initialize defaults (select Balanced visually if desired)
+    // Optionally auto-select first card for convenience:
+    // goalCards[0].click();
+  </script>
+</body>
+</html>
