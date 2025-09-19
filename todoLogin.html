@@ -655,8 +655,18 @@
         
         /* Print styles */
         @media print {
+            body, html {
+                height: auto;
+                overflow: visible !important;
+                background: white !important;
+            }
+            
             body * {
                 visibility: hidden;
+            }
+            
+            .no-print, .no-print * {
+                display: none !important;
             }
             
             #printable-tasks, #printable-tasks * {
@@ -668,10 +678,46 @@
                 left: 0;
                 top: 0;
                 width: 100%;
+                background: white;
+                padding: 20px;
+                display: block !important;
             }
             
-            .no-print {
-                display: none !important;
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+            }
+            
+            .print-table th, .print-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            .print-table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .print-period {
+                text-align: center;
+                margin-bottom: 15px;
+                font-weight: bold;
+            }
+            
+            .print-summary {
+                margin-top: 20px;
+                padding: 10px;
+                border: 1px solid #ddd;
+                background-color: #f9f9f9;
             }
         }
         
@@ -736,6 +782,9 @@
                 </button>
                 <button id="exampleData" class="btn btn-secondary">
                     <span class="icon">🔍</span>Example Data
+                </button>
+                <button id="clearStorage" class="btn btn-danger">
+                    <span class="icon">🗑️</span>Clear Storage
                 </button>
             </div>
             
@@ -1014,6 +1063,7 @@
         let assignees = [];
         let currentDate = new Date();
         let currentView = 'list';
+        const STORAGE_KEY = 'taskManagerData';
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1033,6 +1083,7 @@
             document.getElementById('saveDb').addEventListener('click', saveDatabase);
             document.getElementById('dbFile').addEventListener('change', loadDatabase);
             document.getElementById('exampleData').addEventListener('click', loadExampleData);
+            document.getElementById('clearStorage').addEventListener('click', clearLocalStorage);
             document.getElementById('taskForm').addEventListener('submit', saveTask);
             document.getElementById('cancelEdit').addEventListener('click', cancelEdit);
             document.getElementById('searchInput').addEventListener('input', filterTasks);
@@ -1050,18 +1101,64 @@
                 });
             });
             
+            // Load data from localStorage
+            loadFromLocalStorage();
+            
             // Initial UI update
             updateCalendar();
-            
-            // Create a new database on load
-            createDatabase();
         });
+        
+        // Load data from localStorage
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem(STORAGE_KEY);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    tasks = data.tasks || [];
+                    nextId = data.nextId || 1;
+                    assignees = data.assignees || [];
+                    
+                    updateUI();
+                    showNotification('Task list loaded from local storage.', 'success');
+                } else {
+                    createDatabase();
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                createDatabase();
+            }
+        }
+        
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            try {
+                const data = {
+                    tasks: tasks,
+                    nextId: nextId,
+                    assignees: assignees
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                showNotification('Error saving data to local storage.', 'error');
+            }
+        }
+        
+        // Clear localStorage
+        function clearLocalStorage() {
+            if (confirm('Are you sure you want to clear all data from local storage?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                createDatabase();
+                showNotification('Local storage cleared successfully.', 'success');
+            }
+        }
         
         // Create a new database
         function createDatabase() {
             tasks = [];
             nextId = 1;
             assignees = [];
+            saveToLocalStorage();
             updateUI();
             showNotification('New task list created successfully.', 'success');
         }
@@ -1110,233 +1207,484 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    tasks = data.tasks;
-                    nextId = data.nextId;
+                    tasks = data.tasks || [];
+                    nextId = data.nextId || 1;
                     assignees = data.assignees || [];
                     
+                    saveToLocalStorage();
                     updateUI();
                     showNotification('Task list loaded successfully.', 'success');
                 } catch (error) {
-                    showNotification('Error loading database: ' + error.message, 'error');
+                    showNotification('Error loading database: Invalid file format.', 'error');
                 }
             };
             reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
         }
         
         // Load example data
         function loadExampleData() {
-            createDatabase();
-            
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const nextWeek = new Date(today);
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            
-            const sampleTasks = [
+            tasks = [
                 {
-                    id: nextId++, 
-                    title: 'Complete project proposal', 
-                    description: 'Draft and send proposal to client', 
-                    dueDate: nextWeek.toISOString().slice(0,10), 
-                    priority: 'high', 
-                    status: 'inprogress', 
-                    tags: ['work', 'urgent'], 
+                    id: 1,
+                    title: 'Complete project proposal',
+                    dueDate: '2023-12-15',
+                    priority: 'high',
+                    status: 'inprogress',
                     assignee: 'John Doe',
-                    subtasks: [
-                        {id: 1, title: 'Research client needs', completed: true},
-                        {id: 2, title: 'Draft outline', completed: false},
-                        {id: 3, title: 'Review with team', completed: false}
-                    ],
-                    timeTracked: 120,
-                    comments: [
-                        {user: 'John Doe', date: today.toISOString().slice(0,10), text: 'Started research'}
-                    ],
-                    attachments: []
+                    description: 'Prepare the final proposal for client presentation',
+                    tags: ['work', 'urgent']
                 },
                 {
-                    id: nextId++, 
-                    title: 'Prepare meeting agenda', 
-                    description: 'Create agenda for weekly team meeting', 
-                    dueDate: tomorrow.toISOString().slice(0,10), 
-                    priority: 'medium', 
-                    status: 'todo', 
-                    tags: ['work', 'meeting'], 
+                    id: 2,
+                    title: 'Team meeting',
+                    dueDate: '2023-11-30',
+                    priority: 'medium',
+                    status: 'todo',
                     assignee: 'Jane Smith',
-                    subtasks: [],
-                    timeTracked: 0,
-                    comments: [],
-                    attachments: []
+                    description: 'Weekly team sync-up meeting',
+                    tags: ['meeting']
                 },
                 {
-                    id: nextId++, 
-                    title: 'Fix login bug', 
-                    description: 'Investigate and fix the login authentication issue', 
-                    dueDate: today.toISOString().slice(0,10), 
-                    priority: 'high', 
-                    status: 'done', 
-                    tags: ['development', 'bug'], 
-                    assignee: 'Mike Johnson',
-                    subtasks: [
-                        {id: 1, title: 'Reproduce the issue', completed: true},
-                        {id: 2, title: 'Identify root cause', completed: true},
-                        {id: 3, title: 'Implement fix', completed: true},
-                        {id: 4, title: 'Test solution', completed: true}
-                    ],
-                    timeTracked: 240,
-                    comments: [
-                        {user: 'Mike Johnson', date: yesterday.toISOString().slice(0,10), text: 'Issue reproduced'},
-                        {user: 'Mike Johnson', date: today.toISOString().slice(0,10), text: 'Fix implemented and tested'}
-                    ],
-                    attachments: []
-                },
-                {
-                    id: nextId++, 
-                    title: 'Update documentation', 
-                    description: 'Update API documentation with latest changes', 
-                    dueDate: nextWeek.toISOString().slice(0,10), 
-                    priority: 'low', 
-                    status: 'todo', 
-                    tags: ['documentation'], 
-                    assignee: 'Sarah Wilson',
-                    subtasks: [],
-                    timeTracked: 0,
-                    comments: [],
-                    attachments: []
+                    id: 3,
+                    title: 'Update documentation',
+                    dueDate: '2023-12-05',
+                    priority: 'low',
+                    status: 'done',
+                    assignee: 'John Doe',
+                    description: 'Update API documentation for new features',
+                    tags: ['documentation']
                 }
             ];
+            nextId = 4;
+            assignees = ['John Doe', 'Jane Smith'];
             
-            tasks = sampleTasks;
-            assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson'];
+            saveToLocalStorage();
             updateUI();
             showNotification('Example data loaded successfully.', 'success');
         }
         
-        // Save task to database
+        // Save task (new or edit)
         function saveTask(event) {
             event.preventDefault();
             
-            try {
-                const editId = document.getElementById('editId').value;
-                const title = document.getElementById('title').value;
-                const description = document.getElementById('description').value;
-                const dueDate = document.getElementById('dueDate').value;
-                const priority = document.getElementById('priority').value;
-                const status = document.getElementById('status').value;
-                const assignee = document.getElementById('assignee').value;
-                const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
-                
-                if (editId) {
-                    // Update existing task
-                    const index = tasks.findIndex(t => t.id == editId);
-                    if (index !== -1) {
-                        tasks[index] = {
-                            ...tasks[index],
-                            title,
-                            description,
-                            dueDate,
-                            priority,
-                            status,
-                            assignee,
-                            tags
-                        };
-                    }
-                    
-                    showNotification('Task updated successfully.', 'success');
-                } else {
-                    // Insert new task
-                    tasks.push({
-                        id: nextId++,
+            const title = document.getElementById('title').value.trim();
+            if (!title) {
+                showNotification('Please enter a title for the task.', 'error');
+                return;
+            }
+            
+            const editId = document.getElementById('editId').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const priority = document.getElementById('priority').value;
+            const status = document.getElementById('status').value;
+            const assignee = document.getElementById('assignee').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            if (editId) {
+                // Edit existing task
+                const index = tasks.findIndex(task => task.id == editId);
+                if (index !== -1) {
+                    tasks[index] = {
+                        ...tasks[index],
                         title,
-                        description,
                         dueDate,
                         priority,
                         status,
                         assignee,
-                        tags,
-                        subtasks: [],
-                        timeTracked: 0,
-                        comments: [],
-                        attachments: []
-                    });
+                        description,
+                        tags
+                    };
                     
-                    // Add to assignees if new
-                    if (assignee && !assignees.includes(assignee)) {
-                        assignees.push(assignee);
-                    }
-                    
-                    showNotification('Task saved successfully.', 'success');
+                    showNotification('Task updated successfully.', 'success');
+                }
+            } else {
+                // Add new task
+                const newTask = {
+                    id: nextId++,
+                    title,
+                    dueDate,
+                    priority,
+                    status,
+                    assignee,
+                    description,
+                    tags
+                };
+                
+                tasks.push(newTask);
+                
+                // Add assignee to list if not already present
+                if (assignee && !assignees.includes(assignee)) {
+                    assignees.push(assignee);
                 }
                 
-                // Reset form
-                document.getElementById('taskForm').reset();
-                document.getElementById('editId').value = '';
-                document.getElementById('dueDate').valueAsDate = new Date();
-                document.getElementById('cancelEdit').classList.add('hidden');
-                document.getElementById('formTitle').textContent = 'Add Task';
-                
-                updateUI();
-            } catch (error) {
-                showNotification('Error saving task: ' + error.message, 'error');
+                showNotification('Task added successfully.', 'success');
             }
+            
+            // Save to localStorage and update UI
+            saveToLocalStorage();
+            updateUI();
+            
+            // Reset form
+            document.getElementById('taskForm').reset();
+            document.getElementById('dueDate').valueAsDate = new Date();
+            document.getElementById('editId').value = '';
+            document.getElementById('cancelEdit').classList.add('hidden');
+            document.getElementById('formTitle').textContent = 'Add Task';
         }
         
         // Edit task
         function editTask(id) {
-            try {
-                const task = tasks.find(t => t.id === id);
-                if (task) {
-                    document.getElementById('editId').value = task.id;
-                    document.getElementById('title').value = task.title;
-                    document.getElementById('description').value = task.description || '';
-                    document.getElementById('dueDate').value = task.dueDate || '';
-                    document.getElementById('priority').value = task.priority || 'medium';
-                    document.getElementById('status').value = task.status || 'todo';
-                    document.getElementById('assignee').value = task.assignee || '';
-                    document.getElementById('tags').value = task.tags ? task.tags.join(', ') : '';
-                    
-                    document.getElementById('formTitle').textContent = 'Edit Task';
-                    document.getElementById('cancelEdit').classList.remove('hidden');
-                }
-            } catch (error) {
-                showNotification('Error loading task: ' + error.message, 'error');
-            }
-        }
-        
-        // Delete task
-        function deleteTask(id) {
-            if (!confirm('Are you sure you want to delete this task?')) {
-                return;
-            }
+            const task = tasks.find(task => task.id == id);
+            if (!task) return;
             
-            try {
-                tasks = tasks.filter(t => t.id !== id);
-                updateUI();
-                showNotification('Task deleted successfully.', 'success');
-            } catch (error) {
-                showNotification('Error deleting task: ' + error.message, 'error');
-            }
+            document.getElementById('editId').value = task.id;
+            document.getElementById('title').value = task.title;
+            document.getElementById('dueDate').value = task.dueDate || '';
+            document.getElementById('priority').value = task.priority;
+            document.getElementById('status').value = task.status;
+            document.getElementById('assignee').value = task.assignee || '';
+            document.getElementById('description').value = task.description || '';
+            document.getElementById('tags').value = task.tags ? task.tags.join(', ') : '';
+            
+            document.getElementById('cancelEdit').classList.remove('hidden');
+            document.getElementById('formTitle').textContent = 'Edit Task';
+            
+            // Scroll to form
+            document.getElementById('taskForm').scrollIntoView({ behavior: 'smooth' });
         }
         
         // Cancel edit
         function cancelEdit() {
             document.getElementById('taskForm').reset();
-            document.getElementById('editId').value = '';
             document.getElementById('dueDate').valueAsDate = new Date();
+            document.getElementById('editId').value = '';
             document.getElementById('cancelEdit').classList.add('hidden');
             document.getElementById('formTitle').textContent = 'Add Task';
         }
         
+        // Delete task
+        function deleteTask(id) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+            
+            tasks = tasks.filter(task => task.id != id);
+            saveToLocalStorage();
+            updateUI();
+            showNotification('Task deleted successfully.', 'success');
+        }
+        
+        // Update UI with current tasks
+        function updateUI() {
+            updateTaskTable();
+            updateKanbanBoard();
+            updateSummaryCards();
+            updateAssigneeFilter();
+            updateCalendar();
+        }
+        
+        // Update task table
+        function updateTaskTable() {
+            const tbody = document.getElementById('taskTableBody');
+            tbody.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            No tasks found. Add a task to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.className = `priority-${task.priority} status-${task.status}`;
+                
+                // Format due date
+                let dueDateFormatted = '-';
+                if (task.dueDate) {
+                    const date = new Date(task.dueDate);
+                    dueDateFormatted = date.toLocaleDateString();
+                }
+                
+                row.innerHTML = `
+                    <td>${task.title}</td>
+                    <td>${dueDateFormatted}</td>
+                    <td>
+                        <span class="task-dot priority-${task.priority}"></span>
+                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </td>
+                    <td>${task.status.charAt(0).toUpperCase() + task.status.slice(1)}</td>
+                    <td>${task.assignee || '-'}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})">
+                            <span class="icon">✏️</span>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">
+                            <span class="icon">🗑️</span>Delete
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Update status bar
+            document.getElementById('statusMessage').textContent = 'Task list loaded';
+            document.getElementById('taskCount').textContent = `${tasks.length} tasks`;
+        }
+        
+        // Update Kanban board
+        function updateKanbanBoard() {
+            const todoTasks = document.getElementById('todoTasks');
+            const inProgressTasks = document.getElementById('inProgressTasks');
+            const doneTasks = document.getElementById('doneTasks');
+            
+            todoTasks.innerHTML = '';
+            inProgressTasks.innerHTML = '';
+            doneTasks.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                todoTasks.innerHTML = '<div class="kanban-task">No tasks found</div>';
+                return;
+            }
+            
+            tasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'kanban-task';
+                taskElement.setAttribute('data-id', task.id);
+                
+                // Format due date
+                let dueDateFormatted = '-';
+                if (task.dueDate) {
+                    const date = new Date(task.dueDate);
+                    dueDateFormatted = date.toLocaleDateString();
+                }
+                
+                taskElement.innerHTML = `
+                    <div><strong>${task.title}</strong></div>
+                    <div>Due: ${dueDateFormatted}</div>
+                    <div>
+                        <span class="task-dot priority-${task.priority}"></span>
+                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </div>
+                    <div>Assignee: ${task.assignee || '-'}</div>
+                    <div class="actions">
+                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})">
+                            <span class="icon">✏️</span>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">
+                            <span class="icon">🗑️</span>Delete
+                        </button>
+                    </div>
+                `;
+                
+                if (task.status === 'todo') {
+                    todoTasks.appendChild(taskElement);
+                } else if (task.status === 'inprogress') {
+                    inProgressTasks.appendChild(taskElement);
+                } else if (task.status === 'done') {
+                    doneTasks.appendChild(taskElement);
+                }
+            });
+        }
+        
+        // Update summary cards
+        function updateSummaryCards() {
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(task => task.status === 'done').length;
+            const pendingTasks = tasks.filter(task => task.status === 'inprogress').length;
+            
+            // Calculate overdue tasks
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const overdueTasks = tasks.filter(task => {
+                if (task.status === 'done' || !task.dueDate) return false;
+                const dueDate = new Date(task.dueDate);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
+            }).length;
+            
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+            document.getElementById('inProgressTasks').textContent = pendingTasks;
+            document.getElementById('overdueTasks').textContent = overdueTasks;
+        }
+        
+        // Update assignee filter dropdown
+        function updateAssigneeFilter() {
+            const filterAssignee = document.getElementById('filterAssignee');
+            
+            // Clear existing options except the first one
+            while (filterAssignee.options.length > 1) {
+                filterAssignee.remove(1);
+            }
+            
+            // Add assignees to filter dropdown
+            assignees.forEach(assignee => {
+                const option = document.createElement('option');
+                option.value = assignee;
+                option.textContent = assignee;
+                filterAssignee.appendChild(option);
+            });
+        }
+        
         // Filter tasks based on search input
         function filterTasks() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchText) {
+                updateUI();
+                return;
+            }
+            
+            const filteredTasks = tasks.filter(task => {
+                return (
+                    task.title.toLowerCase().includes(searchText) ||
+                    (task.description && task.description.toLowerCase().includes(searchText)) ||
+                    (task.assignee && task.assignee.toLowerCase().includes(searchText)) ||
+                    (task.tags && task.tags.some(tag => tag.toLowerCase().includes(searchText)))
+                );
+            });
+            
+            // Update UI with filtered tasks
+            updateTaskTableWithFilter(filteredTasks);
+            updateKanbanBoardWithFilter(filteredTasks);
+        }
+        
+        // Update task table with filtered tasks
+        function updateTaskTableWithFilter(filteredTasks) {
+            const tbody = document.getElementById('taskTableBody');
+            tbody.innerHTML = '';
+            
+            if (filteredTasks.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            No tasks match your search.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredTasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.className = `priority-${task.priority} status-${task.status}`;
+                
+                // Format due date
+                let dueDateFormatted = '-';
+                if (task.dueDate) {
+                    const date = new Date(task.dueDate);
+                    dueDateFormatted = date.toLocaleDateString();
+                }
+                
+                row.innerHTML = `
+                    <td>${task.title}</td>
+                    <td>${dueDateFormatted}</td>
+                    <td>
+                        <span class="task-dot priority-${task.priority}"></span>
+                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </td>
+                    <td>${task.status.charAt(0).toUpperCase() + task.status.slice(1)}</td>
+                    <td>${task.assignee || '-'}</td>
+                    <td class="actions">
+                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})">
+                            <span class="icon">✏️</span>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">
+                            <span class="icon">🗑️</span>Delete
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update Kanban board with filtered tasks
+        function updateKanbanBoardWithFilter(filteredTasks) {
+            const todoTasks = document.getElementById('todoTasks');
+            const inProgressTasks = document.getElementById('inProgressTasks');
+            const doneTasks = document.getElementById('doneTasks');
+            
+            todoTasks.innerHTML = '';
+            inProgressTasks.innerHTML = '';
+            doneTasks.innerHTML = '';
+            
+            if (filteredTasks.length === 0) {
+                todoTasks.innerHTML = '<div class="kanban-task">No tasks match your search</div>';
+                return;
+            }
+            
+            filteredTasks.forEach(task => {
+                const taskElement = document.createElement('div');
+                taskElement.className = 'kanban-task';
+                taskElement.setAttribute('data-id', task.id);
+                
+                // Format due date
+                let dueDateFormatted = '-';
+                if (task.dueDate) {
+                    const date = new Date(task.dueDate);
+                    dueDateFormatted = date.toLocaleDateString();
+                }
+                
+                taskElement.innerHTML = `
+                    <div><strong>${task.title}</strong></div>
+                    <div>Due: ${dueDateFormatted}</div>
+                    <div>
+                        <span class="task-dot priority-${task.priority}"></span>
+                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </div>
+                    <div>Assignee: ${task.assignee || '-'}</div>
+                    <div class="actions">
+                        <button class="btn btn-sm btn-info" onclick="editTask(${task.id})">
+                            <span class="icon">✏️</span>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">
+                            <span class="icon">🗑️</span>Delete
+                        </button>
+                    </div>
+                `;
+                
+                if (task.status === 'todo') {
+                    todoTasks.appendChild(taskElement);
+                } else if (task.status === 'inprogress') {
+                    inProgressTasks.appendChild(taskElement);
+                } else if (task.status === 'done') {
+                    doneTasks.appendChild(taskElement);
+                }
+            });
+        }
+        
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
             updateUI();
         }
         
         // Apply filters
         function applyFilters() {
-            updateUI();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const priorityFilter = document.getElementById('filterPriority').value;
+            const assigneeFilter = document.getElementById('filterAssignee').value;
+            
+            const filteredTasks = tasks.filter(task => {
+                return (
+                    (!statusFilter || task.status === statusFilter) &&
+                    (!priorityFilter || task.priority === priorityFilter) &&
+                    (!assigneeFilter || task.assignee === assigneeFilter)
+                );
+            });
+            
+            // Update UI with filtered tasks
+            updateTaskTableWithFilter(filteredTasks);
+            updateKanbanBoardWithFilter(filteredTasks);
         }
         
         // Clear filters
@@ -1344,13 +1692,6 @@
             document.getElementById('filterStatus').value = '';
             document.getElementById('filterPriority').value = '';
             document.getElementById('filterAssignee').value = '';
-            document.getElementById('searchInput').value = '';
-            updateUI();
-        }
-        
-        // Clear search
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
             updateUI();
         }
         
@@ -1368,94 +1709,114 @@
             });
             
             // Show/hide views
-            document.getElementById('listView').classList.add('hidden');
-            document.getElementById('kanbanView').classList.add('hidden');
-            document.getElementById('calendarView').classList.add('hidden');
-            
-            document.getElementById(view + 'View').classList.remove('hidden');
-            
-            updateUI();
+            document.getElementById('listView').classList.toggle('hidden', view !== 'list');
+            document.getElementById('kanbanView').classList.toggle('hidden', view !== 'kanban');
+            document.getElementById('calendarView').classList.toggle('hidden', view !== 'calendar');
         }
         
-        // Print tasks
+        // Print tasks - COMPLETELY REWRITTEN FUNCTION
         function printTasks() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             const companyName = document.getElementById('companyName').value || 'Company Name';
             
-            if (!startDate || !endDate) {
-                showNotification('Please select start and end dates for the period.', 'error');
-                return;
+            // Filter tasks by date range
+            let filteredTasks = tasks;
+            if (startDate && endDate) {
+                filteredTasks = tasks.filter(task => {
+                    if (!task.dueDate) return false;
+                    return task.dueDate >= startDate && task.dueDate <= endDate;
+                });
             }
             
-            // Filter tasks by date range
-            const filteredTasks = tasks.filter(t => {
-                if (!t.dueDate) return false;
-                return t.dueDate >= startDate && t.dueDate <= endDate;
-            });
-            
-            // Calculate totals
-            const totalTasks = filteredTasks.length;
-            const completedTasks = filteredTasks.filter(t => t.status === 'done').length;
-            const inProgressTasks = filteredTasks.filter(t => t.status === 'inprogress').length;
-            
-            const today = new Date().toISOString().slice(0, 10);
-            const overdueTasks = filteredTasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate < today).length;
-            
-            // Update printable section
+            // Update printable content
             document.getElementById('print-company-name').textContent = companyName;
-            document.getElementById('print-period').textContent = `For the period: ${formatDateForPrint(startDate)} to ${formatDateForPrint(endDate)}`;
+            
+            let periodText = 'All tasks';
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                periodText = `For the period: ${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+            }
+            document.getElementById('print-period').textContent = periodText;
+            
+            const printTableBody = document.getElementById('print-table-body');
+            printTableBody.innerHTML = '';
+            
+            if (filteredTasks.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="6" style="text-align: center;">No tasks found for the selected period.</td>`;
+                printTableBody.appendChild(row);
+            } else {
+                filteredTasks.forEach(task => {
+                    const row = document.createElement('tr');
+                    
+                    // Format due date
+                    let dueDateFormatted = '-';
+                    if (task.dueDate) {
+                        const date = new Date(task.dueDate);
+                        dueDateFormatted = date.toLocaleDateString();
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${task.title || '-'}</td>
+                        <td>${dueDateFormatted}</td>
+                        <td>${task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : '-'}</td>
+                        <td>${task.status ? task.status.charAt(0).toUpperCase() + task.status.slice(1) : '-'}</td>
+                        <td>${task.assignee || '-'}</td>
+                        <td>${task.description || '-'}</td>
+                    `;
+                    
+                    printTableBody.appendChild(row);
+                });
+            }
+            
+            // Update summary
+            const totalTasks = filteredTasks.length;
+            const completedTasks = filteredTasks.filter(task => task.status === 'done').length;
+            const inProgressTasks = filteredTasks.filter(task => task.status === 'inprogress').length;
+            
+            // Calculate overdue tasks
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const overdueTasks = filteredTasks.filter(task => {
+                if (task.status === 'done' || !task.dueDate) return false;
+                const dueDate = new Date(task.dueDate);
+                dueDate.setHours(0, 0, 0, 0);
+                return dueDate < today;
+            }).length;
+            
             document.getElementById('print-total-tasks').textContent = totalTasks;
             document.getElementById('print-completed-tasks').textContent = completedTasks;
             document.getElementById('print-inprogress-tasks').textContent = inProgressTasks;
             document.getElementById('print-overdue-tasks').textContent = overdueTasks;
             
-            // Create the printable table
-            const tableBody = document.getElementById('print-table-body');
-            tableBody.innerHTML = '';
-            
-            filteredTasks.forEach(task => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td>${task.title}</td>
-                    <td>${task.dueDate ? formatDateForPrint(task.dueDate) : ''}</td>
-                    <td>${task.priority}</td>
-                    <td>${task.status}</td>
-                    <td>${task.assignee || ''}</td>
-                    <td>${task.description || ''}</td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-            
-            // Show the printable section and print
+            // Show the printable section
             const printableElement = document.getElementById('printable-tasks');
             printableElement.style.display = 'block';
             
-            window.print();
-            
-            // Hide the printable section after printing
-            printableElement.style.display = 'none';
-        }
-        
-        // Format date for printing
-        function formatDateForPrint(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
+            // Wait a moment for the DOM to update before printing
+            setTimeout(() => {
+                window.print();
+                
+                // Hide the printable section after printing
+                setTimeout(() => {
+                    printableElement.style.display = 'none';
+                }, 100);
+            }, 100);
         }
         
         // Update calendar
         function updateCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
-            // Update month header
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            // Update month/year header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
             document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
             
             // Get first day of month and number of days
@@ -1463,18 +1824,17 @@
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             
-            // Create calendar cells
-            const calendar = document.getElementById('calendar');
-            calendar.innerHTML = '';
+            // Get day of week for first day (0 = Sunday, 6 = Saturday)
+            let startingDay = firstDay.getDay();
             
-            // Add empty cells for days before the first day of the month
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'calendar-cell';
-                calendar.appendChild(emptyCell);
+            // Create empty cells for days before the first day of the month
+            for (let i = 0; i < startingDay; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                calendarEl.appendChild(cell);
             }
             
-            // Add cells for each day of the month
+            // Create cells for each day of the month
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
@@ -1483,36 +1843,26 @@
                 cell.className = 'calendar-cell';
                 cell.textContent = day;
                 
+                // Check if this day is today
                 const cellDate = new Date(year, month, day);
-                
-                // Check if it's today
                 if (cellDate.getTime() === today.getTime()) {
                     cell.classList.add('today');
                 }
                 
-                // Check if there are tasks on this day
+                // Check if this day has tasks
                 const hasTasks = tasks.some(task => {
                     if (!task.dueDate) return false;
                     const taskDate = new Date(task.dueDate);
-                    return taskDate.getDate() === day && 
+                    return taskDate.getFullYear() === year && 
                            taskDate.getMonth() === month && 
-                           taskDate.getFullYear() === year;
+                           taskDate.getDate() === day;
                 });
                 
                 if (hasTasks) {
                     cell.classList.add('has-tasks');
                 }
                 
-                // Add click event to show tasks for this day
-                cell.addEventListener('click', function() {
-                    // Filter and show tasks for this date
-                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    document.getElementById('startDate').value = dateStr;
-                    document.getElementById('endDate').value = dateStr;
-                    updateUI();
-                });
-                
-                calendar.appendChild(cell);
+                calendarEl.appendChild(cell);
             }
         }
         
@@ -1526,208 +1876,6 @@
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
             updateCalendar();
-        }
-        
-        // Update UI with data from database
-        function updateUI() {
-            // Get filters
-            const statusFilter = document.getElementById('filterStatus').value;
-            const priorityFilter = document.getElementById('filterPriority').value;
-            const assigneeFilter = document.getElementById('filterAssignee').value;
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            // Filter tasks
-            let filteredTasks = tasks;
-            
-            if (statusFilter) {
-                filteredTasks = filteredTasks.filter(t => t.status === statusFilter);
-            }
-            
-            if (priorityFilter) {
-                filteredTasks = filteredTasks.filter(t => t.priority === priorityFilter);
-            }
-            
-            if (assigneeFilter) {
-                filteredTasks = filteredTasks.filter(t => t.assignee === assigneeFilter);
-            }
-            
-            if (searchTerm) {
-                filteredTasks = filteredTasks.filter(t => 
-                    t.title.toLowerCase().includes(searchTerm) ||
-                    (t.description && t.description.toLowerCase().includes(searchTerm)) ||
-                    (t.tags && t.tags.some(tag => tag.toLowerCase().includes(searchTerm))) ||
-                    (t.assignee && t.assignee.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            // Update assignee filter dropdown
-            const assigneeFilterEl = document.getElementById('filterAssignee');
-            assigneeFilterEl.innerHTML = '<option value="">All Assignees</option>';
-            
-            assignees.forEach(assignee => {
-                const option = document.createElement('option');
-                option.value = assignee;
-                option.textContent = assignee;
-                assigneeFilterEl.appendChild(option);
-            });
-            
-            // Calculate totals
-            const totalTasks = tasks.length;
-            const completedTasks = tasks.filter(t => t.status === 'done').length;
-            const inProgressTasks = tasks.filter(t => t.status === 'inprogress').length;
-            
-            const today = new Date().toISOString().slice(0, 10);
-            const overdueTasks = tasks.filter(t => t.status !== 'done' && t.dueDate && t.dueDate < today).length;
-            
-            // Update summary cards
-            document.getElementById('totalTasks').textContent = totalTasks;
-            document.getElementById('completedTasks').textContent = completedTasks;
-            document.getElementById('inProgressTasks').textContent = inProgressTasks;
-            document.getElementById('overdueTasks').textContent = overdueTasks;
-            
-            // Update based on current view
-            if (currentView === 'list') {
-                updateListView(filteredTasks);
-            } else if (currentView === 'kanban') {
-                updateKanbanView(filteredTasks);
-            }
-            
-            // Update status bar
-            document.getElementById('statusMessage').textContent = tasks.length > 0 ? 'Task list loaded' : 'No task list loaded';
-            document.getElementById('taskCount').textContent = `${tasks.length} tasks`;
-            
-            // Update calendar
-            updateCalendar();
-        }
-        
-        // Update list view
-        function updateListView(filteredTasks) {
-            const tableBody = document.getElementById('taskTableBody');
-            tableBody.innerHTML = '';
-            
-            if (filteredTasks.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No tasks found.</td></tr>';
-            } else {
-                // Sort by due date (oldest first)
-                filteredTasks.sort((a, b) => {
-                    if (!a.dueDate) return 1;
-                    if (!b.dueDate) return -1;
-                    return new Date(a.dueDate) - new Date(b.dueDate);
-                });
-                
-                filteredTasks.forEach(task => {
-                    const row = document.createElement('tr');
-                    row.classList.add(`priority-${task.priority}`);
-                    row.classList.add(`status-${task.status}`);
-                    
-                    row.innerHTML = `
-                        <td>
-                            <div><strong>${task.title}</strong></div>
-                            <small>${task.description || 'No description'}</small>
-                            ${task.tags && task.tags.length > 0 ? `<div><small>Tags: ${task.tags.join(', ')}</small></div>` : ''}
-                        </td>
-                        <td>${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</td>
-                        <td><span class="task-dot priority-${task.priority}"></span> ${task.priority}</td>
-                        <td>${task.status}</td>
-                        <td>${task.assignee || 'Unassigned'}</td>
-                        <td class="actions">
-                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-        
-        // Update kanban view
-        function updateKanbanView(filteredTasks) {
-            const todoTasks = filteredTasks.filter(t => t.status === 'todo');
-            const inProgressTasks = filteredTasks.filter(t => t.status === 'inprogress');
-            const doneTasks = filteredTasks.filter(t => t.status === 'done');
-            
-            // Update To Do column
-            const todoContainer = document.getElementById('todoTasks');
-            todoContainer.innerHTML = '';
-            
-            if (todoTasks.length === 0) {
-                todoContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
-            } else {
-                todoTasks.forEach(task => {
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'kanban-task';
-                    taskEl.innerHTML = `
-                        <div><strong>${task.title}</strong></div>
-                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
-                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
-                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
-                        <div class="actions">
-                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
-                        </div>
-                    `;
-                    todoContainer.appendChild(taskEl);
-                });
-            }
-            
-            // Update In Progress column
-            const inProgressContainer = document.getElementById('inProgressTasks');
-            inProgressContainer.innerHTML = '';
-            
-            if (inProgressTasks.length === 0) {
-                inProgressContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
-            } else {
-                inProgressTasks.forEach(task => {
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'kanban-task';
-                    taskEl.innerHTML = `
-                        <div><strong>${task.title}</strong></div>
-                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
-                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
-                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
-                        <div class="actions">
-                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
-                        </div>
-                    `;
-                    inProgressContainer.appendChild(taskEl);
-                });
-            }
-            
-            // Update Done column
-            const doneContainer = document.getElementById('doneTasks');
-            doneContainer.innerHTML = '';
-            
-            if (doneTasks.length === 0) {
-                doneContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d;">No tasks</div>';
-            } else {
-                doneTasks.forEach(task => {
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'kanban-task';
-                    taskEl.innerHTML = `
-                        <div><strong>${task.title}</strong></div>
-                        <div>Due: ${task.dueDate ? formatDate(task.dueDate) : 'No due date'}</div>
-                        <div><span class="task-dot priority-${task.priority}"></span> ${task.priority}</div>
-                        <div>Assignee: ${task.assignee || 'Unassigned'}</div>
-                        <div class="actions">
-                            <button class="btn btn-secondary btn-sm" onclick="editTask(${task.id})">✏️</button>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteTask(${task.id})">🗑️</button>
-                        </div>
-                    `;
-                    doneContainer.appendChild(taskEl);
-                });
-            }
-        }
-        
-        // Format date for display
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
         }
         
         // Show notification
