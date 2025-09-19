@@ -4,19 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LexiFind - Dictionary & Thesaurus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+          --bg: #0f172a;
+          --muted: #94a3b8;
+          --text: #e2e8f0;
+          --primary: #6366f1;
+          --primary-600: #5558ec;
+          --success: #22c55e;
+          --warning: #f59e0b;
+          --danger: #ef4444;
+          --shadow: 0 10px 30px rgba(0,0,0,.35);
+          --radius: 16px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: #333;
-            min-height: 100vh;
+            background: radial-gradient(1200px 800px at 10% -10%, #1d2955, transparent 60%), 
+                        radial-gradient(800px 600px at 120% 10%, #1a3a6e, transparent 50%), 
+                        var(--bg);
+            color: var(--text);
+            min-height: 120vh;
             padding: 10px;
             display: flex;
             flex-direction: column;
@@ -24,20 +42,23 @@
         }
         
         .container {
-            width: 100%;
+            width: calc(100% - 2in); /* Half inch margin on both sides */
             max-width: 100%;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             overflow: hidden;
             margin-top: 15px;
+            backdrop-filter: blur(6px);
         }
         
         header {
-            background: #4e54c8;
-            color: white;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--text);
             padding: 20px;
             text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,.08);
         }
         
         h1 {
@@ -49,26 +70,33 @@
         .tagline {
             font-size: 1rem;
             opacity: 0.9;
+            color: var(--muted);
         }
         
         .search-container {
             padding: 20px;
-            background: #f5f7ff;
+            background: rgba(255, 255, 255, 0.03);
             display: flex;
-            border-bottom: 1px solid #e0e5ff;
+            border-bottom: 1px solid rgba(255,255,255,.08);
         }
         
         #searchInput {
             flex: 1;
             padding: 14px 18px;
-            border: 2px solid #4e54c8;
+            border: 2px solid var(--primary);
             border-radius: 50px 0 0 50px;
             font-size: 1rem;
             outline: none;
+            background: rgba(2,6,23,.6);
+            color: var(--text);
+        }
+        
+        #searchInput::placeholder {
+            color: var(--muted);
         }
         
         #searchButton {
-            background: #4e54c8;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 0 22px;
@@ -79,12 +107,12 @@
         }
         
         #searchButton:hover {
-            background: #3a3eb3;
+            background: var(--primary-600);
         }
         
         .main-content {
             display: flex;
-            min-height: 450px;
+            min-height: 600px;
         }
         
         .results-container {
@@ -96,17 +124,17 @@
         
         .history-sidebar {
             flex: 1;
-            background: #f9faff;
+            background: rgba(255, 255, 255, 0.03);
             padding: 20px;
-            border-left: 1px solid #e0e5ff;
+            border-left: 1px solid rgba(255,255,255,.08);
         }
         
         .history-title {
             font-size: 1.2rem;
-            color: #2d3192;
+            color: var(--primary);
             margin-bottom: 15px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #e0e5ff;
+            border-bottom: 2px solid rgba(255,255,255,.08);
         }
         
         .history-list {
@@ -116,7 +144,7 @@
         }
         
         .history-item {
-            background: #f0f3ff;
+            background: rgba(99, 102, 241, 0.15);
             padding: 8px 12px;
             border-radius: 20px;
             cursor: pointer;
@@ -125,7 +153,7 @@
         }
         
         .history-item:hover {
-            background: #4e54c8;
+            background: var(--primary);
             color: white;
         }
         
@@ -138,18 +166,18 @@
         
         .word {
             font-size: 2rem;
-            color: #2d3192;
+            color: var(--text);
             font-weight: 700;
         }
         
         .phonetic {
-            color: #6a6fcd;
+            color: var(--muted);
             font-size: 1.1rem;
             margin-top: 4px;
         }
         
         .audio-btn {
-            background: #4e54c8;
+            background: var(--primary);
             color: white;
             width: 40px;
             height: 40px;
@@ -171,11 +199,11 @@
         
         .part-of-speech {
             font-size: 1.3rem;
-            color: #2d3192;
+            color: var(--primary);
             font-weight: 600;
             margin-bottom: 12px;
             padding-bottom: 4px;
-            border-bottom: 2px solid #e0e5ff;
+            border-bottom: 2px solid rgba(255,255,255,.08);
         }
         
         .definition {
@@ -188,13 +216,13 @@
             content: "•";
             position: absolute;
             left: 0;
-            color: #4e54c8;
+            color: var(--primary);
         }
         
         .example {
-            background: #f0f3ff;
+            background: rgba(99, 102, 241, 0.1);
             padding: 8px 12px;
-            border-left: 3px solid #4e54c8;
+            border-left: 3px solid var(--primary);
             margin: 8px 0;
             font-style: italic;
             border-radius: 0 5px 5px 0;
@@ -207,7 +235,7 @@
         
         .synonyms span, .antonyms span {
             font-weight: 600;
-            color: #2d3192;
+            color: var(--primary);
         }
         
         .synonym-list, .antonym-list {
@@ -218,7 +246,7 @@
         }
         
         .synonym, .antonym {
-            background: #e0e5ff;
+            background: rgba(99, 102, 241, 0.2);
             padding: 4px 12px;
             border-radius: 20px;
             cursor: pointer;
@@ -227,14 +255,14 @@
         }
         
         .synonym:hover, .antonym:hover {
-            background: #4e54c8;
+            background: var(--primary);
             color: white;
         }
         
         .empty-state {
             text-align: center;
             padding: 30px 0;
-            color: #6a6fcd;
+            color: var(--muted);
         }
         
         .empty-state i {
@@ -243,7 +271,7 @@
         }
         
         .error-state {
-            color: #ff4d4d;
+            color: var(--danger);
             text-align: center;
             padding: 30px 0;
         }
@@ -256,7 +284,7 @@
         .loading-state {
             text-align: center;
             padding: 30px 0;
-            color: #6a6fcd;
+            color: var(--muted);
         }
         
         .loading-state i {
@@ -272,16 +300,16 @@
         
         footer {
             margin-top: 20px;
-            color: white;
+            color: var(--text);
             text-align: center;
             opacity: 0.8;
             font-size: 0.85rem;
-            width: 100%;
+            width: calc(100% - 1in); /* Half inch margin on both sides */
             max-width: 100%;
         }
         
         footer a {
-            color: white;
+            color: var(--primary);
             text-decoration: underline;
         }
         
@@ -292,12 +320,16 @@
             
             .history-sidebar {
                 border-left: none;
-                border-top: 1px solid #e0e5ff;
+                border-top: 1px solid rgba(255,255,255,.08);
             }
             
             .history-list {
                 flex-direction: row;
                 flex-wrap: wrap;
+            }
+            
+            .container, footer {
+                width: calc(100% - 20px); /* Smaller margins on mobile */
             }
         }
         
@@ -307,7 +339,7 @@
             }
             
             .container {
-                border-radius: 12px;
+                border-radius: var(--radius);
                 margin-top: 10px;
             }
             
