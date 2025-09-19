@@ -459,6 +459,56 @@
             margin-top: 20px;
         }
         
+        /* Budget progress bar styles */
+        .budget-progress {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .budget-progress-bar {
+            height: 100%;
+            border-radius: 5px;
+        }
+        
+        .budget-normal {
+            background: #4CAF50;
+        }
+        
+        .budget-warning {
+            background: #FF9800;
+        }
+        
+        .budget-danger {
+            background: #F44336;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .currency-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .currency-selector label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        
+        .currency-selector select {
+            width: auto;
+        }
+        
         @media (max-width: 1024px) {
             .container {
                 grid-template-columns: 1fr;
@@ -507,6 +557,11 @@
             
             .view-controls {
                 flex-wrap: wrap;
+            }
+            
+            .currency-selector {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
         
@@ -585,16 +640,23 @@
             margin-right: 5px;
         }
         
-        .budget-normal {
-            background: #4CAF50;
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
         }
         
-        .budget-warning {
-            background: #FF9800;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
-        .budget-danger {
-            background: #F44336;
+        .transfer-transaction {
+            background-color: #f0f8ff !important;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -619,24 +681,42 @@
                 <button id="exampleData" class="btn btn-secondary">
                     <span class="icon">🔍</span>Example Data
                 </button>
+                <button id="clearStorage" class="btn btn-danger">
+                    <span class="icon">🗑️</span>Clear Data
+                </button>
+                
+                <div class="currency-selector">
+                    <label for="currencySelect">Currency:</label>
+                    <select id="currencySelect">
+                        <option value="$">USD ($)</option>
+                        <option value="€">Euro (€)</option>
+                        <option value="£">GBP (£)</option>
+                        <option value="¥">Yen (¥)</option>
+                        <option value="₹">Rupee (₹)</option>
+                        <option value="₽">Ruble (₽)</option>
+                        <option value="₩">Won (₩)</option>
+                        <option value="₺">Lira (₺)</option>
+                        <option value="₴">Hryvnia (₴)</option>
+                    </select>
+                </div>
             </div>
             
             <div class="summary-cards no-print">
                 <div class="summary-card total">
                     <h3>Total Balance</h3>
-                    <div class="amount" id="totalBalance">₹0.00</div>
+                    <div class="amount" id="totalBalance">$0.00</div>
                 </div>
                 <div class="summary-card income">
                     <h3>Total Income</h3>
-                    <div class="amount" id="totalIncome">₹0.00</div>
+                    <div class="amount" id="totalIncome">$0.00</div>
                 </div>
                 <div class="summary-card expense">
                     <h3>Total Expenses</h3>
-                    <div class="amount" id="totalExpenses">₹0.00</div>
+                    <div class="amount" id="totalExpenses">$0.00</div>
                 </div>
                 <div class="summary-card balance">
                     <h3>Net Cash Flow</h3>
-                    <div class="amount" id="netCashFlow">₹0.00</div>
+                    <div class="amount" id="netCashFlow">$0.00</div>
                 </div>
             </div>
         </header>
@@ -693,6 +773,15 @@
                         <option value="">All Categories</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="filterType">Type</label>
+                    <select id="filterType">
+                        <option value="">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+                </div>
                 <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
                 <button id="clearFilters" class="btn btn-secondary">Clear Filters</button>
             </div>
@@ -729,6 +818,7 @@
                                 <th>Description</th>
                                 <th>Account</th>
                                 <th>Category</th>
+                                <th>Type</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
@@ -1038,6 +1128,7 @@
         <div class="status-bar no-print">
             <div class="status-message" id="statusMessage">No expense data loaded</div>
             <div id="transactionCount">0 transactions</div>
+            <div id="autoSaveStatus">Auto-save: <span id="saveStatusText">On</span></div>
         </div>
         
         <!-- Printable expenses section (hidden by default) -->
@@ -1064,9 +1155,9 @@
             </table>
             
             <div class="print-summary">
-                <p>Total Income: <span id="print-total-income">₹0.00</span></p>
-                <p>Total Expenses: <span id="print-total-expenses">₹0.00</span></p>
-                <p>Net Cash Flow: <span id="print-net-cash-flow">₹0.00</span></p>
+                <p>Total Income: <span id="print-total-income">$0.00</span></p>
+                <p>Total Expenses: <span id="print-total-expenses">$0.00</span></p>
+                <p>Net Cash Flow: <span id="print-net-cash-flow">$0.00</span></p>
             </div>
         </div>
 
@@ -1077,521 +1168,625 @@
     <div class="notification" id="notification"></div>
     
     <script>
-        // Global variables
-        let accounts = [];
-        let categories = [];
-        let transactions = [];
-        let budgets = {};
-        let nextId = 1;
-        let overviewChart = null;
-        let categoryChart = null;
+    // Global variables
+    let accounts = [];
+    let categories = [];
+    let transactions = [];
+    let budgets = {};
+    let nextId = 1;
+    let overviewChart = null;
+    let categoryChart = null;
+    let currencySymbol = '$';
+    let autoSaveEnabled = true;
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set today's date as default
-            const today = new Date();
-            document.getElementById('transactionDate').valueAsDate = today;
-            document.getElementById('transferDate').valueAsDate = today;
-            
-            // Set default date range for reporting (current month)
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            
-            document.getElementById('reportStartDate').valueAsDate = firstDay;
-            document.getElementById('reportEndDate').valueAsDate = lastDay;
-            document.getElementById('filterDateFrom').valueAsDate = firstDay;
-            document.getElementById('filterDateTo').valueAsDate = lastDay;
-            
-            // Event listeners
-            document.getElementById('createDb').addEventListener('click', createDatabase);
-            document.getElementById('saveDb').addEventListener('click', saveDatabase);
-            document.getElementById('dbFile').addEventListener('change', loadDatabase);
-            document.getElementById('exampleData').addEventListener('click', loadExampleData);
-            document.getElementById('accountForm').addEventListener('submit', saveAccount);
-            document.getElementById('categoryForm').addEventListener('submit', saveCategory);
-            document.getElementById('transactionForm').addEventListener('submit', saveTransaction);
-            document.getElementById('budgetForm').addEventListener('submit', saveBudget);
-            document.getElementById('transferForm').addEventListener('submit', processTransfer);
-            document.getElementById('searchTransactions').addEventListener('input', filterTransactions);
-            document.getElementById('clearTransactionSearch').addEventListener('click', clearTransactionSearch);
-            document.getElementById('applyFilters').addEventListener('click', applyFilters);
-            document.getElementById('clearFilters').addEventListener('click', clearFilters);
-            document.getElementById('generateReport').addEventListener('click', generateReport);
-            document.getElementById('printReport').addEventListener('click', printReport);
-            
-            // View controls
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    switchView(this.dataset.view);
-                });
-            });
-            
-            // Initial UI update
-            createDatabase();
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load data from localStorage if available
+        loadFromLocalStorage();
+        
+        // Set today's date as default
+        const today = new Date();
+        document.getElementById('transactionDate').valueAsDate = today;
+        document.getElementById('transferDate').valueAsDate = today;
+        
+        // Set default date range for reporting (current month)
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        
+        document.getElementById('reportStartDate').valueAsDate = firstDay;
+        document.getElementById('reportEndDate').valueAsDate = lastDay;
+        document.getElementById('filterDateFrom').valueAsDate = firstDay;
+        document.getElementById('filterDateTo').valueAsDate = lastDay;
+        
+        // Set up currency selector
+        const currencySelect = document.getElementById('currencySelect');
+        currencySelect.value = currencySymbol;
+        currencySelect.addEventListener('change', function() {
+            currencySymbol = this.value;
+            updateUI();
+            saveToLocalStorage();
         });
         
-        // Create a new database
-        function createDatabase() {
-            accounts = [];
-            categories = [];
-            transactions = [];
-            budgets = {};
-            nextId = 1;
-            
-            // Add default categories
-            const defaultCategories = [
-                { id: nextId++, name: 'Food & Dining', type: 'expense', color: '#FF6384' },
-                { id: nextId++, name: 'Transportation', type: 'expense', color: '#36A2EB' },
-                { id: nextId++, name: 'Utilities', type: 'expense', color: '#FFCE56' },
-                { id: nextId++, name: 'Entertainment', type: 'expense', color: '#4BC0C0' },
-                { id: nextId++, name: 'Healthcare', type: 'expense', color: '#9966FF' },
-                { id: nextId++, name: 'Shopping', type: 'expense', color: '#FF9F40' },
-                { id: nextId++, name: 'Salary', type: 'income', color: '#4CAF50' },
-                { id: nextId++, name: 'Freelance', type: 'income', color: '#8BC34A' },
-                { id: nextId++, name: 'Investment', type: 'income', color: '#CDDC39' }
-            ];
-            
-            categories = defaultCategories;
-            
-            updateUI();
-            showNotification('New expense file created successfully.', 'success');
-        }
+        // Event listeners
+        document.getElementById('createDb').addEventListener('click', createDatabase);
+        document.getElementById('saveDb').addEventListener('click', saveDatabase);
+        document.getElementById('dbFile').addEventListener('change', loadDatabase);
+        document.getElementById('exampleData').addEventListener('click', loadExampleData);
+        document.getElementById('clearStorage').addEventListener('click', clearLocalStorage);
+        document.getElementById('accountForm').addEventListener('submit', saveAccount);
+        document.getElementById('categoryForm').addEventListener('submit', saveCategory);
+        document.getElementById('transactionForm').addEventListener('submit', saveTransaction);
+        document.getElementById('budgetForm').addEventListener('submit', saveBudget);
+        document.getElementById('transferForm').addEventListener('submit', processTransfer);
+        document.getElementById('searchTransactions').addEventListener('input', filterTransactions);
+        document.getElementById('clearTransactionSearch').addEventListener('click', clearTransactionSearch);
+        document.getElementById('applyFilters').addEventListener('click', applyFilters);
+        document.getElementById('clearFilters').addEventListener('click', clearFilters);
+        document.getElementById('generateReport').addEventListener('click', generateReport);
+        document.getElementById('printReport').addEventListener('click', printReport);
         
-        // Save database to file
-        function saveDatabase() {
-            if (accounts.length === 0 && transactions.length === 0) {
-                showNotification('No data to save.', 'error');
-                return;
+        // View controls
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                switchView(this.dataset.view);
+            });
+        });
+        
+        // Initial UI update
+        updateUI();
+    });
+    
+    // Load data from localStorage
+    function loadFromLocalStorage() {
+        try {
+            const savedData = localStorage.getItem('expenseTrackerData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                accounts = data.accounts || [];
+                categories = data.categories || [];
+                transactions = data.transactions || [];
+                budgets = data.budgets || {};
+                nextId = data.nextId || 1;
+                currencySymbol = data.currencySymbol || '$';
+                
+                // Update currency selector
+                document.getElementById('currencySelect').value = currencySymbol;
+                
+                showNotification('Data loaded from local storage.', 'success');
+            } else {
+                createDatabase();
             }
-            
-            try {
-                const data = {
-                    accounts: accounts,
-                    categories: categories,
-                    transactions: transactions,
-                    budgets: budgets,
-                    nextId: nextId
-                };
-                
-                const dataStr = JSON.stringify(data);
-                const dataBlob = new Blob([dataStr], {type: 'application/json'});
-                
-                // Create a download link and trigger click
-                const downloadLink = document.getElementById('downloadLink');
-                const url = URL.createObjectURL(dataBlob);
-                downloadLink.href = url;
-                downloadLink.download = 'expense_data.json';
-                downloadLink.click();
-                
-                // Clean up
-                setTimeout(function() {
-                    URL.revokeObjectURL(url);
-                }, 100);
-                
-                showNotification('Expense data saved successfully.', 'success');
-            } catch (error) {
-                showNotification('Error saving database: ' + error.message, 'error');
-            }
-        }
-        
-        // Load database from file
-        function loadDatabase(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    accounts = data.accounts || [];
-                    categories = data.categories || [];
-                    transactions = data.transactions || [];
-                    budgets = data.budgets || {};
-                    nextId = data.nextId || 1;
-                    
-                    updateUI();
-                    showNotification('Expense data loaded successfully.', 'success');
-                } catch (error) {
-                    showNotification('Error loading database: ' + error.message, 'error');
-                }
-            };
-            reader.readAsText(file);
-        }
-        
-        // Load example data
-        function loadExampleData() {
+        } catch (error) {
+            console.error('Error loading from localStorage:', error);
             createDatabase();
-            
-            // Add example accounts
-            const exampleAccounts = [
-                { id: nextId++, name: 'Checking Account', type: 'Checking', balance: 10000 },
-                { id: nextId++, name: 'Savings Account', type: 'Savings', balance: 25000 },
-                { id: nextId++, name: 'Credit Card', type: 'Credit Card', balance: -5000 },
-                { id: nextId++, name: 'Cash', type: 'Cash', balance: 2000 }
-            ];
-            
-            accounts = exampleAccounts;
-            
-            // Add example transactions
-            const today = new Date();
-            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 15);
-            const lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-            
-            const exampleTransactions = [
-                {
-                    id: nextId++,
-                    date: lastMonth.toISOString().slice(0,10),
-                    description: 'Monthly Salary',
-                    accountId: 1,
-                    categoryId: 7,
-                    amount: 50000,
-                    type: 'income'
-                },
-                {
-                    id: nextId++,
-                    date: lastMonth.toISOString().slice(0,10),
-                    description: 'Grocery Shopping',
-                    accountId: 1,
-                    categoryId: 1,
-                    amount: 3500,
-                    type: 'expense'
-                },
-                {
-                    id: nextId++,
-                    date: lastMonth.toISOString().slice(0,10),
-                    description: 'Electricity Bill',
-                    accountId: 1,
-                    categoryId: 3,
-                    amount: 2500,
-                    type: 'expense'
-                },
-                {
-                    id: nextId++,
-                    date: lastWeek.toISOString().slice(0,10),
-                    description: 'Dinner with Friends',
-                    accountId: 3,
-                    categoryId: 1,
-                    amount: 1800,
-                    type: 'expense'
-                },
-                {
-                    id: nextId++,
-                    date: lastWeek.toISOString().slice(0,10),
-                    description: 'Uber Rides',
-                    accountId: 3,
-                    categoryId: 2,
-                    amount: 1200,
-                    type: 'expense'
-                },
-                {
-                    id: nextId++,
-                    date: today.toISOString().slice(0,10),
-                    description: 'Freelance Project',
-                    accountId: 1,
-                    categoryId: 8,
-                    amount: 15000,
-                    type: 'income'
-                }
-            ];
-            
-            transactions = exampleTransactions;
-            
-            // Add example budgets
-            budgets = {
-                1: 5000, // Food & Dining
-                2: 3000, // Transportation
-                3: 4000, // Utilities
-                4: 2000, // Entertainment
-                5: 1500, // Healthcare
-                6: 4000  // Shopping
+        }
+    }
+    
+    // Save data to localStorage
+    function saveToLocalStorage() {
+        if (!autoSaveEnabled) return;
+        
+        try {
+            const data = {
+                accounts: accounts,
+                categories: categories,
+                transactions: transactions,
+                budgets: budgets,
+                nextId: nextId,
+                currencySymbol: currencySymbol
             };
             
+            localStorage.setItem('expenseTrackerData', JSON.stringify(data));
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
+            showNotification('Error saving data to local storage.', 'error');
+        }
+    }
+    
+    // Clear localStorage
+    function clearLocalStorage() {
+        if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+            localStorage.removeItem('expenseTrackerData');
+            createDatabase();
+            showNotification('All data has been cleared.', 'success');
+        }
+    }
+    
+    // Create a new database
+    function createDatabase() {
+        accounts = [];
+        categories = [];
+        transactions = [];
+        budgets = {};
+        nextId = 1;
+        currencySymbol = '$';
+        document.getElementById('currencySelect').value = currencySymbol;
+        
+        // Add default categories
+        const defaultCategories = [
+            { id: nextId++, name: 'Food & Dining', type: 'expense', color: '#FF6384' },
+            { id: nextId++, name: 'Transportation', type: 'expense', color: '#36A2EB' },
+            { id: nextId++, name: 'Utilities', type: 'expense', color: '#FFCE56' },
+            { id: nextId++, name: 'Entertainment', type: 'expense', color: '#4BC0C0' },
+            { id: nextId++, name: 'Healthcare', type: 'expense', color: '#9966FF' },
+            { id: nextId++, name: 'Shopping', type: 'expense', color: '#FF9F40' },
+            { id: nextId++, name: 'Salary', type: 'income', color: '#4CAF50' },
+            { id: nextId++, name: 'Freelance', type: 'income', color: '#8BC34A' },
+            { id: nextId++, name: 'Investment', type: 'income', color: '#CDDC39' }
+        ];
+        
+        categories = defaultCategories;
+        
+        updateUI();
+        saveToLocalStorage();
+        showNotification('New expense file created successfully.', 'success');
+    }
+    
+    // Save database to file
+    function saveDatabase() {
+        if (accounts.length === 0 && transactions.length === 0) {
+            showNotification('No data to save.', 'error');
+            return;
+        }
+        
+        try {
+            const data = {
+                accounts: accounts,
+                categories: categories,
+                transactions: transactions,
+                budgets: budgets,
+                nextId: nextId,
+                currencySymbol: currencySymbol
+            };
+            
+            const dataStr = JSON.stringify(data);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            // Create a download link and trigger click
+            const downloadLink = document.getElementById('downloadLink');
+            const url = URL.createObjectURL(dataBlob);
+            downloadLink.href = url;
+            downloadLink.download = 'expense_data.json';
+            downloadLink.click();
+            
+            // Clean up
+            setTimeout(function() {
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showNotification('Expense data saved successfully.', 'success');
+        } catch (error) {
+            showNotification('Error saving database: ' + error.message, 'error');
+        }
+    }
+    
+    // Load database from file
+    function loadDatabase(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                accounts = data.accounts || [];
+                categories = data.categories || [];
+                transactions = data.transactions || [];
+                budgets = data.budgets || {};
+                nextId = data.nextId || 1;
+                currencySymbol = data.currencySymbol || '$';
+                
+                // Update currency selector
+                document.getElementById('currencySelect').value = currencySymbol;
+                
+                updateUI();
+                saveToLocalStorage();
+                showNotification('Expense data loaded successfully.', 'success');
+            } catch (error) {
+                showNotification('Error loading database: ' + error.message, 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Load example data
+    function loadExampleData() {
+        createDatabase();
+        
+        // Add example accounts
+        const exampleAccounts = [
+            { id: nextId++, name: 'Checking Account', type: 'Checking', balance: 10000 },
+            { id: nextId++, name: 'Savings Account', type: 'Savings', balance: 25000 },
+            { id: nextId++, name: 'Credit Card', type: 'Credit Card', balance: -5000 },
+            { id: nextId++, name: 'Cash', type: 'Cash', balance: 2000 }
+        ];
+        
+        accounts = exampleAccounts;
+        
+        // Add example transactions
+        const today = new Date();
+        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 15);
+        const lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
+        
+        const exampleTransactions = [
+            {
+                id: nextId++,
+                date: lastMonth.toISOString().slice(0,10),
+                description: 'Monthly Salary',
+                accountId: 1,
+                categoryId: 7,
+                amount: 50000,
+                type: 'income'
+            },
+            {
+                id: nextId++,
+                date: lastMonth.toISOString().slice(0,10),
+                description: 'Grocery Shopping',
+                accountId: 1,
+                categoryId: 1,
+                amount: 3500,
+                type: 'expense'
+            },
+            {
+                id: nextId++,
+                date: lastMonth.toISOString().slice(0,10),
+                description: 'Electricity Bill',
+                accountId: 1,
+                categoryId: 3,
+                amount: 2500,
+                type: 'expense'
+            },
+            {
+                id: nextId++,
+                date: lastWeek.toISOString().slice(0,10),
+                description: 'Dinner with Friends',
+                accountId: 3,
+                categoryId: 1,
+                amount: 1800,
+                type: 'expense'
+            },
+            {
+                id: nextId++,
+                date: lastWeek.toISOString().slice(0,10),
+                description: 'Uber Rides',
+                accountId: 3,
+                categoryId: 2,
+                amount: 1200,
+                type: 'expense'
+            },
+            {
+                id: nextId++,
+                date: today.toISOString().slice(0,10),
+                description: 'Freelance Project',
+                accountId: 1,
+                categoryId: 8,
+                amount: 15000,
+                type: 'income'
+            }
+        ];
+        
+        transactions = exampleTransactions;
+        
+        // Add example budgets
+        budgets = {
+            1: 5000, // Food & Dining
+            2: 3000, // Transportation
+            3: 4000, // Utilities
+            4: 2000, // Entertainment
+            5: 1500, // Healthcare
+            6: 4000  // Shopping
+        };
+        
+        updateUI();
+        saveToLocalStorage();
+        showNotification('Example data loaded successfully.', 'success');
+    }
+    
+    // Save account
+    function saveAccount(event) {
+        event.preventDefault();
+        
+        try {
+            const name = document.getElementById('accountName').value.trim();
+            const type = document.getElementById('accountType').value;
+            const balance = parseFloat(document.getElementById('openingBalance').value) || 0;
+            
+            if (!name) {
+                showNotification('Please enter an account name', 'error');
+                return;
+            }
+            
+            // Check for duplicate account names
+            if (accounts.some(account => account.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('An account with this name already exists.', 'error');
+                return;
+            }
+            
+            const newAccount = {
+                id: nextId++,
+                name: name,
+                type: type,
+                balance: balance
+            };
+            
+            accounts.push(newAccount);
             updateUI();
-            showNotification('Example data loaded successfully.', 'success');
-        }
-        
-        // Save account
-        function saveAccount(event) {
-            event.preventDefault();
+            saveToLocalStorage();
             
-            try {
-                const name = document.getElementById('accountName').value.trim();
-                const type = document.getElementById('accountType').value;
-                const balance = parseFloat(document.getElementById('openingBalance').value) || 0;
-                
-                if (!name) {
-                    showNotification('Please enter an account name', 'error');
-                    return;
-                }
-                
-                const newAccount = {
-                    id: nextId++,
-                    name: name,
-                    type: type,
-                    balance: balance
-                };
-                
-                accounts.push(newAccount);
-                updateUI();
-                
-                // Reset form
-                document.getElementById('accountForm').reset();
-                
-                showNotification('Account added successfully.', 'success');
-            } catch (error) {
-                showNotification('Error saving account: ' + error.message, 'error');
+            // Reset form
+            document.getElementById('accountForm').reset();
+            
+            showNotification('Account added successfully.', 'success');
+        } catch (error) {
+            showNotification('Error saving account: ' + error.message, 'error');
+        }
+    }
+    
+    // Save category
+    function saveCategory(event) {
+        event.preventDefault();
+        
+        try {
+            const name = document.getElementById('categoryName').value.trim();
+            const type = document.getElementById('categoryType').value;
+            const color = document.getElementById('categoryColor').value;
+            
+            if (!name) {
+                showNotification('Please enter a category name', 'error');
+                return;
             }
-        }
-        
-        // Save category
-        function saveCategory(event) {
-            event.preventDefault();
             
-            try {
-                const name = document.getElementById('categoryName').value.trim();
-                const type = document.getElementById('categoryType').value;
-                const color = document.getElementById('categoryColor').value;
-                
-                if (!name) {
-                    showNotification('Please enter a category name', 'error');
-                    return;
-                }
-                
-                const newCategory = {
-                    id: nextId++,
-                    name: name,
-                    type: type,
-                    color: color
-                };
-                
-                categories.push(newCategory);
-                updateUI();
-                
-                // Reset form
-                document.getElementById('categoryForm').reset();
-                
-                showNotification('Category added successfully.', 'success');
-            } catch (error) {
-                showNotification('Error saving category: ' + error.message, 'error');
+            // Check for duplicate category names
+            if (categories.some(category => category.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('A category with this name already exists.', 'error');
+                return;
             }
+            
+            const newCategory = {
+                id: nextId++,
+                name: name,
+                type: type,
+                color: color
+            };
+            
+            categories.push(newCategory);
+            updateUI();
+            saveToLocalStorage();
+            
+            // Reset form
+            document.getElementById('categoryForm').reset();
+            
+            showNotification('Category added successfully.', 'success');
+        } catch (error) {
+            showNotification('Error saving category: ' + error.message, 'error');
+        }
+    }
+    
+    // Save transaction
+    function saveTransaction(event) {
+        event.preventDefault();
+        
+        try {
+            const date = document.getElementById('transactionDate').value;
+            const description = document.getElementById('transactionDescription').value.trim();
+            const accountId = parseInt(document.getElementById('transactionAccount').value);
+            const categoryId = parseInt(document.getElementById('transactionCategory').value);
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const type = document.getElementById('transactionType').value;
+            
+            if (!date || !description || !accountId || !categoryId || !amount) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (amount <= 0) {
+                showNotification('Amount must be greater than zero.', 'error');
+                return;
+            }
+            
+            const newTransaction = {
+                id: nextId++,
+                date: date,
+                description: description,
+                accountId: accountId,
+                categoryId: categoryId,
+                amount: amount,
+                type: type
+            };
+            
+            transactions.push(newTransaction);
+            
+            // Update account balance
+            const account = accounts.find(acc => acc.id === accountId);
+            if (account) {
+                if (type === 'income') {
+                    account.balance += amount;
+                } else {
+                    account.balance -= amount;
+                }
+            }
+            
+            updateUI();
+            saveToLocalStorage();
+            
+            // Reset form
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            
+            showNotification('Transaction added successfully.', 'success');
+        } catch (error) {
+            showNotification('Error saving transaction: ' + error.message, 'error');
+        }
+    }
+    
+    // Save budget
+    function saveBudget(event) {
+        event.preventDefault();
+        
+        try {
+            const categoryId = parseInt(document.getElementById('budgetCategory').value);
+            const amount = parseFloat(document.getElementById('budgetAmount').value);
+            
+            if (!categoryId || !amount || amount <= 0) {
+                showNotification('Please select a category and enter a valid budget amount', 'error');
+                return;
+            }
+            
+            budgets[categoryId] = amount;
+            updateUI();
+            saveToLocalStorage();
+            
+            // Reset form
+            document.getElementById('budgetForm').reset();
+            
+            showNotification('Budget set successfully.', 'success');
+        } catch (error) {
+            showNotification('Error saving budget: ' + error.message, 'error');
+        }
+    }
+    
+    // Process transfer
+    function processTransfer(event) {
+        event.preventDefault();
+        
+        try {
+            const fromAccountId = parseInt(document.getElementById('fromAccount').value);
+            const toAccountId = parseInt(document.getElementById('toAccount').value);
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const description = document.getElementById('transferDescription').value.trim();
+            const date = document.getElementById('transferDate').value;
+            
+            if (!fromAccountId || !toAccountId || !amount || !description || !date) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (fromAccountId === toAccountId) {
+                showNotification('Cannot transfer to the same account', 'error');
+                return;
+            }
+            
+            if (amount <= 0) {
+                showNotification('Amount must be greater than zero.', 'error');
+                return;
+            }
+            
+            const fromAccount = accounts.find(acc => acc.id === fromAccountId);
+            const toAccount = accounts.find(acc => acc.id === toAccountId);
+            
+            if (!fromAccount || !toAccount) {
+                showNotification('Invalid accounts selected', 'error');
+                return;
+            }
+            
+            if (fromAccount.balance < amount) {
+                showNotification('Insufficient funds in source account', 'error');
+                return;
+            }
+            
+            // Create a transfer transaction (not an expense or income)
+            const transferTransaction = {
+                id: nextId++,
+                date: date,
+                description: description,
+                fromAccountId: fromAccountId,
+                toAccountId: toAccountId,
+                amount: amount,
+                type: 'transfer'
+            };
+            
+            transactions.push(transferTransaction);
+            
+            // Update account balances (direct transfer, no category involved)
+            fromAccount.balance -= amount;
+            toAccount.balance += amount;
+            
+            updateUI();
+            saveToLocalStorage();
+            
+            // Reset form
+            document.getElementById('transferForm').reset();
+            document.getElementById('transferDate').valueAsDate = new Date();
+            
+            showNotification('Transfer completed successfully!', 'success');
+        } catch (error) {
+            showNotification('Error processing transfer: ' + error.message, 'error');
+        }
+    }
+    
+    // Delete account
+    function deleteAccount(id) {
+        if (!confirm('Are you sure you want to delete this account? All transactions associated with this account will also be deleted.')) {
+            return;
         }
         
-        // Save transaction
-        function saveTransaction(event) {
-            event.preventDefault();
+        try {
+            // Remove transactions associated with this account
+            transactions = transactions.filter(transaction => 
+                transaction.accountId !== id && 
+                transaction.fromAccountId !== id && 
+                transaction.toAccountId !== id
+            );
             
-            try {
-                const date = document.getElementById('transactionDate').value;
-                const description = document.getElementById('transactionDescription').value.trim();
-                const accountId = parseInt(document.getElementById('transactionAccount').value);
-                const categoryId = parseInt(document.getElementById('transactionCategory').value);
-                const amount = parseFloat(document.getElementById('transactionAmount').value);
-                const type = document.getElementById('transactionType').value;
-                
-                if (!date || !description || !accountId || !categoryId || !amount) {
-                    showNotification('Please fill in all fields', 'error');
-                    return;
-                }
-                
-                const newTransaction = {
-                    id: nextId++,
-                    date: date,
-                    description: description,
-                    accountId: accountId,
-                    categoryId: categoryId,
-                    amount: amount,
-                    type: type
-                };
-                
-                transactions.push(newTransaction);
-                
-                // Update account balance
-                const account = accounts.find(acc => acc.id === accountId);
-                if (account) {
-                    if (type === 'income') {
-                        account.balance += amount;
-                    } else {
-                        account.balance -= amount;
+            // Remove the account
+            accounts = accounts.filter(account => account.id !== id);
+            
+            updateUI();
+            saveToLocalStorage();
+            showNotification('Account deleted successfully.', 'success');
+        } catch (error) {
+            showNotification('Error deleting account: ' + error.message, 'error');
+        }
+    }
+    
+    // Delete category
+    function deleteCategory(id) {
+        if (!confirm('Are you sure you want to delete this category? Transactions using this category will be moved to the first available category.')) {
+            return;
+        }
+        
+        try {
+            // Get the first category as fallback
+            const fallbackCategoryId = categories.length > 0 ? categories[0].id : null;
+            
+            if (fallbackCategoryId) {
+                // Update transactions to use the fallback category
+                transactions.forEach(transaction => {
+                    if (transaction.categoryId === id) {
+                        transaction.categoryId = fallbackCategoryId;
                     }
-                }
-                
-                updateUI();
-                
-                // Reset form
-                document.getElementById('transactionForm').reset();
-                document.getElementById('transactionDate').valueAsDate = new Date();
-                
-                showNotification('Transaction added successfully.', 'success');
-            } catch (error) {
-                showNotification('Error saving transaction: ' + error.message, 'error');
-            }
-        }
-        
-        // Save budget
-        function saveBudget(event) {
-            event.preventDefault();
-            
-            try {
-                const categoryId = parseInt(document.getElementById('budgetCategory').value);
-                const amount = parseFloat(document.getElementById('budgetAmount').value);
-                
-                if (!categoryId || !amount || amount <= 0) {
-                    showNotification('Please select a category and enter a valid budget amount', 'error');
-                    return;
-                }
-                
-                budgets[categoryId] = amount;
-                updateUI();
-                
-                // Reset form
-                document.getElementById('budgetForm').reset();
-                
-                showNotification('Budget set successfully.', 'success');
-            } catch (error) {
-                showNotification('Error saving budget: ' + error.message, 'error');
-            }
-        }
-        
-        // Process transfer
-        function processTransfer(event) {
-            event.preventDefault();
-            
-            try {
-                const fromAccountId = parseInt(document.getElementById('fromAccount').value);
-                const toAccountId = parseInt(document.getElementById('toAccount').value);
-                const amount = parseFloat(document.getElementById('transferAmount').value);
-                const description = document.getElementById('transferDescription').value.trim();
-                const date = document.getElementById('transferDate').value;
-                
-                if (!fromAccountId || !toAccountId || !amount || !description || !date) {
-                    showNotification('Please fill in all fields', 'error');
-                    return;
-                }
-                
-                if (fromAccountId === toAccountId) {
-                    showNotification('Cannot transfer to the same account', 'error');
-                    return;
-                }
-                
-                const fromAccount = accounts.find(acc => acc.id === fromAccountId);
-                const toAccount = accounts.find(acc => acc.id === toAccountId);
-                
-                if (!fromAccount || !toAccount) {
-                    showNotification('Invalid accounts selected', 'error');
-                    return;
-                }
-                
-                if (fromAccount.balance < amount) {
-                    showNotification('Insufficient funds in source account', 'error');
-                    return;
-                }
-                
-                // Get a default category for transfers
-                const transferCategory = categories.find(cat => cat.name === 'Transfer') || categories[0];
-                if (!transferCategory) {
-                    showNotification('Please add at least one category before making transfers', 'error');
-                    return;
-                }
-                
-                // Create transfer transactions
-                const transferOut = {
-                    id: nextId++,
-                    date: date,
-                    description: `Transfer to ${toAccount.name}: ${description}`,
-                    accountId: fromAccountId,
-                    categoryId: transferCategory.id,
-                    amount: amount,
-                    type: 'expense'
-                };
-                
-                const transferIn = {
-                    id: nextId++,
-                    date: date,
-                    description: `Transfer from ${fromAccount.name}: ${description}`,
-                    accountId: toAccountId,
-                    categoryId: transferCategory.id,
-                    amount: amount,
-                    type: 'income'
-                };
-                
-                transactions.push(transferOut);
-                transactions.push(transferIn);
-                
-                // Update account balances
-                fromAccount.balance -= amount;
-                toAccount.balance += amount;
-                
-                updateUI();
-                
-                // Reset form
-                document.getElementById('transferForm').reset();
-                document.getElementById('transferDate').valueAsDate = new Date();
-                
-                showNotification('Transfer completed successfully!', 'success');
-            } catch (error) {
-                showNotification('Error processing transfer: ' + error.message, 'error');
-            }
-        }
-        
-        // Delete account
-        function deleteAccount(id) {
-            if (!confirm('Are you sure you want to delete this account? All transactions associated with this account will also be deleted.')) {
-                return;
+                });
             }
             
-            try {
-                // Remove transactions associated with this account
-                transactions = transactions.filter(transaction => transaction.accountId !== id);
-                
-                // Remove the account
-                accounts = accounts.filter(account => account.id !== id);
-                
-                updateUI();
-                showNotification('Account deleted successfully.', 'success');
-            } catch (error) {
-                showNotification('Error deleting account: ' + error.message, 'error');
-            }
+            // Remove the category
+            categories = categories.filter(category => category.id !== id);
+            
+            updateUI();
+            saveToLocalStorage();
+            showNotification('Category deleted successfully.', 'success');
+        } catch (error) {
+            showNotification('Error deleting category: ' + error.message, 'error');
+        }
+    }
+    
+    // Delete transaction
+    function deleteTransaction(id) {
+        if (!confirm('Are you sure you want to delete this transaction?')) {
+            return;
         }
         
-        // Delete category
-        function deleteCategory(id) {
-            if (!confirm('Are you sure you want to delete this category? Transactions using this category will be moved to the first available category.')) {
-                return;
-            }
-            
-            try {
-                // Get the first category as fallback
-                const fallbackCategoryId = categories.length > 0 ? categories[0].id : null;
-                
-                if (fallbackCategoryId) {
-                    // Update transactions to use the fallback category
-                    transactions.forEach(transaction => {
-                        if (transaction.categoryId === id) {
-                            transaction.categoryId = fallbackCategoryId;
-                        }
-                    });
-                }
-                
-                // Remove the category
-                categories = categories.filter(category => category.id !== id);
-                
-                updateUI();
-                showNotification('Category deleted successfully.', 'success');
-            } catch (error) {
-                showNotification('Error deleting category: ' + error.message, 'error');
-            }
-        }
-        
-        // Delete transaction
-        function deleteTransaction(id) {
-            if (!confirm('Are you sure you want to delete this transaction?')) {
-                return;
-            }
-            
-            try {
-                const transaction = transactions.find(t => t.id === id);
-                if (transaction) {
-                    // Reverse the transaction effect on account balance
+        try {
+            const transaction = transactions.find(t => t.id === id);
+            if (transaction) {
+                if (transaction.type === 'transfer') {
+                    // Reverse a transfer transaction
+                    const fromAccount = accounts.find(acc => acc.id === transaction.fromAccountId);
+                    const toAccount = accounts.find(acc => acc.id === transaction.toAccountId);
+                    
+                    if (fromAccount) fromAccount.balance += transaction.amount;
+                    if (toAccount) toAccount.balance -= transaction.amount;
+                } else {
+                    // Reverse a regular transaction
                     const account = accounts.find(acc => acc.id === transaction.accountId);
                     if (account) {
                         if (transaction.type === 'income') {
@@ -1601,447 +1796,549 @@
                         }
                     }
                 }
-                
-                transactions = transactions.filter(transaction => transaction.id !== id);
-                updateUI();
-                showNotification('Transaction deleted successfully.', 'success');
-            } catch (error) {
-                showNotification('Error deleting transaction: ' + error.message, 'error');
-            }
-        }
-        
-        // Filter transactions
-        function filterTransactions() {
-            updateUI();
-        }
-        
-        // Clear transaction search
-        function clearTransactionSearch() {
-            document.getElementById('searchTransactions').value = '';
-            updateUI();
-        }
-        
-        // Apply filters
-        function applyFilters() {
-            updateUI();
-        }
-        
-        // Clear filters
-        function clearFilters() {
-            document.getElementById('filterDateFrom').value = '';
-            document.getElementById('filterDateTo').value = '';
-            document.getElementById('filterAccount').value = '';
-            document.getElementById('filterCategory').value = '';
-            updateUI();
-        }
-        
-        // Generate report
-        function generateReport() {
-            updateUI();
-        }
-        
-        // Print report
-        function printReport() {
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
-            
-            if (!startDate || !endDate) {
-                showNotification('Please select start and end dates for the report.', 'error');
-                return;
             }
             
-            // Filter transactions by date range
-            const filteredTransactions = transactions.filter(t => {
-                if (!t.date) return false;
-                return t.date >= startDate && t.date <= endDate;
-            });
+            transactions = transactions.filter(transaction => transaction.id !== id);
+            updateUI();
+            saveToLocalStorage();
+            showNotification('Transaction deleted successfully.', 'success');
+        } catch (error) {
+            showNotification('Error deleting transaction: ' + error.message, 'error');
+        }
+    }
+    
+    // Filter transactions
+    function filterTransactions() {
+        updateUI();
+    }
+    
+    // Clear transaction search
+    function clearTransactionSearch() {
+        document.getElementById('searchTransactions').value = '';
+        updateUI();
+    }
+    
+    // Apply filters
+    function applyFilters() {
+        // Validate date range
+        const dateFrom = document.getElementById('filterDateFrom').value;
+        const dateTo = document.getElementById('filterDateTo').value;
+        
+        if (dateFrom && dateTo && dateFrom > dateTo) {
+            showNotification('"From Date" cannot be after "To Date".', 'error');
+            return;
+        }
+        
+        updateUI();
+    }
+    
+    // Clear filters
+    function clearFilters() {
+        document.getElementById('filterDateFrom').value = '';
+        document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterAccount').value = '';
+        document.getElementById('filterCategory').value = '';
+        document.getElementById('filterType').value = '';
+        updateUI();
+    }
+    
+    // Generate report
+    function generateReport() {
+        // Validate date range
+        const startDate = document.getElementById('reportStartDate').value;
+        const endDate = document.getElementById('reportEndDate').value;
+        
+        if (startDate && endDate && startDate > endDate) {
+            showNotification('"Start Date" cannot be after "End Date".', 'error');
+            return;
+        }
+        
+        updateUI();
+    }
+    
+    // Print report
+    function printReport() {
+        const startDate = document.getElementById('reportStartDate').value;
+        const endDate = document.getElementById('reportEndDate').value;
+        
+        if (!startDate || !endDate) {
+            showNotification('Please select start and end dates for the report.', 'error');
+            return;
+        }
+        
+        if (startDate > endDate) {
+            showNotification('"Start Date" cannot be after "End Date".', 'error');
+            return;
+        }
+        
+        // Get filters from the reports view
+        const accountFilter = document.getElementById('filterAccount').value;
+        const categoryFilter = document.getElementById('filterCategory').value;
+        const typeFilter = document.getElementById('filterType').value;
+        
+        // Filter transactions by date range and other filters
+        const filteredTransactions = transactions.filter(t => {
+            if (!t.date) return false;
+            if (t.date < startDate || t.date > endDate) return false;
+            if (accountFilter) {
+                if (t.type === 'transfer') {
+                    if (t.fromAccountId != accountFilter && t.toAccountId != accountFilter) return false;
+                } else {
+                    if (t.accountId != accountFilter) return false;
+                }
+            }
+            if (categoryFilter && t.categoryId != categoryFilter && t.type !== 'transfer') return false;
+            if (typeFilter && t.type != typeFilter) return false;
+            return true;
+        });
+        
+        // Calculate totals (excluding transfers)
+        const totalIncome = filteredTransactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
             
-            // Calculate totals
-            const totalIncome = filteredTransactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
-                
-            const totalExpenses = filteredTransactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
+        const totalExpenses = filteredTransactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const netCashFlow = totalIncome - totalExpenses;
+        
+        // Update printable section
+        document.getElementById('print-period').textContent = `For the period: ${formatDateForPrint(startDate)} to ${formatDateForPrint(endDate)}`;
+        document.getElementById('print-total-income').textContent = `${currencySymbol}${totalIncome.toFixed(2)}`;
+        document.getElementById('print-total-expenses').textContent = `${currencySymbol}${totalExpenses.toFixed(2)}`;
+        document.getElementById('print-net-cash-flow').textContent = `${currencySymbol}${netCashFlow.toFixed(2)}`;
+        
+        // Create the printable table
+        const tableBody = document.getElementById('print-table-body');
+        tableBody.innerHTML = '';
+        
+        filteredTransactions.forEach(transaction => {
+            let accountName = 'Unknown';
+            let categoryName = '';
+            let type = transaction.type;
             
-            const netCashFlow = totalIncome - totalExpenses;
-            
-            // Update printable section
-            document.getElementById('print-period').textContent = `For the period: ${formatDateForPrint(startDate)} to ${formatDateForPrint(endDate)}`;
-            document.getElementById('print-total-income').textContent = `₹${totalIncome.toFixed(2)}`;
-            document.getElementById('print-total-expenses').textContent = `₹${totalExpenses.toFixed(2)}`;
-            document.getElementById('print-net-cash-flow').textContent = `₹${netCashFlow.toFixed(2)}`;
-            
-            // Create the printable table
-            const tableBody = document.getElementById('print-table-body');
-            tableBody.innerHTML = '';
-            
-            filteredTransactions.forEach(transaction => {
+            if (transaction.type === 'transfer') {
+                const fromAccount = accounts.find(acc => acc.id === transaction.fromAccountId);
+                const toAccount = accounts.find(acc => acc.id === transaction.toAccountId);
+                accountName = `${fromAccount ? fromAccount.name : 'Unknown'} → ${toAccount ? toAccount.name : 'Unknown'}`;
+                categoryName = 'Transfer';
+                type = 'transfer';
+            } else {
                 const account = accounts.find(acc => acc.id === transaction.accountId);
                 const category = categories.find(cat => cat.id === transaction.categoryId);
-                
+                accountName = account ? account.name : 'Unknown';
+                categoryName = category ? category.name : 'Unknown';
+            }
+            
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td>${transaction.date ? formatDateForPrint(transaction.date) : ''}</td>
+                <td>${transaction.description}</td>
+                <td>${accountName}</td>
+                <td>${categoryName}</td>
+                <td>${type}</td>
+                <td>${currencySymbol}${transaction.amount.toFixed(2)}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        // Show the printable section and print
+        const printableElement = document.getElementById('printable-expenses');
+        printableElement.style.display = 'block';
+        
+        window.print();
+        
+        // Hide the printable section after printing
+        printableElement.style.display = 'none';
+    }
+    
+    // Format date for printing
+    function formatDateForPrint(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+    
+    // Switch view
+    function switchView(view) {
+        // Hide all views
+        document.getElementById('dashboardView').classList.add('hidden');
+        document.getElementById('accountsView').classList.add('hidden');
+        document.getElementById('categoriesView').classList.add('hidden');
+        document.getElementById('transactionsView').classList.add('hidden');
+        document.getElementById('budgetView').classList.add('hidden');
+        document.getElementById('transferView').classList.add('hidden');
+        document.getElementById('reportsView').classList.add('hidden');
+        
+        // Show selected view
+        document.getElementById(view + 'View').classList.remove('hidden');
+        
+        // Update active button
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            if (btn.dataset.view === view) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        updateUI();
+    }
+    
+    // Update UI with data from database
+    function updateUI() {
+        // Update dropdowns
+        updateDropdowns();
+        
+        // Calculate financial summary
+        updateFinancialSummary();
+        
+        // Update accounts table
+        updateAccountsTable();
+        
+        // Update categories table
+        updateCategoriesTable();
+        
+        // Update transactions table
+        updateTransactionsTable();
+        
+        // Update budget overview
+        updateBudgetOverview();
+        
+        // Update charts
+        updateCharts();
+        
+        // Update status bar
+        document.getElementById('statusMessage').textContent = transactions.length > 0 ? 'Expense data loaded' : 'No expense data loaded';
+        document.getElementById('transactionCount').textContent = `${transactions.length} transactions`;
+    }
+    
+    // Update dropdowns
+    function updateDropdowns() {
+        // Update account dropdowns
+        const accountDropdowns = [
+            'transactionAccount',
+            'fromAccount',
+            'toAccount',
+            'filterAccount'
+        ];
+        
+        accountDropdowns.forEach(dropdownId => {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '<option value="">Select Account</option>';
+            
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                dropdown.appendChild(option);
+            });
+        });
+        
+        // Update category dropdowns
+        const categoryDropdowns = [
+            'transactionCategory',
+            'budgetCategory',
+            'filterCategory'
+        ];
+        
+        categoryDropdowns.forEach(dropdownId => {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = '<option value="">Select Category</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                dropdown.appendChild(option);
+            });
+        });
+    }
+    
+    // Update financial summary
+    function updateFinancialSummary() {
+        // Calculate total balance
+        const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+        
+        // Calculate total income and expenses (excluding transfers)
+        const totalIncome = transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        const totalExpenses = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+        
+        const netCashFlow = totalIncome - totalExpenses;
+        
+        // Update summary cards
+        document.getElementById('totalBalance').textContent = `${currencySymbol}${totalBalance.toFixed(2)}`;
+        document.getElementById('totalIncome').textContent = `${currencySymbol}${totalIncome.toFixed(2)}`;
+        document.getElementById('totalExpenses').textContent = `${currencySymbol}${totalExpenses.toFixed(2)}`;
+        document.getElementById('netCashFlow').textContent = `${currencySymbol}${netCashFlow.toFixed(2)}`;
+    }
+    
+    // Update accounts table
+    function updateAccountsTable() {
+        const tableBody = document.getElementById('accountsTable');
+        tableBody.innerHTML = '';
+        
+        if (accounts.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No accounts found.</td></tr>';
+        } else {
+            accounts.forEach(account => {
                 const row = document.createElement('tr');
                 
                 row.innerHTML = `
-                    <td>${transaction.date ? formatDateForPrint(transaction.date) : ''}</td>
-                    <td>${transaction.description}</td>
-                    <td>${account ? account.name : 'Unknown'}</td>
-                    <td>${category ? category.name : 'Unknown'}</td>
-                    <td>${transaction.type}</td>
-                    <td>₹${transaction.amount.toFixed(2)}</td>
+                    <td>${account.name}</td>
+                    <td>${account.type}</td>
+                    <td class="${account.balance >= 0 ? 'positive' : 'negative'}">${currencySymbol}${account.balance.toFixed(2)}</td>
+                    <td class="actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteAccount(${account.id})">🗑️</button>
+                    </td>
                 `;
                 
                 tableBody.appendChild(row);
             });
-            
-            // Show the printable section and print
-            const printableElement = document.getElementById('printable-expenses');
-            printableElement.style.display = 'block';
-            
-            window.print();
-            
-            // Hide the printable section after printing
-            printableElement.style.display = 'none';
         }
+    }
+    
+    // Update categories table
+    function updateCategoriesTable() {
+        const tableBody = document.getElementById('categoriesTable');
+        tableBody.innerHTML = '';
         
-        // Format date for printing
-        function formatDateForPrint(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
+        if (categories.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No categories found.</td></tr>';
+        } else {
+            categories.forEach(category => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${category.name}</td>
+                    <td>${category.type}</td>
+                    <td><span class="category-color" style="background-color: ${category.color};"></span> ${category.color}</td>
+                    <td class="actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">🗑️</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
             });
         }
+    }
+    
+    // Update transactions table
+    function updateTransactionsTable() {
+        const tableBody = document.getElementById('transactionsTable');
+        tableBody.innerHTML = '';
         
-        // Switch view
-        function switchView(view) {
-            // Hide all views
-            document.getElementById('dashboardView').classList.add('hidden');
-            document.getElementById('accountsView').classList.add('hidden');
-            document.getElementById('categoriesView').classList.add('hidden');
-            document.getElementById('transactionsView').classList.add('hidden');
-            document.getElementById('budgetView').classList.add('hidden');
-            document.getElementById('transferView').classList.add('hidden');
-            document.getElementById('reportsView').classList.add('hidden');
-            
-            // Show selected view
-            document.getElementById(view + 'View').classList.remove('hidden');
-            
-            // Update active button
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                if (btn.dataset.view === view) {
-                    btn.classList.add('active');
+        // Get filters
+        const searchTerm = document.getElementById('searchTransactions').value.toLowerCase();
+        const dateFrom = document.getElementById('filterDateFrom').value;
+        const dateTo = document.getElementById('filterDateTo').value;
+        const accountFilter = document.getElementById('filterAccount').value;
+        const categoryFilter = document.getElementById('filterCategory').value;
+        const typeFilter = document.getElementById('filterType').value;
+        
+        // Filter transactions
+        let filteredTransactions = transactions;
+        
+        if (searchTerm) {
+            filteredTransactions = filteredTransactions.filter(t => 
+                t.description.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        if (dateFrom) {
+            filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom);
+        }
+        
+        if (dateTo) {
+            filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo);
+        }
+        
+        if (accountFilter) {
+            filteredTransactions = filteredTransactions.filter(t => {
+                if (t.type === 'transfer') {
+                    return t.fromAccountId == accountFilter || t.toAccountId == accountFilter;
                 } else {
-                    btn.classList.remove('active');
+                    return t.accountId == accountFilter;
                 }
             });
-            
-            updateUI();
         }
         
-        // Update UI with data from database
-        function updateUI() {
-            // Update dropdowns
-            updateDropdowns();
-            
-            // Calculate financial summary
-            updateFinancialSummary();
-            
-            // Update accounts table
-            updateAccountsTable();
-            
-            // Update categories table
-            updateCategoriesTable();
-            
-            // Update transactions table
-            updateTransactionsTable();
-            
-            // Update budget overview
-            updateBudgetOverview();
-            
-            // Update charts
-            updateCharts();
-            
-            // Update status bar
-            document.getElementById('statusMessage').textContent = transactions.length > 0 ? 'Expense data loaded' : 'No expense data loaded';
-            document.getElementById('transactionCount').textContent = `${transactions.length} transactions`;
-        }
-        
-        // Update dropdowns
-        function updateDropdowns() {
-            // Update account dropdowns
-            const accountDropdowns = [
-                'transactionAccount',
-                'fromAccount',
-                'toAccount',
-                'filterAccount'
-            ];
-            
-            accountDropdowns.forEach(dropdownId => {
-                const dropdown = document.getElementById(dropdownId);
-                dropdown.innerHTML = '<option value="">Select Account</option>';
-                
-                accounts.forEach(account => {
-                    const option = document.createElement('option');
-                    option.value = account.id;
-                    option.textContent = account.name;
-                    dropdown.appendChild(option);
-                });
-            });
-            
-            // Update category dropdowns
-            const categoryDropdowns = [
-                'transactionCategory',
-                'budgetCategory',
-                'filterCategory'
-            ];
-            
-            categoryDropdowns.forEach(dropdownId => {
-                const dropdown = document.getElementById(dropdownId);
-                dropdown.innerHTML = '<option value="">Select Category</option>';
-                
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.id;
-                    option.textContent = category.name;
-                    dropdown.appendChild(option);
-                });
+        if (categoryFilter) {
+            filteredTransactions = filteredTransactions.filter(t => {
+                if (t.type === 'transfer') return false; // Transfers don't have categories
+                return t.categoryId == categoryFilter;
             });
         }
         
-        // Update financial summary
-        function updateFinancialSummary() {
-            // Calculate total balance
-            const totalBalance = accounts.reduce((sum, account) => sum + account.balance, 0);
+        if (typeFilter) {
+            filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+        }
+        
+        if (filteredTransactions.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No transactions found.</td></tr>';
+        } else {
+            // Sort by date (newest first)
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            // Calculate total income and expenses
-            const totalIncome = transactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
+            filteredTransactions.forEach(transaction => {
+                let accountName = 'Unknown';
+                let categoryName = '—';
                 
-            const totalExpenses = transactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
-            
-            const netCashFlow = totalIncome - totalExpenses;
-            
-            // Update summary cards
-            document.getElementById('totalBalance').textContent = `₹${totalBalance.toFixed(2)}`;
-            document.getElementById('totalIncome').textContent = `₹${totalIncome.toFixed(2)}`;
-            document.getElementById('totalExpenses').textContent = `₹${totalExpenses.toFixed(2)}`;
-            document.getElementById('netCashFlow').textContent = `₹${netCashFlow.toFixed(2)}`;
-        }
-        
-        // Update accounts table
-        function updateAccountsTable() {
-            const tableBody = document.getElementById('accountsTable');
-            tableBody.innerHTML = '';
-            
-            if (accounts.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No accounts found.</td></tr>';
-            } else {
-                accounts.forEach(account => {
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td>${account.name}</td>
-                        <td>${account.type}</td>
-                        <td class="${account.balance >= 0 ? 'positive' : 'negative'}">₹${account.balance.toFixed(2)}</td>
-                        <td class="actions">
-                            <button class="btn btn-danger btn-sm" onclick="deleteAccount(${account.id})">🗑️</button>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-        
-        // Update categories table
-        function updateCategoriesTable() {
-            const tableBody = document.getElementById('categoriesTable');
-            tableBody.innerHTML = '';
-            
-            if (categories.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No categories found.</td></tr>';
-            } else {
-                categories.forEach(category => {
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td>${category.name}</td>
-                        <td>${category.type}</td>
-                        <td><span class="category-color" style="background-color: ${category.color};"></span> ${category.color}</td>
-                        <td class="actions">
-                            <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">🗑️</button>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-        }
-        
-        // Update transactions table
-        function updateTransactionsTable() {
-            const tableBody = document.getElementById('transactionsTable');
-            tableBody.innerHTML = '';
-            
-            // Get filters
-            const searchTerm = document.getElementById('searchTransactions').value.toLowerCase();
-            const dateFrom = document.getElementById('filterDateFrom').value;
-            const dateTo = document.getElementById('filterDateTo').value;
-            const accountFilter = document.getElementById('filterAccount').value;
-            const categoryFilter = document.getElementById('filterCategory').value;
-            
-            // Filter transactions
-            let filteredTransactions = transactions;
-            
-            if (searchTerm) {
-                filteredTransactions = filteredTransactions.filter(t => 
-                    t.description.toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            if (dateFrom) {
-                filteredTransactions = filteredTransactions.filter(t => t.date >= dateFrom);
-            }
-            
-            if (dateTo) {
-                filteredTransactions = filteredTransactions.filter(t => t.date <= dateTo);
-            }
-            
-            if (accountFilter) {
-                filteredTransactions = filteredTransactions.filter(t => t.accountId == accountFilter);
-            }
-            
-            if (categoryFilter) {
-                filteredTransactions = filteredTransactions.filter(t => t.categoryId == categoryFilter);
-            }
-            
-            if (filteredTransactions.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No transactions found.</td></tr>';
-            } else {
-                // Sort by date (newest first)
-                filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                filteredTransactions.forEach(transaction => {
+                if (transaction.type === 'transfer') {
+                    const fromAccount = accounts.find(acc => acc.id === transaction.fromAccountId);
+                    const toAccount = accounts.find(acc => acc.id === transaction.toAccountId);
+                    accountName = `${fromAccount ? fromAccount.name : 'Unknown'} → ${toAccount ? toAccount.name : 'Unknown'}`;
+                } else {
                     const account = accounts.find(acc => acc.id === transaction.accountId);
                     const category = categories.find(cat => cat.id === transaction.categoryId);
-                    
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td>${formatDate(transaction.date)}</td>
-                        <td>${transaction.description}</td>
-                        <td>${account ? account.name : 'Unknown'}</td>
-                        <td>${category ? category.name : 'Unknown'}</td>
-                        <td>${transaction.type}</td>
-                        <td class="${transaction.type === 'income' ? 'positive' : 'negative'}">
-                            ${transaction.type === 'income' ? '+' : '-'}₹${transaction.amount.toFixed(2)}
-                        </td>
-                        <td class="actions">
-                            <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${transaction.id})">🗑️</button>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-            
-            // Update recent transactions
-            const recentTransactionsBody = document.getElementById('recentTransactions');
-            recentTransactionsBody.innerHTML = '';
-            
-            const recent = [...transactions]
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 5);
-                
-            recent.forEach(transaction => {
-                const account = accounts.find(acc => acc.id === transaction.accountId);
-                const category = categories.find(cat => cat.id === transaction.categoryId);
+                    accountName = account ? account.name : 'Unknown';
+                    categoryName = category ? category.name : 'Unknown';
+                }
                 
                 const row = document.createElement('tr');
+                if (transaction.type === 'transfer') {
+                    row.classList.add('transfer-transaction');
+                }
+                
                 row.innerHTML = `
                     <td>${formatDate(transaction.date)}</td>
                     <td>${transaction.description}</td>
-                    <td>${account ? account.name : 'Unknown'}</td>
-                    <td>${category ? category.name : 'Unknown'}</td>
-                    <td class="${transaction.type === 'income' ? 'positive' : 'negative'}">
-                        ${transaction.type === 'income' ? '+' : '-'}₹${transaction.amount.toFixed(2)}
+                    <td>${accountName}</td>
+                    <td>${categoryName}</td>
+                    <td>${transaction.type}</td>
+                    <td class="${transaction.type === 'income' ? 'positive' : (transaction.type === 'expense' ? 'negative' : '')}">
+                        ${transaction.type === 'income' ? '+' : (transaction.type === 'expense' ? '-' : '')}${currencySymbol}${transaction.amount.toFixed(2)}
+                    </td>
+                    <td class="actions">
+                        <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${transaction.id})">🗑️</button>
                     </td>
                 `;
-                recentTransactionsBody.appendChild(row);
+                
+                tableBody.appendChild(row);
             });
         }
         
-        // Update budget overview
-        function updateBudgetOverview() {
-            const container = document.getElementById('budgetOverview');
-            container.innerHTML = '';
+        // Update recent transactions
+        const recentTransactionsBody = document.getElementById('recentTransactions');
+        recentTransactionsBody.innerHTML = '';
+        
+        const recent = [...transactions]
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
             
-            if (Object.keys(budgets).length === 0) {
-                container.innerHTML = '<div class="form-section"><p>No budgets set yet. Add a budget above to get started.</p></div>';
-                return;
+        recent.forEach(transaction => {
+            let accountName = 'Unknown';
+            let categoryName = '—';
+            
+            if (transaction.type === 'transfer') {
+                const fromAccount = accounts.find(acc => acc.id === transaction.fromAccountId);
+                const toAccount = accounts.find(acc => acc.id === transaction.toAccountId);
+                accountName = `${fromAccount ? fromAccount.name : 'Unknown'} → ${toAccount ? toAccount.name : 'Unknown'}`;
+            } else {
+                const account = accounts.find(acc => acc.id === transaction.accountId);
+                const category = categories.find(cat => cat.id === transaction.categoryId);
+                accountName = account ? account.name : 'Unknown';
+                categoryName = category ? category.name : 'Unknown';
             }
             
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
+            const row = document.createElement('tr');
+            if (transaction.type === 'transfer') {
+                row.classList.add('transfer-transaction');
+            }
             
-            Object.keys(budgets).forEach(categoryId => {
-                const category = categories.find(cat => cat.id === parseInt(categoryId));
-                // Only show budgets for expense categories
-                if (category && category.type === 'expense') {
-                    const budgetAmount = budgets[categoryId];
-                    
-                    // Calculate spent amount for current month
-                    const spentAmount = transactions
-                        .filter(t => {
-                            const tDate = new Date(t.date);
-                            return t.categoryId === parseInt(categoryId) && 
-                                   t.type === 'expense' &&
-                                   tDate.getMonth() === currentMonth &&
-                                   tDate.getFullYear() === currentYear;
-                        })
-                        .reduce((sum, t) => sum + t.amount, 0);
-                    
-                    const percentage = (spentAmount / budgetAmount) * 100;
-                    let progressClass = 'budget-normal';
-                    if (percentage >= 100) progressClass = 'budget-danger';
-                    else if (percentage >= 80) progressClass = 'budget-warning';
-                    
-                    const budgetCard = document.createElement('div');
-                    budgetCard.className = 'form-section';
-                    budgetCard.innerHTML = `
-                        <h4>${category.name}</h4>
-                        <p>Budget: ₹${budgetAmount.toFixed(2)} | Spent: ₹${spentAmount.toFixed(2)} | Remaining: ₹${(budgetAmount - spentAmount).toFixed(2)}</p>
-                        <div class="budget-progress">
-                            <div class="budget-progress-bar ${progressClass}" style="width: ${Math.min(percentage, 100)}%"></div>
-                        </div>
-                        <small>${percentage.toFixed(1)}% of budget used</small>
-                    `;
-                    container.appendChild(budgetCard);
-                }
-            });
+            row.innerHTML = `
+                <td>${formatDate(transaction.date)}</td>
+                <td>${transaction.description}</td>
+                <td>${accountName}</td>
+                <td>${categoryName}</td>
+                <td>${transaction.type}</td>
+                <td class="${transaction.type === 'income' ? 'positive' : (transaction.type === 'expense' ? 'negative' : '')}">
+                    ${transaction.type === 'income' ? '+' : (transaction.type === 'expense' ? '-' : '')}${currencySymbol}${transaction.amount.toFixed(2)}
+                </td>
+            `;
+            recentTransactionsBody.appendChild(row);
+        });
+    }
+    
+    // Update budget overview
+    function updateBudgetOverview() {
+        const container = document.getElementById('budgetOverview');
+        container.innerHTML = '';
+        
+        if (Object.keys(budgets).length === 0) {
+            container.innerHTML = '<div class="form-section"><p>No budgets set yet. Add a budget above to get started.</p></div>';
+            return;
         }
         
-        // Update charts
-        function updateCharts() {
-            updateOverviewChart();
-            updateCategoryChart();
-            updateCategoryReport();
-        }
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
         
-        // Update overview chart
-        function updateOverviewChart() {
-            const ctx = document.getElementById('overviewChart').getContext('2d');
-            
-            // Group transactions by month
-            const monthlyData = {};
-            
-            transactions.forEach(transaction => {
+        // Create budget items for all budgets, not just the first 3
+        Object.keys(budgets).forEach(categoryId => {
+            const category = categories.find(cat => cat.id === parseInt(categoryId));
+            // Only show budgets for expense categories
+            if (category && category.type === 'expense') {
+                const budgetAmount = budgets[categoryId];
+                
+                // Calculate spent amount for current month
+                const spentAmount = transactions
+                    .filter(t => {
+                        const tDate = new Date(t.date);
+                        return t.categoryId === parseInt(categoryId) && 
+                               t.type === 'expense' &&
+                               tDate.getMonth() === currentMonth &&
+                               tDate.getFullYear() === currentYear;
+                    })
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const percentage = (spentAmount / budgetAmount) * 100;
+                let progressClass = 'budget-normal';
+                if (percentage >= 100) progressClass = 'budget-danger';
+                else if (percentage >= 80) progressClass = 'budget-warning';
+                
+                const budgetCard = document.createElement('div');
+                budgetCard.className = 'form-section';
+                budgetCard.innerHTML = `
+                    <h4>${category.name}</h4>
+                    <p>Budget: ${currencySymbol}${budgetAmount.toFixed(2)} | Spent: ${currencySymbol}${spentAmount.toFixed(2)} | Remaining: ${currencySymbol}${(budgetAmount - spentAmount).toFixed(2)}</p>
+                    <div class="budget-progress">
+                        <div class="budget-progress-bar ${progressClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                    </div>
+                    <small>${percentage.toFixed(1)}% of budget used</small>
+                `;
+                container.appendChild(budgetCard);
+            }
+        });
+    }
+    
+    // Update charts
+    function updateCharts() {
+        updateOverviewChart();
+        updateCategoryChart();
+        updateCategoryReport();
+    }
+    
+    // Update overview chart
+    function updateOverviewChart() {
+        const ctx = document.getElementById('overviewChart').getContext('2d');
+        
+        // Group transactions by month (excluding transfers)
+        const monthlyData = {};
+        
+        transactions
+            .filter(t => t.type !== 'transfer')
+            .forEach(transaction => {
                 const date = new Date(transaction.date);
                 const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
                 
@@ -2058,230 +2355,229 @@
                     monthlyData[monthYear].expenses += transaction.amount;
                 }
             });
-            
-            // Sort months chronologically
-            const sortedMonths = Object.keys(monthlyData).sort();
-            
-            const labels = sortedMonths.map(month => {
-                const [year, monthNum] = month.split('-');
-                return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            });
-            
-            const incomeData = sortedMonths.map(month => monthlyData[month].income);
-            const expensesData = sortedMonths.map(month => monthlyData[month].expenses);
-            
-            // Destroy existing chart if it exists
-            if (overviewChart) {
-                overviewChart.destroy();
-            }
-            
-            // Create new chart
-            overviewChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Income',
-                            data: incomeData,
-                            backgroundColor: 'rgba(76, 175, 80, 0.7)',
-                            borderColor: 'rgba(76, 175, 80, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Expenses',
-                            data: expensesData,
-                            backgroundColor: 'rgba(244, 67, 54, 0.7)',
-                            borderColor: 'rgba(244, 67, 54, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '₹' + value;
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ₹' + context.raw;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        
+        // Sort months chronologically
+        const sortedMonths = Object.keys(monthlyData).sort();
+        
+        const labels = sortedMonths.map(month => {
+            const [year, monthNum] = month.split('-');
+            return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        });
+        
+        const incomeData = sortedMonths.map(month => monthlyData[month].income);
+        const expensesData = sortedMonths.map(month => monthlyData[month].expenses);
+        
+        // Destroy existing chart if it exists
+        if (overviewChart) {
+            overviewChart.destroy();
         }
         
-        // Update category chart
-        function updateCategoryChart() {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            
-            // Get date range for report
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
-            
-            // Filter transactions by date range
-            let filteredTransactions = transactions;
-            
-            if (startDate) {
-                filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
-            }
-            
-            if (endDate) {
-                filteredTransactions = filteredTransactions.filter(t => t.date <= endDate);
-            }
-            
-            // Group expenses by category
-            const categoryData = {};
-            
-            filteredTransactions
-                .filter(t => t.type === 'expense')
-                .forEach(transaction => {
-                    const category = categories.find(cat => cat.id === transaction.categoryId);
-                    if (category) {
-                        if (!categoryData[category.name]) {
-                            categoryData[category.name] = {
-                                amount: 0,
-                                color: category.color
-                            };
-                        }
-                        categoryData[category.name].amount += transaction.amount;
-                    }
-                });
-            
-            const labels = Object.keys(categoryData);
-            const data = Object.values(categoryData).map(item => item.amount);
-            const backgroundColors = Object.values(categoryData).map(item => item.color);
-            
-            // Destroy existing chart if it exists
-            if (categoryChart) {
-                categoryChart.destroy();
-            }
-            
-            // Create new chart
-            categoryChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: backgroundColors,
+        // Create new chart
+        overviewChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: incomeData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
                         borderWidth: 1
-                    }]
+                    },
+                    {
+                        label: 'Expenses',
+                        data: expensesData,
+                        backgroundColor: 'rgba(244, 67, 54, 0.7)',
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return currencySymbol + value;
+                            }
+                        }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return context.label + ': ₹' + value + ' (' + percentage + '%)';
-                                }
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + currencySymbol + context.raw;
                             }
                         }
                     }
                 }
-            });
+            }
+        });
+    }
+    
+    // Update category chart
+    function updateCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        
+        // Get date range for report
+        const startDate = document.getElementById('reportStartDate').value;
+        const endDate = document.getElementById('reportEndDate').value;
+        
+        // Filter transactions by date range
+        let filteredTransactions = transactions;
+        
+        if (startDate) {
+            filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
         }
         
-        // Update category report
-        function updateCategoryReport() {
-            const tableBody = document.getElementById('categoryReportTable');
-            tableBody.innerHTML = '';
-            
-            // Get date range for report
-            const startDate = document.getElementById('reportStartDate').value;
-            const endDate = document.getElementById('reportEndDate').value;
-            
-            // Filter transactions by date range
-            let filteredTransactions = transactions;
-            
-            if (startDate) {
-                filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
-            }
-            
-            if (endDate) {
-                filteredTransactions = filteredTransactions.filter(t => t.date <= endDate);
-            }
-            
-            // Group expenses by category
-            const categoryData = {};
-            
-            filteredTransactions
-                .filter(t => t.type === 'expense')
-                .forEach(transaction => {
-                    const category = categories.find(cat => cat.id === transaction.categoryId);
-                    if (category) {
-                        if (!categoryData[category.name]) {
-                            categoryData[category.name] = {
-                                amount: 0,
-                                color: category.color
-                            };
-                        }
-                        categoryData[category.name].amount += transaction.amount;
+        if (endDate) {
+            filteredTransactions = filteredTransactions.filter(t => t.date <= endDate);
+        }
+        
+        // Group expenses by category
+        const categoryData = {};
+        
+        filteredTransactions
+            .filter(t => t.type === 'expense')
+            .forEach(transaction => {
+                const category = categories.find(cat => cat.id === transaction.categoryId);
+                if (category) {
+                    if (!categoryData[category.name]) {
+                        categoryData[category.name] = {
+                            amount: 0,
+                            color: category.color
+                        };
                     }
-                });
-            
-            // Calculate total expenses
-            const totalExpenses = Object.values(categoryData).reduce((sum, item) => sum + item.amount, 0);
-            
-            // Sort categories by amount (descending)
-            const sortedCategories = Object.entries(categoryData)
-                .sort((a, b) => b[1].amount - a[1].amount);
-            
-            if (sortedCategories.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No expense data found for the selected period.</td></tr>';
-            } else {
-                sortedCategories.forEach(([categoryName, data]) => {
-                    const percentage = ((data.amount / totalExpenses) * 100).toFixed(1);
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><span class="category-color" style="background-color: ${data.color};"></span> ${categoryName}</td>
-                        <td>₹${data.amount.toFixed(2)}</td>
-                        <td>${percentage}%</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
+                    categoryData[category.name].amount += transaction.amount;
+                }
+            });
+        
+        const labels = Object.keys(categoryData);
+        const data = Object.values(categoryData).map(item => item.amount);
+        const backgroundColors = Object.values(categoryData).map(item => item.color);
+        
+        // Destroy existing chart if it exists
+        if (categoryChart) {
+            categoryChart.destroy();
         }
         
-        // Format date for display
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
+        // Create new chart
+        categoryChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': ' + currencySymbol + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Update category report
+    function updateCategoryReport() {
+        const tableBody = document.getElementById('categoryReportTable');
+        tableBody.innerHTML = '';
+        
+        // Get date range for report
+        const startDate = document.getElementById('reportStartDate').value;
+        const endDate = document.getElementById('reportEndDate').value;
+        
+        // Filter transactions by date range
+        let filteredTransactions = transactions;
+        
+        if (startDate) {
+            filteredTransactions = filteredTransactions.filter(t => t.date >= startDate);
+        }
+        
+        if (endDate) {
+            filteredTransactions = filteredTransactions.filter(t => t.date <= endDate);
+        }
+        
+        // Group expenses by category
+        const categoryData = {};
+        
+        filteredTransactions
+            .filter(t => t.type === 'expense')
+            .forEach(transaction => {
+                const category = categories.find(cat => cat.id === transaction.categoryId);
+                if (category) {
+                    if (!categoryData[category.name]) {
+                        categoryData[category.name] = {
+                            amount: 0,
+                            color: category.color
+                        };
+                    }
+                    categoryData[category.name].amount += transaction.amount;
+                }
+            });
+        
+        // Calculate total expenses
+        const totalExpenses = Object.values(categoryData).reduce((sum, item) => sum + item.amount, 0);
+        
+        // Sort categories by amount (descending)
+        const sortedCategories = Object.entries(categoryData)
+            .sort((a, b) => b[1].amount - a[1].amount);
+        
+        if (sortedCategories.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No expense data found for the selected period.</td></tr>';
+        } else {
+            sortedCategories.forEach(([categoryName, data]) => {
+                const percentage = ((data.amount / totalExpenses) * 100).toFixed(1);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="category-color" style="background-color: ${data.color};"></span> ${categoryName}</td>
+                    <td>${currencySymbol}${data.amount.toFixed(2)}</td>
+                    <td>${percentage}%</td>
+                `;
+                tableBody.appendChild(row);
             });
         }
+    }
+    
+    // Format date for display
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.classList.add('show');
         
-        // Show notification
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-    </script>
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+</script>
 </body>
 </html>
