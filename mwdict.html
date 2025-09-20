@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merriam-Webster Dictionary & Thesaurus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --muted: #94a3b8;
+            --text: #e2e8f0;
+            --primary: #6366f1;
+            --primary-600: #5558ec;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow: 0 10px 30px rgba(0,0,0,.35);
+            --radius: 16px;
+            --card-bg: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+            --card-border: 1px solid rgba(255,255,255,.08);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: radial-gradient(1200px 800px at 10% -10%, #1d2955, transparent 60%), 
+                        radial-gradient(800px 600px at 120% 10%, #1a3a6e, transparent 50%), 
+                        var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0.75in;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover, nav a.active {
+            color: var(--text);
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border: var(--card-border);
+            border-radius: var(--radius);
+            background: rgba(2, 6, 23, 0.6);
+            color: var(--text);
+            font-size: 1.1rem;
+            outline: none;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+        }
+        
+        .search-box input:focus {
+            border-color: rgba(99,102,241,.6);
+            box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+        }
+        
+        .api-selector {
+            display: flex;
+            background: rgba(2, 6, 23, 0.6);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        
+        .api-option {
+            padding: 16px 24px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .api-option.active {
+            background: var(--primary);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            flex: 1;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            backdrop-filter: blur(6px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .api-badge {
+            background: var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .result-container {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        
+        .word-header {
+            margin-bottom: 20px;
+        }
+        
+        .word-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+        
+        .phonetic {
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .audio-btn {
+            background: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+        
+        .audio-btn:hover {
+            background: var(--primary-600);
+        }
+        
+        .meaning {
+            margin-bottom: 25px;
+        }
+        
+        .part-of-speech {
+            font-style: italic;
+            color: var(--muted);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .definition {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .definition:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+        
+        .example {
+            color: var(--muted);
+            font-style: italic;
+            padding-left: 30px;
+            margin-bottom: 12px;
+            border-left: 2px solid var(--primary);
+        }
+        
+        .synonyms, .antonyms {
+            margin-top: 15px;
+        }
+        
+        .synonyms span, .antonyms span {
+            font-weight: 500;
+            color: var(--muted);
+        }
+        
+        .synonym-list, .antonym-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .synonym, .antonym {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .antonym {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+        
+        .synonym:hover, .antonym:hover {
+            opacity: 0.8;
+        }
+        
+        .loading, .error, .no-results {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--muted);
+        }
+        
+        .error {
+            color: var(--danger);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            body {
+                padding: 20px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .api-selector {
+                width: 100%;
+            }
+            
+            .api-option {
+                flex: 1;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">LexiPro</div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Dictionary</a></li>
+                <li><a href="#">Thesaurus</a></li>
+                <li><a href="#">Word Lists</a></li>
+                <li><a href="#">History</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Enter a word to look up...">
+        </div>
+        <div class="api-selector">
+            <div class="api-option active" data-api="dictionary">Dictionary</div>
+            <div class="api-option" data-api="thesaurus">Thesaurus</div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Definition</h2>
+                <div class="api-badge">Dictionary API</div>
+            </div>
+            <div class="result-container" id="dictionary-results">
+                <div class="no-results">
+                    <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Enter a word to see its definition</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Synonyms & Antonyms</h2>
+                <div class="api-badge">Thesaurus API</div>
+            </div>
+            <div class="result-container" id="thesaurus-results">
+                <div class="no-results">
+                    <i class="fas fa-theater-masks" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Enter a word to see synonyms and antonyms</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Powered by Merriam-Webster's Dictionary & Thesaurus APIs | Developed by Anil Kumar VT</p>
+    </div>
+
+    <script>
+        // API Keys
+        const DICTIONARY_API_KEY = 'c82487e4-6882-45cf-b43c-7c77df0632ff';
+        const THESAURUS_API_KEY = '62f69767-36fe-4814-8309-7857fddf4570';
+        
+        // DOM Elements
+        const searchInput = document.getElementById('search-input');
+        const apiOptions = document.querySelectorAll('.api-option');
+        const dictionaryResults = document.getElementById('dictionary-results');
+        const thesaurusResults = document.getElementById('thesaurus-results');
+        
+        // Current selected API
+        let currentAPI = 'dictionary';
+        
+        // Event Listeners
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchWord();
+            }
+        });
+        
+        apiOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                apiOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                currentAPI = this.dataset.api;
+                searchWord();
+            });
+        });
+        
+        // Search function
+        function searchWord() {
+            const word = searchInput.value.trim();
+            if (word === '') return;
+            
+            if (currentAPI === 'dictionary' || currentAPI === 'both') {
+                fetchDictionaryData(word);
+            }
+            
+            if (currentAPI === 'thesaurus' || currentAPI === 'both') {
+                fetchThesaurusData(word);
+            }
+        }
+        
+        // Fetch dictionary data
+        function fetchDictionaryData(word) {
+            dictionaryResults.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                    <p>Looking up definition...</p>
+                </div>
+            `;
+            
+            fetch(`https://www.dictionaryapi.com/api/v3/references/collegiate/json/${word}?key=${DICTIONARY_API_KEY}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayDictionaryResults(data, word);
+                })
+                .catch(error => {
+                    dictionaryResults.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
+                            <p>Error fetching dictionary data</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Fetch thesaurus data
+        function fetchThesaurusData(word) {
+            thesaurusResults.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i>
+                    <p>Looking up synonyms...</p>
+                </div>
+            `;
+            
+            fetch(`https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${word}?key=${THESAURUS_API_KEY}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayThesaurusResults(data, word);
+                })
+                .catch(error => {
+                    thesaurusResults.innerHTML = `
+                        <div class="error">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
+                            <p>Error fetching thesaurus data</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Display dictionary results
+        function displayDictionaryResults(data, word) {
+            if (!data || data.length === 0 || typeof data[0] === 'string') {
+                dictionaryResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-question-circle" style="font-size: 2rem;"></i>
+                        <p>No definition found for "${word}"</p>
+                        ${data && data.length > 0 ? `<p>Suggestions: ${data.join(', ')}</p>` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            data.forEach(entry => {
+                if (!entry.shortdef) return;
+                
+                html += `
+                    <div class="word-header">
+                        <h3 class="word-title">${entry.hwi ? entry.hwi.hw : word}</h3>
+                        ${entry.hwi && entry.hwi.prs ? `<div class="phonetic">/${entry.hwi.prs[0].mw}/</div>` : ''}
+                    </div>
+                `;
+                
+                if (entry.fl) {
+                    html += `<div class="part-of-speech">${entry.fl}</div>`;
+                }
+                
+                html += `<div class="definitions">`;
+                
+                entry.shortdef.forEach((definition, index) => {
+                    html += `
+                        <div class="definition">${definition}</div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            dictionaryResults.innerHTML = html;
+        }
+        
+        // Display thesaurus results
+        function displayThesaurusResults(data, word) {
+            if (!data || data.length === 0 || typeof data[0] === 'string') {
+                thesaurusResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-question-circle" style="font-size: 2rem;"></i>
+                        <p>No thesaurus results found for "${word}"</p>
+                        ${data && data.length > 0 ? `<p>Suggestions: ${data.join(', ')}</p>` : ''}
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            data.forEach(entry => {
+                if (!entry.meta) return;
+                
+                html += `
+                    <div class="word-header">
+                        <h3 class="word-title">${entry.meta.id}</h3>
+                    </div>
+                `;
+                
+                if (entry.fl) {
+                    html += `<div class="part-of-speech">${entry.fl}</div>`;
+                }
+                
+                // Display synonyms
+                if (entry.meta.syns && entry.meta.syns.length > 0) {
+                    html += `<div class="synonyms">`;
+                    html += `<span>Synonyms: </span>`;
+                    html += `<div class="synonym-list">`;
+                    
+                    entry.meta.syns[0].forEach(synonym => {
+                        html += `<span class="synonym" onclick="searchSynonym('${synonym}')">${synonym}</span>`;
+                    });
+                    
+                    html += `</div>`;
+                    html += `</div>`;
+                }
+                
+                // Display antonyms
+                if (entry.meta.ants && entry.meta.ants.length > 0) {
+                    html += `<div class="antonyms">`;
+                    html += `<span>Antonyms: </span>`;
+                    html += `<div class="antonym-list">`;
+                    
+                    entry.meta.ants[0].forEach(antonym => {
+                        html += `<span class="antonym" onclick="searchSynonym('${antonym}')">${antonym}</span>`;
+                    });
+                    
+                    html += `</div>`;
+                    html += `</div>`;
+                }
+            });
+            
+            thesaurusResults.innerHTML = html;
+        }
+        
+        // Search for a synonym
+        function searchSynonym(word) {
+            searchInput.value = word;
+            searchWord();
+        }
+        
+        // Initialize with an example word
+        window.onload = function() {
+            searchInput.value = "example";
+            searchWord();
+        };
+    </script>
+</body>
+</html>
