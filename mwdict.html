@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Merriam-Webster Dictionary & Thesaurus</title>
+    <title>LexiPro - Dictionary & Thesaurus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -54,6 +54,7 @@
             background: linear-gradient(90deg, var(--primary), #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            cursor: pointer;
         }
         
         nav ul {
@@ -67,6 +68,7 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
+            cursor: pointer;
         }
         
         nav a:hover, nav a.active {
@@ -106,6 +108,21 @@
         .search-box input:focus {
             border-color: rgba(99,102,241,.6);
             box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+        }
+        
+        .search-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .search-button:hover {
+            background: var(--primary-600);
         }
         
         .api-selector {
@@ -188,6 +205,9 @@
             color: var(--muted);
             font-size: 1.1rem;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .audio-btn {
@@ -201,12 +221,16 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-right: 10px;
             transition: background 0.3s;
         }
         
         .audio-btn:hover {
             background: var(--primary-600);
+        }
+        
+        .audio-btn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
         }
         
         .meaning {
@@ -296,6 +320,79 @@
             border-top: 1px solid rgba(255,255,255,0.1);
         }
         
+        .settings-panel {
+            display: none;
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .settings-panel h3 {
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+        
+        .settings-option {
+            margin-bottom: 15px;
+        }
+        
+        .settings-option label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--muted);
+        }
+        
+        .settings-option select {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius);
+            background: rgba(2, 6, 23, 0.6);
+            color: var(--text);
+            border: var(--card-border);
+        }
+        
+        .history-panel {
+            display: none;
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-panel h3 {
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+        
+        .history-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .wordlists-panel {
+            display: none;
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .wordlists-panel h3 {
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+        
         /* Responsive design */
         @media (max-width: 1200px) {
             body {
@@ -323,6 +420,12 @@
                 flex-direction: column;
             }
             
+            .search-button {
+                width: 100%;
+                margin-top: 10px;
+                padding: 16px;
+            }
+            
             .api-selector {
                 width: 100%;
             }
@@ -336,14 +439,14 @@
 </head>
 <body>
     <header>
-        <div class="logo">LexiPro</div>
+        <div class="logo" onclick="resetSearch()">LexiPro</div>
         <nav>
             <ul>
-                <li><a href="#" class="active">Dictionary</a></li>
-                <li><a href="#">Thesaurus</a></li>
-                <li><a href="#">Word Lists</a></li>
-                <li><a href="#">History</a></li>
-                <li><a href="#">Settings</a></li>
+                <li><a href="#" class="active" data-tab="dictionary">Dictionary</a></li>
+                <li><a href="#" data-tab="thesaurus">Thesaurus</a></li>
+                <li><a href="#" data-tab="wordlists">Word Lists</a></li>
+                <li><a href="#" data-tab="history">History</a></li>
+                <li><a href="#" data-tab="settings">Settings</a></li>
             </ul>
         </nav>
     </header>
@@ -353,9 +456,13 @@
             <i class="fas fa-search"></i>
             <input type="text" id="search-input" placeholder="Enter a word to look up...">
         </div>
+        <button class="search-button" onclick="searchWord()">
+            <i class="fas fa-search"></i> Search
+        </button>
         <div class="api-selector">
-            <div class="api-option active" data-api="dictionary">Dictionary</div>
-            <div class="api-option" data-api="thesaurus">Thesaurus</div>
+            <div class="api-option active" data-api="both">Both APIs</div>
+            <div class="api-option" data-api="dictionary">Dictionary Only</div>
+            <div class="api-option" data-api="thesaurus">Thesaurus Only</div>
         </div>
     </div>
     
@@ -387,6 +494,36 @@
         </div>
     </div>
     
+    <div class="settings-panel" id="settings-panel">
+        <h3>Application Settings</h3>
+        <div class="settings-option">
+            <label for="theme-select">Color Theme</label>
+            <select id="theme-select">
+                <option value="dark">Dark Theme</option>
+                <option value="light">Light Theme</option>
+                <option value="blue">Blue Theme</option>
+            </select>
+        </div>
+        <div class="settings-option">
+            <label for="results-number">Number of Results</label>
+            <select id="results-number">
+                <option value="5">5 Results</option>
+                <option value="10" selected>10 Results</option>
+                <option value="20">20 Results</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="history-panel" id="history-panel">
+        <h3>Search History</h3>
+        <div id="history-list"></div>
+    </div>
+    
+    <div class="wordlists-panel" id="wordlists-panel">
+        <h3>My Word Lists</h3>
+        <p>Word lists feature coming soon!</p>
+    </div>
+    
     <div class="footer">
         <p>Powered by Merriam-Webster's Dictionary & Thesaurus APIs | Developed by Anil Kumar VT</p>
     </div>
@@ -401,38 +538,187 @@
         const apiOptions = document.querySelectorAll('.api-option');
         const dictionaryResults = document.getElementById('dictionary-results');
         const thesaurusResults = document.getElementById('thesaurus-results');
+        const navItems = document.querySelectorAll('nav a');
+        const settingsPanel = document.getElementById('settings-panel');
+        const historyPanel = document.getElementById('history-panel');
+        const wordlistsPanel = document.getElementById('wordlists-panel');
+        const historyList = document.getElementById('history-list');
         
-        // Current selected API
-        let currentAPI = 'dictionary';
+        // Application state
+        let currentAPI = 'both';
+        let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+        let currentTab = 'dictionary';
         
-        // Event Listeners
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchWord();
-            }
-        });
+        // Initialize the application
+        function initApp() {
+            // Load search history
+            updateHistoryDisplay();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Load example word
+            searchInput.value = "dream";
+            searchWord();
+        }
         
-        apiOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                apiOptions.forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-                currentAPI = this.dataset.api;
-                searchWord();
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Search on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchWord();
+                }
             });
-        });
+            
+            // API selection
+            apiOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    apiOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    currentAPI = this.dataset.api;
+                    searchWord();
+                });
+            });
+            
+            // Navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    
+                    // Update active tab
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Hide all panels
+                    settingsPanel.style.display = 'none';
+                    historyPanel.style.display = 'none';
+                    wordlistsPanel.style.display = 'none';
+                    
+                    // Show selected panel
+                    if (tab === 'settings') {
+                        settingsPanel.style.display = 'block';
+                        currentTab = 'settings';
+                    } else if (tab === 'history') {
+                        historyPanel.style.display = 'block';
+                        currentTab = 'history';
+                    } else if (tab === 'wordlists') {
+                        wordlistsPanel.style.display = 'block';
+                        currentTab = 'wordlists';
+                    } else {
+                        // For dictionary and thesaurus, ensure main content is visible
+                        currentTab = tab;
+                        if (tab === 'thesaurus') {
+                            // If thesaurus tab is selected, switch to thesaurus API
+                            apiOptions.forEach(opt => opt.classList.remove('active'));
+                            document.querySelector('[data-api="thesaurus"]').classList.add('active');
+                            currentAPI = 'thesaurus';
+                            searchWord();
+                        } else {
+                            // If dictionary tab is selected, switch to dictionary API
+                            apiOptions.forEach(opt => opt.classList.remove('active'));
+                            document.querySelector('[data-api="dictionary"]').classList.add('active');
+                            currentAPI = 'dictionary';
+                            searchWord();
+                        }
+                    }
+                });
+            });
+        }
         
         // Search function
         function searchWord() {
             const word = searchInput.value.trim();
             if (word === '') return;
             
+            // Add to search history
+            addToHistory(word);
+            
             if (currentAPI === 'dictionary' || currentAPI === 'both') {
                 fetchDictionaryData(word);
+            } else {
+                dictionaryResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-ban" style="font-size: 2rem;"></i>
+                        <p>Dictionary results disabled. Switch to "Both APIs" or "Dictionary Only" mode.</p>
+                    </div>
+                `;
             }
             
             if (currentAPI === 'thesaurus' || currentAPI === 'both') {
                 fetchThesaurusData(word);
+            } else {
+                thesaurusResults.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-ban" style="font-size: 2rem;"></i>
+                        <p>Thesaurus results disabled. Switch to "Both APIs" or "Thesaurus Only" mode.</p>
+                    </div>
+                `;
             }
+        }
+        
+        // Add word to search history
+        function addToHistory(word) {
+            // Remove if already exists
+            searchHistory = searchHistory.filter(item => item !== word);
+            
+            // Add to beginning of array
+            searchHistory.unshift(word);
+            
+            // Keep only last 10 items
+            if (searchHistory.length > 10) {
+                searchHistory = searchHistory.slice(0, 10);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+            
+            // Update display
+            updateHistoryDisplay();
+        }
+        
+        // Update history display
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            
+            if (searchHistory.length === 0) {
+                historyList.innerHTML = '<p>No search history yet.</p>';
+                return;
+            }
+            
+            searchHistory.forEach(word => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.textContent = word;
+                historyItem.onclick = () => {
+                    searchInput.value = word;
+                    searchWord();
+                    // Switch back to dictionary view
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    document.querySelector('[data-tab="dictionary"]').classList.add('active');
+                    historyPanel.style.display = 'none';
+                    currentTab = 'dictionary';
+                };
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // Reset search
+        function resetSearch() {
+            searchInput.value = '';
+            dictionaryResults.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Enter a word to see its definition</p>
+                </div>
+            `;
+            thesaurusResults.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-theater-masks" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                    <p>Enter a word to see synonyms and antonyms</p>
+                </div>
+            `;
         }
         
         // Fetch dictionary data
@@ -445,7 +731,12 @@
             `;
             
             fetch(`https://www.dictionaryapi.com/api/v3/references/collegiate/json/${word}?key=${DICTIONARY_API_KEY}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Dictionary API request failed');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     displayDictionaryResults(data, word);
                 })
@@ -453,7 +744,7 @@
                     dictionaryResults.innerHTML = `
                         <div class="error">
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
-                            <p>Error fetching dictionary data</p>
+                            <p>Error fetching dictionary data: ${error.message}</p>
                         </div>
                     `;
                 });
@@ -469,7 +760,12 @@
             `;
             
             fetch(`https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${word}?key=${THESAURUS_API_KEY}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Thesaurus API request failed');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     displayThesaurusResults(data, word);
                 })
@@ -477,7 +773,7 @@
                     thesaurusResults.innerHTML = `
                         <div class="error">
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i>
-                            <p>Error fetching thesaurus data</p>
+                            <p>Error fetching thesaurus data: ${error.message}</p>
                         </div>
                     `;
                 });
@@ -504,7 +800,18 @@
                 html += `
                     <div class="word-header">
                         <h3 class="word-title">${entry.hwi ? entry.hwi.hw : word}</h3>
-                        ${entry.hwi && entry.hwi.prs ? `<div class="phonetic">/${entry.hwi.prs[0].mw}/</div>` : ''}
+                        <div class="phonetic">
+                            ${entry.hwi && entry.hwi.prs ? `/${entry.hwi.prs[0].mw}/` : ''}
+                            ${entry.hwi && entry.hwi.prs && entry.hwi.prs[0].sound ? `
+                                <button class="audio-btn" onclick="playAudio('${entry.hwi.prs[0].sound.audio}')" title="Play pronunciation">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            ` : `
+                                <button class="audio-btn" disabled title="No audio available">
+                                    <i class="fas fa-volume-mute"></i>
+                                </button>
+                            `}
+                        </div>
                     </div>
                 `;
                 
@@ -547,12 +854,9 @@
                 html += `
                     <div class="word-header">
                         <h3 class="word-title">${entry.meta.id}</h3>
+                        ${entry.fl ? `<div class="part-of-speech">${entry.fl}</div>` : ''}
                     </div>
                 `;
-                
-                if (entry.fl) {
-                    html += `<div class="part-of-speech">${entry.fl}</div>`;
-                }
                 
                 // Display synonyms
                 if (entry.meta.syns && entry.meta.syns.length > 0) {
@@ -560,7 +864,7 @@
                     html += `<span>Synonyms: </span>`;
                     html += `<div class="synonym-list">`;
                     
-                    entry.meta.syns[0].forEach(synonym => {
+                    entry.meta.syns[0].slice(0, 10).forEach(synonym => {
                         html += `<span class="synonym" onclick="searchSynonym('${synonym}')">${synonym}</span>`;
                     });
                     
@@ -574,7 +878,7 @@
                     html += `<span>Antonyms: </span>`;
                     html += `<div class="antonym-list">`;
                     
-                    entry.meta.ants[0].forEach(antonym => {
+                    entry.meta.ants[0].slice(0, 10).forEach(antonym => {
                         html += `<span class="antonym" onclick="searchSynonym('${antonym}')">${antonym}</span>`;
                     });
                     
@@ -592,11 +896,35 @@
             searchWord();
         }
         
-        // Initialize with an example word
-        window.onload = function() {
-            searchInput.value = "example";
-            searchWord();
-        };
+        // Play audio pronunciation
+        function playAudio(audioFile) {
+            // Merriam-Webster audio files follow a specific pattern
+            // Based on the first character(s) of the audio filename
+            let subdirectory = '';
+
+            if (audioFile) {
+                if (/^bix/.test(audioFile)) {
+                    subdirectory = 'bix';
+                } else if (/^gg/.test(audioFile)) {
+                    subdirectory = 'gg';
+                } else if (/^[0-9]/.test(audioFile)) {
+                    subdirectory = 'number';
+                } else {
+                    subdirectory = audioFile.charAt(0);
+                }
+
+                const audioUrl = `https://media.merriam-webster.com/audio/prons/en/us/mp3/${subdirectory}/${audioFile}.mp3`;
+                
+                const audio = new Audio(audioUrl);
+                audio.play().catch(error => {
+                    console.error('Error playing audio:', error);
+                    alert('Could not play audio. Please try again.');
+                });
+            }
+        }
+        
+        // Initialize the application when the page loads
+        window.onload = initApp;
     </script>
 </body>
 </html>
