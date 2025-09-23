@@ -6,6 +6,7 @@
     <title>LexiPro - Dictionary & Thesaurus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS remains the same */
         :root {
             --bg: #0f172a;
             --muted: #94a3b8;
@@ -393,6 +394,20 @@
             color: var(--text);
         }
         
+        /* Word of the Day Badge */
+        .word-of-day-badge {
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
         /* Responsive design */
         @media (max-width: 1200px) {
             body {
@@ -533,6 +548,18 @@
         const DICTIONARY_API_KEY = 'c82487e4-6882-45cf-b43c-7c77df0632ff';
         const THESAURUS_API_KEY = '62f69767-36fe-4814-8309-7857fddf4570';
         
+        // Word of the Day list - a curated selection of interesting words
+        const WORD_OF_THE_DAY_LIST = [
+            'serendipity', 'ephemeral', 'ubiquitous', 'melancholy', 'paradox', 
+            'nostalgia', 'eloquent', 'resilience', 'euphoria', 'enigma',
+            'luminous', 'solitude', 'ethereal', 'quintessential', 'vernacular',
+            'epiphany', 'surreal', 'zenith', 'idyllic', 'mellifluous',
+            'ineffable', 'halcyon', 'evanescent', 'petrichor', 'sonorous',
+            'limerence', 'oblivion', 'benefactor', 'opulent', 'languid',
+            'vicarious', 'aurora', 'incandescent', 'effervescent', 'luminescence',
+            'panacea', 'ethereal', 'cacophony', 'surreptitious', 'verdant'
+        ];
+        
         // DOM Elements
         const searchInput = document.getElementById('search-input');
         const apiOptions = document.querySelectorAll('.api-option');
@@ -548,6 +575,7 @@
         let currentAPI = 'both';
         let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
         let currentTab = 'dictionary';
+        let isWordOfTheDay = false;
         
         // Initialize the application
         function initApp() {
@@ -557,9 +585,53 @@
             // Set up event listeners
             setupEventListeners();
             
-            // Load example word
-            searchInput.value = "dream";
+            // Load Word of the Day
+            showWordOfTheDay();
+        }
+        
+        // Show a random Word of the Day
+        function showWordOfTheDay() {
+            // Get a random word from our list
+            const randomIndex = Math.floor(Math.random() * WORD_OF_THE_DAY_LIST.length);
+            const wordOfTheDay = WORD_OF_THE_DAY_LIST[randomIndex];
+            
+            // Set the search input value
+            searchInput.value = wordOfTheDay;
+            
+            // Set flag to indicate this is the Word of the Day
+            isWordOfTheDay = true;
+            
+            // Search for the word
             searchWord();
+            
+            // Add a badge to the search box to indicate it's the Word of the Day
+            addWordOfTheDayBadge();
+        }
+        
+        // Add a Word of the Day badge to the search box
+        function addWordOfTheDayBadge() {
+            // Remove any existing badge
+            const existingBadge = document.querySelector('.word-of-day-badge');
+            if (existingBadge) {
+                existingBadge.remove();
+            }
+            
+            // Create and add the badge
+            const badge = document.createElement('span');
+            badge.className = 'word-of-day-badge';
+            badge.innerHTML = '<i class="fas fa-star"></i> Word of the Day';
+            
+            // Insert the badge after the search input
+            searchInput.parentNode.appendChild(badge);
+        }
+        
+        // Remove the Word of the Day badge
+        function removeWordOfTheDayBadge() {
+            const badge = document.querySelector('.word-of-day-badge');
+            if (badge) {
+                badge.remove();
+            }
+            isWordOfTheDay = false;
         }
         
         // Set up all event listeners
@@ -567,7 +639,18 @@
             // Search on Enter key
             searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
+                    // Remove Word of the Day badge if user is searching for a different word
+                    if (isWordOfTheDay && searchInput.value !== searchInput.defaultValue) {
+                        removeWordOfTheDayBadge();
+                    }
                     searchWord();
+                }
+            });
+            
+            // Remove Word of the Day badge when user starts typing
+            searchInput.addEventListener('input', function() {
+                if (isWordOfTheDay) {
+                    removeWordOfTheDayBadge();
                 }
             });
             
@@ -632,8 +715,10 @@
             const word = searchInput.value.trim();
             if (word === '') return;
             
-            // Add to search history
-            addToHistory(word);
+            // Add to search history (unless it's the Word of the Day on initial load)
+            if (!isWordOfTheDay || searchHistory.length > 0) {
+                addToHistory(word);
+            }
             
             if (currentAPI === 'dictionary' || currentAPI === 'both') {
                 fetchDictionaryData(word);
@@ -707,6 +792,7 @@
         // Reset search
         function resetSearch() {
             searchInput.value = '';
+            removeWordOfTheDayBadge();
             dictionaryResults.innerHTML = `
                 <div class="no-results">
                     <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 15px;"></i>
@@ -893,6 +979,7 @@
         // Search for a synonym
         function searchSynonym(word) {
             searchInput.value = word;
+            removeWordOfTheDayBadge();
             searchWord();
         }
         
