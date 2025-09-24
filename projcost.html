@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Cost Manager</title>
+    <style>
+        :root {
+            --bg: #0e1a2b; --bg-2: #121223; --panel: #162942; --accent: #1f6feb; --accent-2: #4ea1ff;
+            --text: #e6eefc; --muted: #9fb3cc; --success: #1fbf75; --warn: #f59e0b; --danger: #ef4444;
+            --border: #234059; --radius: 12px; --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+            color: var(--text); background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+            min-height: 100vh; line-height: 1.5;
+        }
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 340px; max-width: 100vw; background: var(--panel); border-right: 1px solid var(--border);
+            padding: 20px; display: flex; flex-direction: column; gap: 16px; position: sticky;
+            top: 0; height: 100vh; overflow: hidden; box-shadow: var(--shadow); z-index: 10;
+        }
+        .sidebar-content {
+            display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--panel); padding-right: 4px; flex: 1;
+        }
+        .sidebar-content::-webkit-scrollbar { width: 6px; }
+        .sidebar-content::-webkit-scrollbar-track { background: var(--panel); border-radius: 3px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+        .brand {
+            display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .3px;
+            font-size: 20px; padding: 8px 0; margin-bottom: 8px;
+        }
+        .brand .logo {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: grid; place-items: center; color: #fff; font-weight: 800;
+            box-shadow: 0 6px 20px rgba(31, 111, 235, 0.35); font-size: 20px;
+        }
+        .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+        .toolbar button, .toolbar label[for="importFile"] {
+            background: var(--accent); color: #fff; border: 0; border-radius: var(--radius); padding: 12px 14px;
+            cursor: pointer; font-weight: 600; transition: all 0.2s ease; display: flex;
+            align-items: center; justify-content: center; gap: 6px; font-size: 14px;
+        }
+        .toolbar button:hover, .toolbar label[for="importFile"]:hover { background: var(--accent-2); transform: translateY(-2px); }
+        .toolbar button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .toolbar button.secondary:hover { background: rgba(255, 255, 255, 0.08); }
+        .search-box { display: flex; flex-direction: column; gap: 10px; }
+        .search-box input, .search-box select {
+            width: 100%; background: #0f1f36; color: var(--text); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px; outline: none; font-size: 14px; transition: border-color 0.2s;
+        }
+        .search-box input:focus, .search-box select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.2); }
+        .section-title { margin: 16px 0 8px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .15em; font-weight: 600; }
+        .project-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .project-item {
+            border: 1px solid var(--border); background: #0f1f36; border-radius: var(--radius);
+            padding: 16px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .project-item:hover { outline: 2px solid var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+        .project-item.active { outline: 2px solid var(--accent); background: rgba(31, 111, 235, 0.1); }
+        .project-meta { color: var(--muted); font-size: 13px; margin: 6px 0; }
+        .progress { height: 10px; border-radius: 10px; background: #0b1626; border: 1px solid var(--border); overflow: hidden; margin-top: 10px; }
+        .progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.5s ease; border-radius: 10px; }
+        .footer { margin-top: auto; color: var(--muted); font-size: 12px; text-align: center; padding: 16px 0 0; border-top: 1px solid var(--border); }
+        .main { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; background: var(--bg-2); }
+        .topbar { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 0 0 16px; border-bottom: 1px solid var(--border); }
+        .view-switch { display: flex; gap: 8px; background: var(--panel); padding: 4px; border-radius: var(--radius); border: 1px solid var(--border); }
+        .view-switch button {
+            background: transparent; border: none; color: var(--text); padding: 10px 18px; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s ease; font-weight: 500;
+        }
+        .view-switch button:hover { background: rgba(255, 255, 255, 0.05); }
+        .view-switch button.active { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3); }
+        .view-switch button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .view-switch button:disabled:hover { background: transparent; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .card h3 { margin-bottom: 16px; font-size: 18px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .muted { color: var(--muted); font-size: 14px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .form { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+        .form .full { grid-column: 1 / -1; }
+        .form label { font-size: 13px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 6px; }
+        .form input[type="text"], .form textarea, .form input[type="date"], .form input[type="number"] {
+            width: 100%; background: #0f1f36; color: var(--text); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 14px; outline: none; transition: all 0.2s; font-size: 14px;
+        }
+        .form input[type="text"]:focus, .form textarea:focus, .form input[type="date"]:focus, .form input[type="number"]:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.2);
+        }
+        textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .actions button {
+            background: var(--accent); color: #fff; border: 0; border-radius: var(--radius); padding: 12px 18px;
+            cursor: pointer; font-weight: 600; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .actions button:hover { background: var(--accent-2); transform: translateY(-2px); }
+        .actions button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .actions button.secondary:hover { background: rgba(255, 255, 255, 0.08); }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+        .profit { color: var(--success); font-weight: 600; }
+        .loss { color: var(--danger); font-weight: 600; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .summary-card { background: rgba(255, 255, 255, 0.05); border-radius: var(--radius); padding: 14px; text-align: center; min-height: 100px; display: flex; flex-direction: column; justify-content: center; }
+        .summary-value { font-size: 16px; font-weight: 700; margin: 6px 0; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: var(--panel); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 16px 20px; color: var(--text); box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 12px; z-index: 1000; transform: translateY(100px);
+            opacity: 0; transition: all 0.3s ease; max-width: 400px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--accent); }
+        .toast-message { flex: 1; font-size: 14px; }
+        .toast-close {
+            background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 0;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: all 0.2s;
+        }
+        .toast-close:hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @media (max-width: 1100px) {
+            .cards { grid-template-columns: repeat(2, minmax(280px, 1fr)); }
+            .grid, .form { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 900px) {
+            .app { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; max-height: 40vh; }
+            .main { padding: 20px; }
+            .toolbar { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .main { padding: 16px; }
+            .cards { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; align-items: stretch; gap: 12px; }
+            .view-switch { width: 100%; }
+            .modal { padding: 16px; }
+            .toast { left: 16px; right: 16px; max-width: none; }
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 8px; } .mb-2 { margin-bottom: 16px; } .mt-2 { margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand"><div class="logo">CM</div><div>Cost Manager</div></div>
+            <div class="sidebar-content">
+                <div class="toolbar">
+                    <button id="btnNewProject" type="button" title="New Project"><span>New Project</span></button>
+                    <button id="btnDashboard" type="button" class="secondary" title="Dashboard"><span>Dashboard</span></button>
+                    <button id="btnExport" type="button" class="secondary" title="Export JSON"><span>Export</span></button>
+                    <input id="importFile" type="file" accept="application/json" style="display:none;" />
+                    <label for="importFile" class="secondary" style="display:flex;align-items:center;justify-content:center;"><span>Import</span></label>
+                </div>
+                <div class="search-box">
+                    <input id="searchInput" type="text" placeholder="Search projects...">
+                    <select id="statusFilter">
+                        <option value="all">All Projects</option>
+                        <option value="profit">Profit</option>
+                        <option value="loss">Loss</option>
+                    </select>
+                </div>
+                <div class="section-title">Your Projects</div>
+                <div id="projectList" class="project-list"></div>
+                <div class="footer">
+                    Data is stored locally in your browser.
+                    <br>&copy; 2025 Anil Kumar VT
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <div class="view-switch">
+                    <button id="viewDashboard" type="button" class="active">Dashboard</button>
+                    <button id="viewProject" type="button">Project Details</button>
+                </div>
+            </div>
+
+            <section id="dashboardView">
+                <div id="dashboardCards" class="cards"></div>
+            </section>
+
+            <section id="projectView" style="display:none;">
+                <div class="card">
+                    <h3>Project Details</h3>
+                    <div class="form">
+                        <div class="full"><label>Project Name</label><input id="projName" type="text" placeholder="e.g., Downtown Office Block"></div>
+                        <div><label>Start Date</label><input id="projStart" type="date"></div>
+                        <div><label>Due Date</label><input id="projDue" type="date"></div>
+                        <div class="full"><label>Description</label><textarea id="projDesc" placeholder="Project description..."></textarea></div>
+                    </div>
+                    <div class="actions" style="margin-top:16px;">
+                        <button id="btnSaveProject" type="button">Save Project</button>
+                        <button id="btnDeleteProject" type="button" class="secondary">Delete Project</button>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3>Project Cost</h3>
+                        <div class="form">
+                            <div class="full"><label>Initial Project Cost (₹)</label><input id="initialCost" type="number" min="0" step="0.01" placeholder="0.00"></div>
+                            <div class="full actions"><button id="btnSaveCost" type="button">Save Cost</button></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Add Additional Work</h3>
+                        <div class="form">
+                            <div class="full"><label>Work Description</label><input id="addWorkDesc" type="text" placeholder="e.g., Compound Wall Construction"></div>
+                            <div class="full"><label>Additional Cost (₹)</label><input id="addWorkCost" type="number" min="0" step="0.01" placeholder="0.00"></div>
+                            <div class="full actions"><button id="btnAddWork" type="button">Add Work</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Additional Work Items</h3>
+                    <div class="table-container">
+                        <table id="additionalWorkTable">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Cost (₹)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="additionalWorkList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Expenditure Entries</h3>
+                    <div class="form">
+                        <div><label>Date</label><input id="expDate" type="date"></div>
+                        <div><label>Particulars</label><input id="expParticulars" type="text" placeholder="e.g., Material Purchase"></div>
+                        <div class="full"><label>Amount (₹)</label><input id="expAmount" type="number" min="0" step="0.01" placeholder="0.00"></div>
+                        <div class="full actions"><button id="btnAddExpenditure" type="button">Add Expenditure</button></div>
+                    </div>
+                    <div class="table-container" style="margin-top: 20px;">
+                        <table id="expenditureTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Particulars</th>
+                                    <th>Amount (₹)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenditureList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Cost Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="muted">Total Project Cost</div>
+                            <div id="totalProjectCost" class="summary-value">₹0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="muted">Total Expenditure</div>
+                            <div id="totalExpenditure" class="summary-value">₹0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="muted">Remaining Budget</div>
+                            <div id="remainingBudget" class="summary-value">₹0.00</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="muted">Profit/Loss</div>
+                            <div id="profitLoss" class="summary-value">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast">
+        <span id="toastMessage" class="toast-message"></span>
+        <button id="toastClose" type="button" class="toast-close">&times;</button>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // --- State Management ---
+            let projects = [];
+            let currentProjectId = null;
+            let currentView = 'dashboard';
+
+            // --- DOM Elements ---
+            const dom = {
+                app: document.querySelector('.app'),
+                projectList: document.getElementById('projectList'),
+                searchInput: document.getElementById('searchInput'),
+                statusFilter: document.getElementById('statusFilter'),
+                dashboardView: document.getElementById('dashboardView'),
+                projectView: document.getElementById('projectView'),
+                dashboardCards: document.getElementById('dashboardCards'),
+                viewDashboard: document.getElementById('viewDashboard'),
+                viewProject: document.getElementById('viewProject'),
+                projName: document.getElementById('projName'),
+                projStart: document.getElementById('projStart'),
+                projDue: document.getElementById('projDue'),
+                projDesc: document.getElementById('projDesc'),
+                initialCost: document.getElementById('initialCost'),
+                addWorkDesc: document.getElementById('addWorkDesc'),
+                addWorkCost: document.getElementById('addWorkCost'),
+                expDate: document.getElementById('expDate'),
+                expParticulars: document.getElementById('expParticulars'),
+                expAmount: document.getElementById('expAmount'),
+                additionalWorkList: document.getElementById('additionalWorkList'),
+                expenditureList: document.getElementById('expenditureList'),
+                totalProjectCost: document.getElementById('totalProjectCost'),
+                totalExpenditure: document.getElementById('totalExpenditure'),
+                remainingBudget: document.getElementById('remainingBudget'),
+                profitLoss: document.getElementById('profitLoss'),
+                toast: document.getElementById('toast'),
+                toastMessage: document.getElementById('toastMessage'),
+            };
+
+            // --- Utility Functions ---
+            const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(amount || 0);
+            };
+
+            const showToast = (message, type = 'info') => {
+                dom.toastMessage.textContent = message;
+                dom.toast.className = `toast ${type} show`;
+                setTimeout(() => dom.toast.classList.remove('show'), 3000);
+            };
+
+            const debounce = (func, delay) => {
+                let timeoutId;
+                return (...args) => {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => func.apply(this, args), delay);
+                };
+            };
+
+            // --- Data Management ---
+            const saveProjects = () => {
+                try {
+                    localStorage.setItem('costManagerProjects', JSON.stringify(projects));
+                } catch (e) {
+                    console.error("Failed to save projects to localStorage", e);
+                    showToast("Error saving data. Storage may be full.", "error");
+                }
+            };
+
+            const saveProjectsDebounced = debounce(saveProjects, 500);
+
+            const loadProjects = () => {
+                try {
+                    const storedProjects = localStorage.getItem('costManagerProjects');
+                    projects = storedProjects ? JSON.parse(storedProjects) : [];
+                } catch (e) {
+                    console.error("Failed to load projects from localStorage", e);
+                    projects = [];
+                    showToast("Could not load data. Starting fresh.", "error");
+                }
+            };
+
+            const getProject = (id) => projects.find(p => p.id === id);
+
+            const createProject = (name, startDate, dueDate, description) => {
+                const project = {
+                    id: generateId(),
+                    name,
+                    startDate: startDate || null,
+                    dueDate: dueDate || null,
+                    description,
+                    initialCost: 0,
+                    additionalWork: [],
+                    expenditures: [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                projects.unshift(project);
+                saveProjects();
+                return project;
+            };
+
+            const updateProject = (id, updates) => {
+                const project = getProject(id);
+                if (!project) return null;
+                Object.assign(project, updates);
+                project.updatedAt = new Date().toISOString();
+                saveProjectsDebounced();
+                return project;
+            };
+
+            const deleteProject = (id) => {
+                projects = projects.filter(p => p.id !== id);
+                if (currentProjectId === id) {
+                    currentProjectId = null;
+                }
+                saveProjects();
+            };
+
+            const addAdditionalWork = (projectId, description, cost) => {
+                const project = getProject(projectId);
+                if (!project) return;
+                const work = {
+                    id: generateId(),
+                    description,
+                    cost: parseFloat(cost),
+                    addedAt: new Date().toISOString(),
+                };
+                project.additionalWork.push(work);
+                project.updatedAt = new Date().toISOString();
+                saveProjectsDebounced();
+            };
+
+            const deleteAdditionalWork = (projectId, workId) => {
+                const project = getProject(projectId);
+                if (!project) return;
+                project.additionalWork = project.additionalWork.filter(w => w.id !== workId);
+                project.updatedAt = new Date().toISOString();
+                saveProjectsDebounced();
+            };
+
+            const addExpenditure = (projectId, date, particulars, amount) => {
+                const project = getProject(projectId);
+                if (!project) return;
+                const expenditure = {
+                    id: generateId(),
+                    date,
+                    particulars,
+                    amount: parseFloat(amount),
+                    addedAt: new Date().toISOString(),
+                };
+                project.expenditures.push(expenditure);
+                project.updatedAt = new Date().toISOString();
+                saveProjectsDebounced();
+            };
+
+            const deleteExpenditure = (projectId, expenditureId) => {
+                const project = getProject(projectId);
+                if (!project) return;
+                project.expenditures = project.expenditures.filter(e => e.id !== expenditureId);
+                project.updatedAt = new Date().toISOString();
+                saveProjectsDebounced();
+            };
+
+            // --- Business Logic ---
+            const calculateTotalProjectCost = (project) => {
+                const additionalCost = project.additionalWork.reduce((sum, work) => sum + work.cost, 0);
+                return project.initialCost + additionalCost;
+            };
+
+            const calculateTotalExpenditure = (project) => {
+                return project.expenditures.reduce((sum, exp) => sum + exp.amount, 0);
+            };
+
+            const calculateRemainingBudget = (project) => {
+                return calculateTotalProjectCost(project) - calculateTotalExpenditure(project);
+            };
+
+            const calculateProfitLoss = (project) => {
+                return calculateRemainingBudget(project);
+            };
+
+            const getProjectStatus = (project) => {
+                const profitLoss = calculateProfitLoss(project);
+                return profitLoss >= 0 ? 'profit' : 'loss';
+            };
+
+            // --- Rendering Functions ---
+            const renderProjectList = () => {
+                const searchTerm = dom.searchInput.value.toLowerCase();
+                const status = dom.statusFilter.value;
+
+                const filtered = projects.filter(p => {
+                    const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                          (p.description && p.description.toLowerCase().includes(searchTerm));
+                    if (!matchesSearch) return false;
+                    
+                    if (status === 'all') return true;
+                    return getProjectStatus(p) === status;
+                });
+
+                dom.projectList.innerHTML = filtered.length ? filtered.map(p => {
+                    const totalCost = calculateTotalProjectCost(p);
+                    const totalExp = calculateTotalExpenditure(p);
+                    const profitLoss = calculateProfitLoss(p);
+                    const isActive = p.id === currentProjectId;
+                    const status = getProjectStatus(p);
+                    
+                    return `
+                        <div class="project-item ${isActive ? 'active' : ''}" data-id="${p.id}">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <strong>${p.name}</strong>
+                                <div style="font-size:14px; font-weight:600; color:${status === 'profit' ? 'var(--success)' : 'var(--danger)'}">
+                                    ${formatCurrency(profitLoss)}
+                                </div>
+                            </div>
+                            <div class="project-meta">
+                                Budget: ${formatCurrency(totalCost)} | Spent: ${formatCurrency(totalExp)}
+                            </div>
+                            <div class="progress">
+                                <span style="width:${totalCost > 0 ? Math.min(100, (totalExp / totalCost) * 100) : 0}%"></span>
+                            </div>
+                        </div>
+                    `;
+                }).join('') : '<div class="text-center muted" style="padding:20px;">No projects found.</div>';
+            };
+
+            const renderDashboard = () => {
+                const total = projects.length;
+                const profitable = projects.filter(p => getProjectStatus(p) === 'profit').length;
+                const lossMaking = projects.filter(p => getProjectStatus(p) === 'loss').length;
+                
+                const totalBudget = projects.reduce((sum, p) => sum + calculateTotalProjectCost(p), 0);
+                const totalSpent = projects.reduce((sum, p) => sum + calculateTotalExpenditure(p), 0);
+                const netProfitLoss = projects.reduce((sum, p) => sum + calculateProfitLoss(p), 0);
+
+                dom.dashboardCards.innerHTML = `
+                    <div class="card">
+                        <h3>Summary</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                            <div style="text-align:center; padding:16px; background:rgba(255, 255, 255, 0.05); border-radius:var(--radius);">
+                                <div style="font-size:24px; font-weight:800; color:var(--accent);">${total}</div>
+                                <div class="muted">Total Projects</div>
+                            </div>
+                            <div style="text-align:center; padding:16px; background:rgba(255, 255, 255, 0.05); border-radius:var(--radius);">
+                                <div style="font-size:24px; font-weight:800; color:var(--success);">${profitable}</div>
+                                <div class="muted">Profitable</div>
+                            </div>
+                            <div style="text-align:center; padding:16px; background:rgba(255, 255, 255, 0.05); border-radius:var(--radius);">
+                                <div style="font-size:24px; font-weight:800; color:var(--danger);">${lossMaking}</div>
+                                <div class="muted">Loss Making</div>
+                            </div>
+                            <div style="text-align:center; padding:16px; background:rgba(255, 255, 255, 0.05); border-radius:var(--radius);">
+                                <div style="font-size:24px; font-weight:800; color:${netProfitLoss >= 0 ? 'var(--success)' : 'var(--danger)'};">${formatCurrency(netProfitLoss)}</div>
+                                <div class="muted">Net Profit/Loss</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Financial Overview</h3>
+                        <div class="summary-grid">
+                            <div class="summary-card">
+                                <div class="muted">Total Budget</div>
+                                <div style="font-size:16px; font-weight:800; color:var(--accent);">${formatCurrency(totalBudget)}</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="muted">Total Spent</div>
+                                <div style="font-size:16px; font-weight:800; color:var(--warn);">${formatCurrency(totalSpent)}</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="muted">Remaining</div>
+                                <div style="font-size:16px; font-weight:800; color:${totalBudget - totalSpent >= 0 ? 'var(--success)' : 'var(--danger)'};">${formatCurrency(totalBudget - totalSpent)}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Recent Projects</h3>
+                        <div class="list">
+                            ${projects.slice(0, 5).map(p => {
+                                const status = getProjectStatus(p);
+                                return `
+                                    <div class="item" style="cursor:pointer; background: #0b1a2f; border: 1px solid var(--border); border-left: 4px solid var(--danger); border-radius: var(--radius); padding: 16px; transition: all 0.2s;" data-id="${p.id}" data-action="select-project">
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <strong>${p.name}</strong>
+                                            <span style="color:${status === 'profit' ? 'var(--success)' : 'var(--danger)'}">
+                                                ${formatCurrency(calculateProfitLoss(p))}
+                                            </span>
+                                        </div>
+                                        <div class="muted" style="font-size:13px; margin-top:4px;">
+                                            Budget: ${formatCurrency(calculateTotalProjectCost(p))} | 
+                                            Spent: ${formatCurrency(calculateTotalExpenditure(p))}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || '<p class="muted">No recent projects.</p>'}
+                        </div>
+                    </div>
+                `;
+            };
+
+            const renderProjectDetails = () => {
+                const project = getProject(currentProjectId);
+                if (!project) {
+                    dom.projectView.style.display = 'none';
+                    switchView('dashboard');
+                    return;
+                }
+
+                // Project details
+                dom.projName.value = project.name || '';
+                dom.projStart.value = project.startDate || '';
+                dom.projDue.value = project.dueDate || '';
+                dom.projDesc.value = project.description || '';
+                dom.initialCost.value = project.initialCost || '';
+
+                // Additional work list
+                dom.additionalWorkList.innerHTML = project.additionalWork.map(work => `
+                    <tr>
+                        <td>${work.description}</td>
+                        <td>${formatCurrency(work.cost)}</td>
+                        <td>
+                            <button class="secondary" style="padding:4px 8px;font-size:12px;" 
+                                    data-action="delete-additional-work" data-id="${work.id}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="3" class="text-center muted">No additional work items.</td></tr>';
+
+                // Expenditure list
+                dom.expenditureList.innerHTML = project.expenditures.map(exp => `
+                    <tr>
+                        <td>${exp.date}</td>
+                        <td>${exp.particulars}</td>
+                        <td>${formatCurrency(exp.amount)}</td>
+                        <td>
+                            <button class="secondary" style="padding:4px 8px;font-size:12px;" 
+                                    data-action="delete-expenditure" data-id="${exp.id}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" class="text-center muted">No expenditure entries.</td></tr>';
+
+                // Update summary
+                updateCostSummary(project);
+            };
+
+            const updateCostSummary = (project) => {
+                const totalCost = calculateTotalProjectCost(project);
+                const totalExp = calculateTotalExpenditure(project);
+                const remaining = calculateRemainingBudget(project);
+                const profitLoss = calculateProfitLoss(project);
+
+                dom.totalProjectCost.textContent = formatCurrency(totalCost);
+                dom.totalExpenditure.textContent = formatCurrency(totalExp);
+                dom.remainingBudget.textContent = formatCurrency(remaining);
+                dom.profitLoss.textContent = formatCurrency(profitLoss);
+                dom.profitLoss.className = profitLoss >= 0 ? 'profit' : 'loss';
+            };
+
+            // --- View Management ---
+            const switchView = (view) => {
+                currentView = view;
+                dom.viewDashboard.classList.toggle('active', view === 'dashboard');
+                dom.viewProject.classList.toggle('active', view === 'project');
+                dom.dashboardView.style.display = view === 'dashboard' ? 'block' : 'none';
+                dom.projectView.style.display = view === 'project' ? 'block' : 'none';
+
+                if (view === 'dashboard') {
+                    renderDashboard();
+                } else if (view === 'project' && currentProjectId) {
+                    renderProjectDetails();
+                }
+            };
+
+            const selectProject = (id) => {
+                currentProjectId = id;
+                renderProjectList();
+                switchView('project');
+            };
+
+            // --- Event Handlers ---
+            const setupEventListeners = () => {
+                // View switching
+                dom.viewDashboard.addEventListener('click', () => switchView('dashboard'));
+                dom.viewProject.addEventListener('click', () => {
+                    if (currentProjectId) switchView('project');
+                });
+
+                // Project list
+                dom.projectList.addEventListener('click', (e) => {
+                    const projectItem = e.target.closest('.project-item');
+                    if (projectItem) {
+                        selectProject(projectItem.dataset.id);
+                    }
+                });
+
+                // Dashboard project selection
+                dom.dashboardCards.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-action="select-project"]')) {
+                        const item = e.target.closest('[data-action="select-project"]');
+                        selectProject(item.dataset.id);
+                    }
+                });
+
+                // Search and filter
+                dom.searchInput.addEventListener('input', debounce(renderProjectList, 300));
+                dom.statusFilter.addEventListener('change', renderProjectList);
+
+                // New project
+                document.getElementById('btnNewProject').addEventListener('click', () => {
+                    const project = createProject(
+                        'New Project',
+                        new Date().toISOString().split('T')[0],
+                        '',
+                        'Project description'
+                    );
+                    selectProject(project.id);
+                    showToast('New project created successfully.', 'success');
+                });
+
+                // Dashboard button
+                document.getElementById('btnDashboard').addEventListener('click', () => switchView('dashboard'));
+
+                // Save project
+                document.getElementById('btnSaveProject').addEventListener('click', () => {
+                    if (!currentProjectId) return;
+                    const project = updateProject(currentProjectId, {
+                        name: dom.projName.value,
+                        startDate: dom.projStart.value,
+                        dueDate: dom.projDue.value,
+                        description: dom.projDesc.value,
+                    });
+                    if (project) {
+                        renderProjectList();
+                        showToast('Project details saved successfully.', 'success');
+                    }
+                });
+
+                // Delete project
+                document.getElementById('btnDeleteProject').addEventListener('click', () => {
+                    if (!currentProjectId || !confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+                    deleteProject(currentProjectId);
+                    renderProjectList();
+                    switchView('dashboard');
+                    showToast('Project deleted successfully.', 'success');
+                });
+
+                // Save initial cost
+                document.getElementById('btnSaveCost').addEventListener('click', () => {
+                    if (!currentProjectId) return;
+                    const cost = parseFloat(dom.initialCost.value) || 0;
+                    const project = updateProject(currentProjectId, { initialCost: cost });
+                    if (project) {
+                        renderProjectDetails();
+                        renderProjectList();
+                        showToast('Initial cost saved successfully.', 'success');
+                    }
+                });
+
+                // Add additional work
+                document.getElementById('btnAddWork').addEventListener('click', () => {
+                    if (!currentProjectId) return;
+                    const description = dom.addWorkDesc.value.trim();
+                    const cost = parseFloat(dom.addWorkCost.value);
+                    
+                    if (!description) {
+                        showToast('Please enter a description for the additional work.', 'error');
+                        return;
+                    }
+                    if (isNaN(cost) || cost <= 0) {
+                        showToast('Please enter a valid cost amount.', 'error');
+                        return;
+                    }
+                    
+                    addAdditionalWork(currentProjectId, description, cost);
+                    dom.addWorkDesc.value = '';
+                    dom.addWorkCost.value = '';
+                    renderProjectDetails();
+                    renderProjectList();
+                    showToast('Additional work added successfully.', 'success');
+                });
+
+                // Delete additional work
+                dom.additionalWorkList.addEventListener('click', (e) => {
+                    if (e.target.dataset.action === 'delete-additional-work') {
+                        if (!confirm('Are you sure you want to delete this work item?')) return;
+                        deleteAdditionalWork(currentProjectId, e.target.dataset.id);
+                        renderProjectDetails();
+                        renderProjectList();
+                        showToast('Work item deleted successfully.', 'success');
+                    }
+                });
+
+                // Add expenditure
+                document.getElementById('btnAddExpenditure').addEventListener('click', () => {
+                    if (!currentProjectId) return;
+                    const date = dom.expDate.value;
+                    const particulars = dom.expParticulars.value.trim();
+                    const amount = parseFloat(dom.expAmount.value);
+                    
+                    if (!date) {
+                        showToast('Please select a date for the expenditure.', 'error');
+                        return;
+                    }
+                    if (!particulars) {
+                        showToast('Please enter particulars for the expenditure.', 'error');
+                        return;
+                    }
+                    if (isNaN(amount) || amount <= 0) {
+                        showToast('Please enter a valid amount.', 'error');
+                        return;
+                    }
+                    
+                    addExpenditure(currentProjectId, date, particulars, amount);
+                    dom.expDate.value = '';
+                    dom.expParticulars.value = '';
+                    dom.expAmount.value = '';
+                    renderProjectDetails();
+                    renderProjectList();
+                    showToast('Expenditure added successfully.', 'success');
+                });
+
+                // Delete expenditure
+                dom.expenditureList.addEventListener('click', (e) => {
+                    if (e.target.dataset.action === 'delete-expenditure') {
+                        if (!confirm('Are you sure you want to delete this expenditure?')) return;
+                        deleteExpenditure(currentProjectId, e.target.dataset.id);
+                        renderProjectDetails();
+                        renderProjectList();
+                        showToast('Expenditure deleted successfully.', 'success');
+                    }
+                });
+
+                // Export data
+                document.getElementById('btnExport').addEventListener('click', () => {
+                    const dataStr = JSON.stringify(projects, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `cost-manager-projects-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showToast('Projects exported successfully.', 'success');
+                });
+
+                // Import data
+                document.getElementById('importFile').addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const importedProjects = JSON.parse(event.target.result);
+                            if (Array.isArray(importedProjects)) {
+                                projects = importedProjects;
+                                saveProjects();
+                                renderProjectList();
+                                renderDashboard();
+                                showToast('Projects imported successfully.', 'success');
+                            } else {
+                                throw new Error('Invalid file format');
+                            }
+                        } catch (err) {
+                            showToast('Failed to import projects. Invalid file format.', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                    e.target.value = '';
+                });
+
+                // Toast close
+                document.getElementById('toastClose').addEventListener('click', () => {
+                    dom.toast.classList.remove('show');
+                });
+
+                // Set default date values
+                const today = new Date().toISOString().split('T')[0];
+                dom.expDate.value = today;
+                dom.projStart.value = today;
+            };
+
+            // --- Initialize App ---
+            const init = () => {
+                loadProjects();
+                setupEventListeners();
+                renderProjectList();
+                renderDashboard();
+                
+                // Set default date values
+                const today = new Date().toISOString().split('T')[0];
+                dom.expDate.value = today;
+                dom.projStart.value = today;
+                
+                // Create a sample project if none exist
+                if (projects.length === 0) {
+                    const sampleProject = createProject(
+                        'Sample Building Project',
+                        today,
+                        new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        'Construction of a residential building with modern amenities'
+                    );
+                    updateProject(sampleProject.id, { initialCost: 5000000 });
+                    addAdditionalWork(sampleProject.id, 'Compound Wall Construction', 750000);
+                    addAdditionalWork(sampleProject.id, 'Well Digging', 350000);
+                    addExpenditure(sampleProject.id, today, 'Initial Material Purchase', 1500000);
+                    addExpenditure(sampleProject.id, today, 'Labor Cost (First Month)', 800000);
+                    selectProject(sampleProject.id);
+                }
+            };
+
+            // Start the application
+            init();
+        })();
+    </script>
+</body>
+</html>
