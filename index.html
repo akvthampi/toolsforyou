@@ -35,32 +35,124 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
         }
 
-        /* Header Styles */
+        /* Updated Header Styles */
         header {
-            text-align: center;
-            padding: 40px 0;
-            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .header-content {
+            flex: 1;
         }
 
         header h1 {
             font-family: 'Poppins', sans-serif;
-            font-size: 3rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         header p {
-            font-size: 1.15rem;
+            font-size: 1rem;
             color: var(--text-light);
-            max-width: 700px;
-            margin: 0 auto;
+            max-width: 500px;
+            margin: 0;
+        }
+
+        /* Featured Tool + Preview Section */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .featured-tool {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 15px;
+            padding: 25px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: var(--shadow);
+        }
+
+        .featured-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .featured-content h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .featured-content p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        /* Tools preview next to featured */
+        .tools-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .preview-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-card .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .preview-card .card-icon {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-right: 12px;
+        }
+
+        .preview-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .preview-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            flex-grow: 1;
         }
 
         /* Category Styles */
@@ -71,20 +163,20 @@
         .category-header {
             display: flex;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--primary-color);
         }
 
         .category-header i {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--primary-color);
-            margin-right: 15px;
+            margin-right: 12px;
         }
 
         .category-header h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 600;
             color: var(--text-color);
         }
@@ -92,47 +184,48 @@
         /* Grid and Card Styles */
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
         }
 
         .tool-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: var(--shadow);
-            padding: 25px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .tool-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .card-icon {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: var(--secondary-color);
-            margin-right: 15px;
+            margin-right: 12px;
         }
 
         .tool-card h3 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
             margin: 0;
         }
 
         .tool-card p {
             color: var(--text-light);
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
             flex-grow: 1;
         }
 
@@ -142,11 +235,14 @@
             background: var(--primary-color);
             color: #fff;
             text-decoration: none;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 6px;
             text-align: center;
             font-weight: 700;
+            font-size: 0.9rem;
             transition: background-color 0.3s ease, transform 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .btn:hover {
@@ -155,59 +251,46 @@
         }
 
         .btn .fa-arrow-right {
-            margin-left: 8px;
+            margin-left: 6px;
             transition: transform 0.3s ease;
         }
 
         .btn:hover .fa-arrow-right {
-            transform: translateX(5px);
+            transform: translateX(3px);
         }
         
-        /* Featured Tool Section */
-        .featured-tool {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 15px;
-            padding: 40px;
-            margin-bottom: 50px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-        }
-        
-        .featured-icon {
-            font-size: 4rem;
-            margin-right: 30px;
-        }
-        
-        .featured-content h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        .featured-content p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-
         .featured-content .btn {
             background: #fff;
             color: var(--primary-color);
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2.5rem;
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
             }
-            .featured-tool {
+            
+            .tools-preview {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
                 flex-direction: column;
                 text-align: center;
             }
-            .featured-icon {
-                margin-right: 0;
-                margin-bottom: 20px;
+            
+            header p {
+                max-width: 100%;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -216,21 +299,49 @@
 
     <div class="container">
         <header>
-            <h1>Productivity Tools Suite</h1>
-            <p>A collection of professional tools designed to enhance your productivity and streamline your workflow.</p>
+            <div class="header-content">
+                <h1>Productivity Tools Suite</h1>
+                <p>A collection of professional tools designed to enhance your productivity and streamline your workflow.</p>
+            </div>
         </header>
 
-        <!-- Featured Tool Section (to be populated by JavaScript) -->
-        <section class="featured-tool">
-            <div class="featured-icon">
-                <i class="fas fa-star"></i>
+        <!-- Combined Featured + Preview Section -->
+        <div class="main-content">
+            <section class="featured-tool">
+                <div class="featured-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="featured-content">
+                    <h2 id="featured-title">Featured Tool</h2>
+                    <p id="featured-desc">One of our powerful tools to help you succeed.</p>
+                    <a id="featured-link" href="#" target="_blank" class="btn">Access Tool <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </section>
+            
+            <div class="tools-preview">
+                <!-- First 4 tools as preview -->
+                <div class="preview-card">
+                    <div class="card-header"><i class="fas fa-tasks card-icon"></i><h3>Task Manager</h3></div>
+                    <p>Organize your daily tasks, set priorities, and track your progress with our intuitive task management system.</p>
+                    <a href="todoLogin.html" target="_blank" class="btn">Access Tool</a>
+                </div>
+                <div class="preview-card">
+                    <div class="card-header"><i class="fas fa-chart-pie card-icon"></i><h3>Expense Tracker</h3></div>
+                    <p>Monitor your spending, categorize expenses, and maintain your budget with our financial tracking tool.</p>
+                    <a href="ExpenseTracker.html" target="_blank" class="btn">Access Tool</a>
+                </div>
+                <div class="preview-card">
+                    <div class="card-header"><i class="fas fa-calculator card-icon"></i><h3>Pricing Calculator</h3></div>
+                    <p>Calculate optimal product pricing based on costs, margins, and market factors with our pricing calculator.</p>
+                    <a href="productpricing.html" target="_blank" class="btn">Access Tool</a>
+                </div>
+                <div class="preview-card">
+                    <div class="card-header"><i class="fas fa-hourglass-half card-icon"></i><h3>Pomodoro Timer</h3></div>
+                    <p>Boost your productivity with the Pomodoro technique - work in focused intervals with scheduled breaks.</p>
+                    <a href="PomodoroTimer.html" target="_blank" class="btn">Access Tool</a>
+                </div>
             </div>
-            <div class="featured-content">
-                <h2 id="featured-title">Featured Tool</h2>
-                <p id="featured-desc">One of our powerful tools to help you succeed.</p>
-                <a id="featured-link" href="#" target="_blank" class="btn">Access Tool <i class="fas fa-arrow-right"></i></a>
-            </div>
-        </section>
+        </div>
 
         <!-- Productivity Tools Section -->
         <div class="category">
