@@ -13,12 +13,30 @@
         :root {
             --primary-color: #4a90e2;
             --secondary-color: #50e3c2;
-            --text-color: #333;
+            --accent-color: #6c63ff;
+            --text-color: #e0e0e0;
+            --text-light: #a0a0a0;
+            --bg-color: #0a192f;
+            --card-bg: #112240;
+            --header-bg: #020c1b;
+            --border-color: #1e3a5f;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            --neon-glow: 0 0 10px rgba(74, 144, 226, 0.7), 0 0 20px rgba(74, 144, 226, 0.5), 0 0 30px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Light Mode Variables */
+        .light-mode {
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --accent-color: #6c63ff;
+            --text-color: #333333;
             --text-light: #6c757d;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
+            --header-bg: #4a90e2;
             --border-color: #e9ecef;
             --shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+            --neon-glow: 0 0 10px rgba(74, 144, 226, 0.4), 0 0 15px rgba(74, 144, 226, 0.2);
         }
 
         * {
@@ -32,6 +50,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -40,179 +59,188 @@
             padding: 15px;
         }
 
-        /* Updated Header Styles */
+        /* Ultra-compact header */
         header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 0;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--header-bg), #051a3a);
+            color: var(--text-color);
+            padding: 15px 0;
+            margin: -15px -15px 20px -15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             border-bottom: 1px solid var(--border-color);
-            text-align: left;
+            transition: all 0.3s ease;
         }
 
-        .header-content {
-            flex: 1;
+        .light-mode header {
+            background: linear-gradient(135deg, var(--header-bg), #6c63ff);
+            color: white;
         }
 
         header h1 {
             font-family: 'Poppins', sans-serif;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            color: var(--primary-color);
             margin-bottom: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .light-mode header h1 {
+            -webkit-text-fill-color: white;
+            background: none;
         }
 
         header p {
-            font-size: 1rem;
-            color: var(--text-light);
-            max-width: 500px;
-            margin: 0;
-        }
-
-        /* Featured Tool + Preview Section */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .featured-tool {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 15px;
-            padding: 25px;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            box-shadow: var(--shadow);
-        }
-
-        .featured-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .featured-content h2 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-
-        .featured-content p {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             opacity: 0.9;
-            margin-bottom: 15px;
+            margin: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            color: var(--text-light);
+            transition: color 0.3s ease;
         }
 
-        /* Tools preview next to featured */
-        .tools-preview {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .light-mode header p {
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .preview-card {
-            background-color: var(--card-bg);
-            border-radius: 10px;
+        /* Featured Tool Section */
+        .featured-tool {
+            background: linear-gradient(135deg, var(--card-bg), #1a3b6d);
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: var(--shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .preview-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .preview-card .card-header {
+            margin-bottom: 30px;
+            color: var(--text-color);
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
 
-        .preview-card .card-icon {
-            font-size: 1.5rem;
+        .light-mode .featured-tool {
+            background: linear-gradient(135deg, var(--card-bg), #e3f2fd);
+        }
+        
+        .featured-tool:hover {
+            box-shadow: var(--neon-glow);
+        }
+        
+        .featured-icon {
+            font-size: 2.5rem;
+            margin-right: 20px;
             color: var(--secondary-color);
-            margin-right: 12px;
+            transition: color 0.3s ease;
         }
-
-        .preview-card h3 {
+        
+        .featured-content h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+        
+        .featured-content p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            color: var(--text-light);
+            transition: color 0.3s ease;
         }
 
-        .preview-card p {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            flex-grow: 1;
+        .featured-content .btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
         }
 
         /* Category Styles */
         .category {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .category-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
             border-bottom: 2px solid var(--primary-color);
+            transition: border-color 0.3s ease;
         }
 
         .category-header i {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: var(--primary-color);
-            margin-right: 12px;
+            margin-right: 10px;
+            transition: color 0.3s ease;
         }
 
         .category-header h2 {
             font-family: 'Poppins', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: 600;
             color: var(--text-color);
+            transition: color 0.3s ease;
         }
 
         /* Grid and Card Styles */
         .tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            gap: 18px;
         }
 
         .tool-card {
             background-color: var(--card-bg);
             border-radius: 10px;
             box-shadow: var(--shadow);
-            padding: 20px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tool-card:hover::before {
+            left: 100%;
         }
 
         .tool-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--neon-glow);
+            border-color: var(--primary-color);
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .card-icon {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--secondary-color);
             margin-right: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover .card-icon {
+            transform: scale(1.2);
         }
 
         .tool-card h3 {
@@ -220,6 +248,8 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin: 0;
+            color: var(--text-color);
+            transition: color 0.3s ease;
         }
 
         .tool-card p {
@@ -227,121 +257,257 @@
             font-size: 0.9rem;
             margin-bottom: 15px;
             flex-grow: 1;
+            transition: color 0.3s ease;
         }
 
         /* Button Styles */
         .btn {
             display: inline-block;
-            background: var(--primary-color);
-            color: #fff;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
             text-decoration: none;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 6px;
             text-align: center;
             font-weight: 700;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
             border: none;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
-            background: #3a7ac8;
             transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(74, 144, 226, 0.5);
         }
 
         .btn .fa-arrow-right {
-            margin-left: 6px;
+            margin-left: 5px;
             transition: transform 0.3s ease;
         }
 
         .btn:hover .fa-arrow-right {
             transform: translateX(3px);
         }
-        
-        .featured-content .btn {
-            background: #fff;
+
+        /* Quick Access Section */
+        .quick-access {
+            margin-bottom: 30px;
+        }
+
+        .quick-access-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .quick-access-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-access-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .quick-access-card:hover::before {
+            left: 100%;
+        }
+
+        .quick-access-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--neon-glow);
+            border-color: var(--primary-color);
+        }
+
+        .quick-access-card i {
+            font-size: 1.8rem;
             color: var(--primary-color);
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .quick-access-card:hover i {
+            transform: scale(1.2);
+            color: var(--secondary-color);
+        }
+
+        .quick-access-card h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            transition: color 0.3s ease;
+        }
+
+        .quick-access-card p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
         }
 
         /* Responsive Design */
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .tools-preview {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            }
-        }
-
         @media (max-width: 768px) {
             header {
+                margin: -15px -10px 15px -10px;
+                padding: 12px 0;
+            }
+            
+            header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .featured-tool {
                 flex-direction: column;
                 text-align: center;
+                padding: 15px;
             }
             
-            header p {
-                max-width: 100%;
-            }
-            
-            .container {
-                padding: 10px;
+            .featured-icon {
+                margin-right: 0;
+                margin-bottom: 10px;
             }
             
             .tools-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .quick-access-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-access-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            box-shadow: var(--neon-glow);
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
         }
     </style>
 </head>
 <body>
 
+    <div class="theme-toggle" title="Switch to Light Mode">
+        <i class="fas fa-moon"></i>
+    </div>
+
     <div class="container">
+        <!-- Ultra Compact Header -->
         <header>
-            <div class="header-content">
-                <h1>Productivity Tools Suite</h1>
-                <p>A collection of professional tools designed to enhance your productivity and streamline your workflow.</p>
-            </div>
+            <h1>Productivity Tools Suite</h1>
+            <p>A collection of professional tools designed to enhance your productivity and streamline your workflow.</p>
         </header>
 
-        <!-- Combined Featured + Preview Section -->
-        <div class="main-content">
-            <section class="featured-tool">
-                <div class="featured-icon">
-                    <i class="fas fa-star"></i>
+        <!-- Quick Access Section -->
+        <div class="quick-access">
+            <div class="category-header">
+                <i class="fas fa-rocket"></i>
+                <h2>Quick Access</h2>
+            </div>
+            <div class="quick-access-grid">
+                <div class="quick-access-card">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Task Manager</h3>
+                    <p>Organize your daily tasks</p>
+                    <a href="todoLogin.html" target="_blank" class="btn">Open</a>
                 </div>
-                <div class="featured-content">
-                    <h2 id="featured-title">Featured Tool</h2>
-                    <p id="featured-desc">One of our powerful tools to help you succeed.</p>
-                    <a id="featured-link" href="#" target="_blank" class="btn">Access Tool <i class="fas fa-arrow-right"></i></a>
+                <div class="quick-access-card">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Expense Tracker</h3>
+                    <p>Monitor your spending</p>
+                    <a href="ExpenseTracker.html" target="_blank" class="btn">Open</a>
                 </div>
-            </section>
-            
-            <div class="tools-preview">
-                <!-- First 4 tools as preview -->
-                <div class="preview-card">
-                    <div class="card-header"><i class="fas fa-tasks card-icon"></i><h3>Task Manager</h3></div>
-                    <p>Organize your daily tasks, set priorities, and track your progress with our intuitive task management system.</p>
-                    <a href="todoLogin.html" target="_blank" class="btn">Access Tool</a>
+                <div class="quick-access-card">
+                    <i class="fas fa-calculator"></i>
+                    <h3>Pricing Calculator</h3>
+                    <p>Calculate optimal pricing</p>
+                    <a href="productpricing.html" target="_blank" class="btn">Open</a>
                 </div>
-                <div class="preview-card">
-                    <div class="card-header"><i class="fas fa-chart-pie card-icon"></i><h3>Expense Tracker</h3></div>
-                    <p>Monitor your spending, categorize expenses, and maintain your budget with our financial tracking tool.</p>
-                    <a href="ExpenseTracker.html" target="_blank" class="btn">Access Tool</a>
-                </div>
-                <div class="preview-card">
-                    <div class="card-header"><i class="fas fa-calculator card-icon"></i><h3>Pricing Calculator</h3></div>
-                    <p>Calculate optimal product pricing based on costs, margins, and market factors with our pricing calculator.</p>
-                    <a href="productpricing.html" target="_blank" class="btn">Access Tool</a>
-                </div>
-                <div class="preview-card">
-                    <div class="card-header"><i class="fas fa-hourglass-half card-icon"></i><h3>Pomodoro Timer</h3></div>
-                    <p>Boost your productivity with the Pomodoro technique - work in focused intervals with scheduled breaks.</p>
-                    <a href="PomodoroTimer.html" target="_blank" class="btn">Access Tool</a>
+                <div class="quick-access-card">
+                    <i class="fas fa-hourglass-half"></i>
+                    <h3>Pomodoro Timer</h3>
+                    <p>Boost productivity</p>
+                    <a href="PomodoroTimer.html" target="_blank" class="btn">Open</a>
                 </div>
             </div>
         </div>
+
+        <!-- Featured Tool Section -->
+        <section class="featured-tool">
+            <div class="featured-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="featured-content">
+                <h2 id="featured-title">Featured Tool</h2>
+                <p id="featured-desc">One of our powerful tools to help you succeed.</p>
+                <a id="featured-link" href="#" target="_blank" class="btn">Access Tool <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
 
         <!-- Productivity Tools Section -->
         <div class="category">
@@ -542,6 +708,23 @@
             featuredTitle.textContent = "Featured: " + title;
             featuredDesc.textContent = description;
             featuredLink.href = link;
+
+            // Theme toggle functionality
+            const themeToggle = document.querySelector('.theme-toggle');
+            const themeIcon = themeToggle.querySelector('i');
+            const themeTitle = themeToggle.querySelector('title');
+            
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-mode');
+                
+                if (document.body.classList.contains('light-mode')) {
+                    themeIcon.className = 'fas fa-sun';
+                    themeToggle.setAttribute('title', 'Switch to Dark Mode');
+                } else {
+                    themeIcon.className = 'fas fa-moon';
+                    themeToggle.setAttribute('title', 'Switch to Light Mode');
+                }
+            });
         });
     </script>
 </body>
