@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a192f 0%, #0d1b2a 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(13, 27, 42, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.2);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 150, 255, 0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(100, 150, 255, 0.3);
+        }
+        
+        h1 {
+            color: #64b5f6;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            color: #90caf9;
+            font-size: 1.1rem;
+        }
+        
+        .input-area {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        #note-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 20px;
+            background-color: rgba(20, 30, 48, 0.8);
+            border: 2px solid rgba(100, 150, 255, 0.3);
+            border-radius: 10px;
+            font-size: 16px;
+            color: #e0e0e0;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        #note-input:focus {
+            outline: none;
+            border-color: #64b5f6;
+            box-shadow: 0 0 15px rgba(100, 181, 246, 0.5);
+        }
+        
+        #note-input::placeholder {
+            color: #90a4ae;
+        }
+        
+        .save-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.8rem;
+            color: #64b5f6;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .note-card {
+            background: linear-gradient(145deg, rgba(20, 30, 48, 0.9) 0%, rgba(13, 27, 42, 0.9) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(100, 181, 246, 0.4);
+            border-color: rgba(100, 181, 246, 0.5);
+        }
+        
+        .note-card.selected {
+            box-shadow: 0 0 20px rgba(100, 181, 246, 0.7);
+            border-color: #64b5f6;
+        }
+        
+        .note-text {
+            word-break: break-word;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        
+        .timestamp {
+            font-size: 0.8rem;
+            color: #90a4ae;
+        }
+        
+        .delete-btn {
+            background: rgba(229, 57, 53, 0.2);
+            border: 1px solid rgba(229, 57, 53, 0.5);
+            color: #e57373;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(229, 57, 53, 0.4);
+            box-shadow: 0 0 8px rgba(229, 57, 53, 0.5);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #90a4ae;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #64b5f6;
+            opacity: 0.7;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #90a4ae;
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid rgba(100, 150, 255, 0.3);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(100, 181, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(100, 181, 246, 0); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .note-card {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quick Notes</h1>
+            <p class="subtitle">Your notes are automatically saved after 5 seconds of inactivity</p>
+        </header>
+        
+        <div class="input-area">
+            <textarea id="note-input" placeholder="Start typing your note here..."></textarea>
+            <div class="save-indicator" id="save-indicator">Saving...</div>
+        </div>
+        
+        <div class="notes-grid" id="notes-container">
+            <!-- Notes will be dynamically inserted here -->
+        </div>
+        
+        <footer>
+            <p>Notes are saved automatically in your browser's local storage</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM elements
+        const noteInput = document.getElementById('note-input');
+        const notesContainer = document.getElementById('notes-container');
+        const saveIndicator = document.getElementById('save-indicator');
+        
+        // Load notes from local storage when page loads
+        document.addEventListener('DOMContentLoaded', loadNotes);
+        
+        // Auto-save functionality with 5-second debouncing
+        let saveTimeout;
+        let isTyping = false;
+        
+        noteInput.addEventListener('input', function() {
+            isTyping = true;
+            clearTimeout(saveTimeout);
+            saveIndicator.style.opacity = '0';
+            
+            saveTimeout = setTimeout(function() {
+                if (isTyping) {
+                    saveNote();
+                    isTyping = false;
+                }
+            }, 5000); // Save after 5 seconds of inactivity
+        });
+        
+        // Show saving indicator when user starts typing
+        noteInput.addEventListener('focus', function() {
+            if (noteInput.value.trim() && isTyping) {
+                saveIndicator.style.opacity = '1';
+            }
+        });
+        
+        // Save note to local storage
+        function saveNote() {
+            const noteText = noteInput.value.trim();
+            
+            if (noteText) {
+                // Show saving indicator
+                saveIndicator.style.opacity = '1';
+                
+                // Get existing notes or initialize empty array
+                const notes = JSON.parse(localStorage.getItem('quickNotes')) || [];
+                
+                // Create new note object
+                const newNote = {
+                    id: Date.now(), // Simple ID based on timestamp
+                    text: noteText,
+                    timestamp: new Date().toLocaleString()
+                };
+                
+                // Add to beginning of array (newest first)
+                notes.unshift(newNote);
+                
+                // Save to local storage
+                localStorage.setItem('quickNotes', JSON.stringify(notes));
+                
+                // Clear input
+                noteInput.value = '';
+                
+                // Hide saving indicator after a delay
+                setTimeout(() => {
+                    saveIndicator.style.opacity = '0';
+                }, 1000);
+                
+                // Refresh notes display
+                displayNotes();
+            }
+        }
+        
+        // Load notes from local storage
+        function loadNotes() {
+            displayNotes();
+        }
+        
+        // Display notes in the UI
+        function displayNotes() {
+            const notes = JSON.parse(localStorage.getItem('quickNotes')) || [];
+            
+            if (notes.length === 0) {
+                notesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i>📝</i>
+                        <h3>No notes yet</h3>
+                        <p>Start typing above to create your first note!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            notesContainer.innerHTML = '';
+            
+            notes.forEach(note => {
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note-card';
+                noteElement.innerHTML = `
+                    <div class="note-text">${escapeHtml(note.text)}</div>
+                    <div class="note-footer">
+                        <span class="timestamp">${note.timestamp}</span>
+                        <button class="delete-btn" onclick="deleteNote(${note.id})">Delete</button>
+                    </div>
+                `;
+                
+                // Add click event to select note
+                noteElement.addEventListener('click', function() {
+                    // Remove selected class from all notes
+                    document.querySelectorAll('.note-card').forEach(card => {
+                        card.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked note
+                    this.classList.add('selected');
+                });
+                
+                notesContainer.appendChild(noteElement);
+            });
+        }
+        
+        // Delete a note
+        function deleteNote(id) {
+            // Prevent event bubbling to avoid selecting the note when deleting
+            event.stopPropagation();
+            
+            let notes = JSON.parse(localStorage.getItem('quickNotes')) || [];
+            notes = notes.filter(note => note.id !== id);
+            localStorage.setItem('quickNotes', JSON.stringify(notes));
+            displayNotes();
+        }
+        
+        // Helper function to escape HTML for security
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
