@@ -15,58 +15,58 @@
         body {
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #333;
-            line-height: 1.4;
-            padding: 12px;
+            line-height: 1.3;
+            padding: 8px;
             min-height: 100vh;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            padding: 15px;
+            padding: 12px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            min-height: 90vh;
+            gap: 10px;
+            min-height: calc(100vh - 16px);
         }
         
         header {
             text-align: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #eaeaea;
         }
         
         h1 {
             color: #2c5364;
-            margin-bottom: 8px;
-            font-size: 1.8rem;
+            margin-bottom: 6px;
+            font-size: 1.6rem;
         }
         
         .description {
             color: #7f8c8d;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
         }
         
         .database-actions {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
         
         .btn {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: all 0.2s ease;
             display: inline-flex;
@@ -80,7 +80,7 @@
         }
         
         .btn-primary:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
         
         .btn-secondary {
@@ -120,46 +120,46 @@
         
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
         }
         
         .summary-card {
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
         
         .summary-card.total {
             background: linear-gradient(to right, #E3F2FD, #BBDEFB);
-            border-left: 4px solid #2196F3;
+            border-left: 3px solid #2196F3;
         }
         
         .summary-card.labor {
             background: linear-gradient(to right, #FFF3E0, #FFE0B2);
-            border-left: 4px solid #FF9800;
+            border-left: 3px solid #FF9800;
         }
         
         .summary-card.utility {
             background: linear-gradient(to right, #E8F5E9, #C8E6C9);
-            border-left: 4px solid #4CAF50;
+            border-left: 3px solid #4CAF50;
         }
         
         .summary-card.profit {
             background: linear-gradient(to right, #F3E5F5, #E1BEE7);
-            border-left: 4px solid #9C27B0;
+            border-left: 3px solid #9C27B0;
         }
         
         .summary-card h3 {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
             color: #455A64;
         }
         
         .summary-card .amount {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: bold;
         }
         
@@ -181,15 +181,15 @@
         
         .form-container {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 12px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .form-title {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: #495057;
-            font-size: 1.1rem;
+            font-size: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -197,31 +197,31 @@
         
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin-bottom: 8px;
         }
         
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             font-weight: 600;
             color: #495057;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         
         input[type="text"],
         input[type="number"],
         select {
             width: 100%;
-            padding: 8px;
+            padding: 6px;
             border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            border-radius: 3px;
+            font-size: 0.85rem;
         }
         
         input:focus,
@@ -232,15 +232,15 @@
         }
         
         .input-products {
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
         .product-row {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
-            gap: 10px;
+            gap: 8px;
             align-items: end;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #eaeaea;
         }
         
@@ -250,27 +250,27 @@
         
         .actions {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
         
         .btn-sm {
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 0.7rem;
+            border-radius: 2px;
         }
         
         .results-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            margin-top: 20px;
+            font-size: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-top: 15px;
         }
         
         .results-table th, 
         .results-table td {
-            padding: 8px 10px;
+            padding: 6px 8px;
             text-align: left;
             border-bottom: 1px solid #dee2e6;
         }
@@ -279,7 +279,7 @@
             background: #f8f9fa;
             color: #495057;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         
         .results-table tr:nth-child(even) {
@@ -293,37 +293,38 @@
         
         .final-price {
             text-align: center;
-            padding: 20px;
-            margin-top: 20px;
+            padding: 15px;
+            margin-top: 15px;
             background: linear-gradient(to right, #E3F2FD, #BBDEFB);
-            border-radius: 8px;
-            border-left: 4px solid #2196F3;
+            border-radius: 6px;
+            border-left: 3px solid #2196F3;
         }
         
         .final-price h3 {
             color: #455A64;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 1rem;
         }
         
         .final-price .amount {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #1565C0;
         }
         
         .notification {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            padding: 10px 20px;
-            border-radius: 6px;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            border-radius: 4px;
             color: white;
             opacity: 0;
             transform: translateX(100%);
             transition: opacity 0.3s, transform 0.3s;
             z-index: 1000;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-size: 0.85rem;
         }
         
         .notification.show {
@@ -339,9 +340,13 @@
             background: linear-gradient(to right, #F44336, #C62828);
         }
         
+        .notification.warning {
+            background: linear-gradient(to right, #FF9800, #F57C00);
+        }
+        
         .icon {
-            margin-right: 5px;
-            font-size: 0.9rem;
+            margin-right: 4px;
+            font-size: 0.85rem;
         }
         
         .file-input {
@@ -350,15 +355,15 @@
         
         .file-label {
             display: inline-block;
-            padding: 8px 15px;
+            padding: 6px 12px;
             background: #203a43;
             color: white;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
         }
         
         .file-label:hover {
@@ -369,11 +374,25 @@
             display: none;
         }
         
+        .error {
+            border-color: #F44336 !important;
+            box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2) !important;
+        }
+        
+        .error-message {
+            color: #F44336;
+            font-size: 0.75rem;
+            margin-top: 2px;
+            display: none;
+        }
+        
         /* Print styles */
         @media print {
             body, html {
                 height: auto;
                 overflow: visible !important;
+                margin: 0;
+                padding: 0;
             }
             
             body * {
@@ -389,7 +408,7 @@
                 left: 0;
                 top: 0;
                 width: 100%;
-                padding: 20px;
+                padding: 15px;
                 background: white;
             }
             
@@ -400,14 +419,14 @@
             .print-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
                 font-family: Arial, sans-serif;
-                font-size: 14px;
+                font-size: 12px;
             }
             
             .print-table th, .print-table td {
                 border: 1px solid #ddd;
-                padding: 8px;
+                padding: 6px;
                 text-align: left;
             }
             
@@ -418,21 +437,31 @@
             
             .print-header {
                 text-align: center;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
             
             .print-summary {
-                margin-top: 20px;
-                padding: 10px;
+                margin-top: 15px;
+                padding: 8px;
                 border: 1px solid #ddd;
                 background-color: #f9f9f9;
             }
         }
         
         @media (max-width: 768px) {
+            body {
+                padding: 6px;
+            }
+            
+            .container {
+                padding: 8px;
+                gap: 8px;
+                min-height: calc(100vh - 12px);
+            }
+            
             .product-row {
                 grid-template-columns: 1fr;
-                gap: 5px;
+                gap: 4px;
             }
             
             .form-grid {
@@ -449,7 +478,35 @@
             
             .btn {
                 width: 100%;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 4px;
+            }
+            
+            .container {
+                padding: 6px;
+                gap: 6px;
+                min-height: calc(100vh - 8px);
+            }
+            
+            .form-container {
+                padding: 8px;
+            }
+            
+            .summary-card {
+                padding: 8px;
+            }
+            
+            .final-price {
+                padding: 10px;
             }
         }
     </style>
@@ -504,14 +561,17 @@
                 <div class="form-group">
                     <label for="productName">Product Name</label>
                     <input type="text" id="productName" placeholder="Enter product name">
+                    <div class="error-message" id="productNameError">Product name is required</div>
                 </div>
                 <div class="form-group">
                     <label for="productionQuantity">Production Quantity (kg)</label>
                     <input type="number" id="productionQuantity" min="0.01" step="0.01" value="1.00">
+                    <div class="error-message" id="productionQuantityError">Quantity must be greater than 0</div>
                 </div>
                 <div class="form-group">
                     <label for="profitPercentage">Profit Percentage (%)</label>
                     <input type="number" id="profitPercentage" min="0" step="0.5" value="20">
+                    <div class="error-message" id="profitPercentageError">Profit percentage cannot be negative</div>
                 </div>
             </div>
         </div>
@@ -524,10 +584,12 @@
                 <div class="form-group">
                     <label for="laborCost">Labor Cost (₹)</label>
                     <input type="number" id="laborCost" min="0" step="0.01" value="0.00">
+                    <div class="error-message" id="laborCostError">Labor cost cannot be negative</div>
                 </div>
                 <div class="form-group">
                     <label for="utilityCost">Utility Cost (₹)</label>
                     <input type="number" id="utilityCost" min="0" step="0.01" value="0.00">
+                    <div class="error-message" id="utilityCostError">Utility cost cannot be negative</div>
                 </div>
             </div>
         </div>
@@ -627,10 +689,12 @@
                 <div class="form-group">
                     <label>Material Name</label>
                     <input type="text" class="material-name" placeholder="e.g., Flour">
+                    <div class="error-message material-name-error">Material name is required</div>
                 </div>
                 <div class="form-group">
                     <label>Cost (₹)</label>
                     <input type="number" class="material-cost" min="0" step="0.01" value="0.00">
+                    <div class="error-message material-cost-error">Cost cannot be negative</div>
                 </div>
                 <div class="form-group">
                     <label>Per Unit</label>
@@ -638,18 +702,20 @@
                         <option value="kg">per kg</option>
                         <option value="g">per 100g</option>
                         <option value="l">per liter</option>
+                        <option value="unit">per unit</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Quantity</label>
                     <input type="number" class="material-quantity" min="0" step="0.01" value="0.00">
+                    <div class="error-message material-quantity-error">Quantity must be greater than 0</div>
                 </div>
                 <div class="form-group">
                     <label>Total (₹)</label>
                     <input type="text" class="material-total" value="₹0.00" readonly>
                 </div>
                 <div class="form-group actions">
-                    <button class="btn btn-danger btn-sm remove-product">🗑️</button>
+                    <button class="btn btn-danger btn-sm remove-product" aria-label="Remove material">🗑️</button>
                 </div>
             </div>
         `;
@@ -669,6 +735,9 @@
             pricePerKg: 0
         };
 
+        // Debounce timer for calculations
+        let debounceTimer;
+
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize with one product row
             addProductRow();
@@ -682,14 +751,121 @@
             document.getElementById('printReport').addEventListener('click', preparePrintReport);
             document.getElementById('printResults').addEventListener('click', preparePrintReport);
             
-            // Add event listeners for input changes
-            document.getElementById('laborCost').addEventListener('input', updateSummaryCards);
-            document.getElementById('utilityCost').addEventListener('input', updateSummaryCards);
-            document.getElementById('profitPercentage').addEventListener('input', updateSummaryCards);
+            // Add event listeners for input changes with debouncing
+            document.getElementById('laborCost').addEventListener('input', function() {
+                validateNumberInput(this, 0);
+                debounceUpdateSummary();
+            });
+            document.getElementById('utilityCost').addEventListener('input', function() {
+                validateNumberInput(this, 0);
+                debounceUpdateSummary();
+            });
+            document.getElementById('profitPercentage').addEventListener('input', function() {
+                validateNumberInput(this, 0);
+                debounceUpdateSummary();
+            });
+            document.getElementById('productionQuantity').addEventListener('input', function() {
+                validateNumberInput(this, 0.01);
+                debounceUpdateSummary();
+            });
+            document.getElementById('productName').addEventListener('input', function() {
+                validateTextInput(this);
+            });
+            
+            // Add beforeunload event to warn about unsaved changes
+            window.addEventListener('beforeunload', function (e) {
+                if (hasUnsavedChanges()) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
             
             // Initial summary update
             updateSummaryCards();
         });
+        
+        // Check if there are unsaved changes
+        function hasUnsavedChanges() {
+            // Simple check - if any field has a non-default value
+            const productName = document.getElementById('productName').value;
+            const productionQuantity = parseFloat(document.getElementById('productionQuantity').value);
+            const laborCost = parseFloat(document.getElementById('laborCost').value);
+            const utilityCost = parseFloat(document.getElementById('utilityCost').value);
+            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value);
+            
+            return productName !== '' || productionQuantity !== 1 || laborCost !== 0 || 
+                   utilityCost !== 0 || profitPercentage !== 20;
+        }
+        
+        // Debounce function to limit how often calculations are performed
+        function debounceUpdateSummary() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateSummaryCards, 300);
+        }
+        
+        // Validate number input
+        function validateNumberInput(input, minValue) {
+            const value = parseFloat(input.value);
+            const errorId = input.id + 'Error';
+            const errorElement = document.getElementById(errorId);
+            
+            if (isNaN(value) || value < minValue) {
+                input.classList.add('error');
+                if (errorElement) errorElement.style.display = 'block';
+                return false;
+            } else {
+                input.classList.remove('error');
+                if (errorElement) errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // Validate text input
+        function validateTextInput(input) {
+            const errorId = input.id + 'Error';
+            const errorElement = document.getElementById(errorId);
+            
+            if (input.value.trim() === '') {
+                input.classList.add('error');
+                if (errorElement) errorElement.style.display = 'block';
+                return false;
+            } else {
+                input.classList.remove('error');
+                if (errorElement) errorElement.style.display = 'none';
+                return true;
+            }
+        }
+        
+        // Validate material inputs in a row
+        function validateMaterialRow(row) {
+            let isValid = true;
+            
+            const nameInput = row.querySelector('.material-name');
+            const costInput = row.querySelector('.material-cost');
+            const quantityInput = row.querySelector('.material-quantity');
+            
+            // Validate name
+            if (nameInput.value.trim() === '') {
+                nameInput.classList.add('error');
+                row.querySelector('.material-name-error').style.display = 'block';
+                isValid = false;
+            } else {
+                nameInput.classList.remove('error');
+                row.querySelector('.material-name-error').style.display = 'none';
+            }
+            
+            // Validate cost
+            if (!validateNumberInput(costInput, 0)) {
+                isValid = false;
+            }
+            
+            // Validate quantity
+            if (!validateNumberInput(quantityInput, 0.01)) {
+                isValid = false;
+            }
+            
+            return isValid;
+        }
         
         // Add a new product row
         function addProductRow() {
@@ -702,8 +878,10 @@
             const costInput = rowElement.querySelector('.material-cost');
             const unitSelect = rowElement.querySelector('.material-unit');
             const quantityInput = rowElement.querySelector('.material-quantity');
+            const nameInput = rowElement.querySelector('.material-name');
             
             costInput.addEventListener('input', function() {
+                validateNumberInput(this, 0);
                 updateProductTotal(rowElement);
             });
             
@@ -712,7 +890,12 @@
             });
             
             quantityInput.addEventListener('input', function() {
+                validateNumberInput(this, 0.01);
                 updateProductTotal(rowElement);
+            });
+            
+            nameInput.addEventListener('input', function() {
+                validateTextInput(this);
             });
             
             // Add remove button functionality
@@ -721,7 +904,7 @@
                     rowElement.remove();
                     updateSummaryCards();
                 } else {
-                    showNotification('You need at least one material.', 'error');
+                    showNotification('You need at least one material.', 'warning');
                 }
             });
             
@@ -738,8 +921,10 @@
             // Convert to cost per kg for calculation
             let costPerKg = cost;
             if (unit === 'g') {
-                costPerKg = cost * 10; // Convert from per 100g to per kg
+                costPerKg = cost * 10; // Convert from per 100g to per kg (100g * 10 = 1kg)
             }
+            // For liters and units, we assume 1:1 ratio with kg for calculation purposes
+            // You might want to adjust this based on your specific needs
             
             const total = costPerKg * quantity;
             row.querySelector('.material-total').value = `₹${total.toFixed(2)}`;
@@ -769,8 +954,49 @@
             document.getElementById('profitPercentageDisplay').textContent = `${profitPercentage}%`;
         }
         
+        // Validate all inputs before calculation
+        function validateAllInputs() {
+            let isValid = true;
+            
+            // Validate product info
+            if (!validateTextInput(document.getElementById('productName'))) {
+                isValid = false;
+            }
+            
+            if (!validateNumberInput(document.getElementById('productionQuantity'), 0.01)) {
+                isValid = false;
+            }
+            
+            if (!validateNumberInput(document.getElementById('profitPercentage'), 0)) {
+                isValid = false;
+            }
+            
+            // Validate other costs
+            if (!validateNumberInput(document.getElementById('laborCost'), 0)) {
+                isValid = false;
+            }
+            
+            if (!validateNumberInput(document.getElementById('utilityCost'), 0)) {
+                isValid = false;
+            }
+            
+            // Validate materials
+            document.querySelectorAll('.product-row').forEach(row => {
+                if (!validateMaterialRow(row)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+        
         // Calculate the final pricing
         function calculatePricing() {
+            if (!validateAllInputs()) {
+                showNotification('Please fix the errors in the form before calculating.', 'error');
+                return;
+            }
+            
             // Get basic values
             const productName = document.getElementById('productName').value || 'Product';
             const productionQuantity = parseFloat(document.getElementById('productionQuantity').value) || 1;
@@ -794,6 +1020,10 @@
                 if (unit === 'g') {
                     costPerKg = cost * 10; // Convert from per 100g to per kg
                     displayUnit = '100g';
+                } else if (unit === 'l') {
+                    displayUnit = 'liter';
+                } else if (unit === 'unit') {
+                    displayUnit = 'unit';
                 }
                 
                 const total = costPerKg * quantity;
@@ -816,8 +1046,8 @@
             const totalWithProfit = totalCost * profitFactor;
             const profitAmount = totalCost * (profitPercentage / 100);
             
-            // Calculate price per kg
-            const pricePerKg = totalWithProfit / productionQuantity;
+            // Calculate price per kg (with division by zero protection)
+            const pricePerKg = productionQuantity > 0 ? totalWithProfit / productionQuantity : 0;
             
             // Store results for printing
             calculationResults = {
@@ -842,7 +1072,7 @@
             materials.forEach(material => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${material.name}</td>
+                    <td>${escapeHtml(material.name)}</td>
                     <td>₹${material.cost.toFixed(2)}/${material.unit}</td>
                     <td>${material.quantity.toFixed(2)}</td>
                     <td>₹${material.total.toFixed(2)}</td>
@@ -900,7 +1130,20 @@
             // Show results section
             document.getElementById('results').style.display = 'block';
             
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            
             showNotification('Pricing calculated successfully!', 'success');
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
         
         // Prepare the print report
@@ -912,7 +1155,7 @@
             
             // Update printable report content
             document.getElementById('print-product-name').textContent = 
-                calculationResults.productName ? `${calculationResults.productName} - Pricing Report` : 'Product Pricing Report';
+                calculationResults.productName ? `${escapeHtml(calculationResults.productName)} - Pricing Report` : 'Product Pricing Report';
             
             document.getElementById('print-date').textContent = `Date: ${new Date().toLocaleDateString()}`;
             
@@ -924,7 +1167,7 @@
             calculationResults.materials.forEach(material => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${material.name}</td>
+                    <td>${escapeHtml(material.name)}</td>
                     <td>₹${material.cost.toFixed(2)}/${material.unit}</td>
                     <td>${material.quantity.toFixed(2)}</td>
                     <td>₹${material.total.toFixed(2)}</td>
@@ -970,17 +1213,24 @@
             const printableElement = document.getElementById('printable-report');
             printableElement.style.display = 'block';
             
-            // Print the report
-            window.print();
-            
-            // Hide the printable section after printing
+            // Use a timeout to ensure the content is visible before printing
             setTimeout(() => {
-                printableElement.style.display = 'none';
+                window.print();
+                
+                // Hide the printable section after printing with a delay
+                setTimeout(() => {
+                    printableElement.style.display = 'none';
+                }, 500);
             }, 100);
         }
         
         // Save calculation to JSON file
         function saveCalculation() {
+            if (!validateAllInputs()) {
+                showNotification('Please fix the errors in the form before saving.', 'error');
+                return;
+            }
+            
             try {
                 // Gather all data
                 const productName = document.getElementById('productName').value;
@@ -1020,7 +1270,7 @@
                 
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = url;
-                downloadLink.download = `${productName || 'product'}_pricing.json`;
+                downloadLink.download = `${productName || 'product'}_pricing_${new Date().toISOString().slice(0, 10)}.json`;
                 downloadLink.click();
                 
                 // Clean up
@@ -1039,10 +1289,22 @@
             const file = event.target.files[0];
             if (!file) return;
             
+            // Basic file validation
+            if (file.type !== 'application/json') {
+                showNotification('Please select a valid JSON file.', 'error');
+                event.target.value = '';
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
+                    
+                    // Validate JSON structure
+                    if (!data || typeof data !== 'object') {
+                        throw new Error('Invalid file format');
+                    }
                     
                     // Set basic values
                     document.getElementById('productName').value = data.productName || '';
@@ -1056,7 +1318,7 @@
                     productContainer.innerHTML = '';
                     
                     // Add materials from data
-                    if (data.materials && data.materials.length > 0) {
+                    if (data.materials && Array.isArray(data.materials)) {
                         data.materials.forEach(material => {
                             addProductRow();
                             const rows = productContainer.querySelectorAll('.product-row');
@@ -1077,9 +1339,14 @@
                     updateSummaryCards();
                     showNotification('Calculation loaded successfully!', 'success');
                 } catch (error) {
-                    showNotification('Error loading calculation: ' + error.message, 'error');
+                    showNotification('Error loading calculation: Invalid file format', 'error');
                 }
             };
+            
+            reader.onerror = function() {
+                showNotification('Error reading file', 'error');
+            };
+            
             reader.readAsText(file);
             
             // Reset file input
@@ -1118,6 +1385,10 @@
                     totalWithProfit: 0,
                     pricePerKg: 0
                 };
+                
+                // Clear error states
+                document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+                document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
                 
                 showNotification('Data reset successfully!', 'success');
             }
