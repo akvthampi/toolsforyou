@@ -74,12 +74,23 @@
             justify-content: center;
         }
         
+        .btn:focus {
+            outline: 2px solid #2c5364;
+            outline-offset: 2px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
         .btn-primary {
             background: linear-gradient(to right, #2c5364, #203a43);
             color: white;
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
         }
         
@@ -89,7 +100,7 @@
             border: 1px solid #dee2e6;
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: #e9ecef;
         }
         
@@ -155,7 +166,7 @@
         .summary-card h3 {
             font-size: 0.85rem;
             margin-bottom: 6px;
-            color: #455A64;
+            color: #37474f;
         }
         
         .summary-card .amount {
@@ -386,6 +397,11 @@
             display: none;
         }
         
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
         /* Print styles */
         @media print {
             body, html {
@@ -509,6 +525,21 @@
                 padding: 10px;
             }
         }
+        
+        @media (max-width: 360px) {
+            .container {
+                padding: 4px;
+                gap: 4px;
+            }
+            
+            .summary-card .amount {
+                font-size: 1rem;
+            }
+            
+            .final-price .amount {
+                font-size: 1.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -597,7 +628,7 @@
         <div class="form-container no-print">
             <div class="form-title">
                 <span>Raw Materials</span>
-                <button id="addProduct" class="btn btn-primary btn-sm">
+                <button id="addProduct" class="btn btn-primary btn-sm" aria-label="Add new material" tabindex="0">
                     <span class="icon">➕</span>Add Material
                 </button>
             </div>
@@ -683,6 +714,19 @@
     </div>
     
     <script>
+        // Enhanced XSS protection
+        function escapeHtml(unsafe) {
+            const div = document.createElement('div');
+            div.textContent = unsafe;
+            return div.innerHTML;
+        }
+
+        // Precise rounding for monetary calculations
+        function preciseRound(num, decimals = 2) {
+            const factor = Math.pow(10, decimals);
+            return Math.round((num + Number.EPSILON) * factor) / factor;
+        }
+
         // Template for product row
         const productRowTemplate = `
             <div class="product-row">
@@ -742,6 +786,43 @@
             // Initialize with one product row
             addProductRow();
             
+            // Load auto-saved data if available
+            loadAutoSave();
+            
+            // Use event delegation for dynamic elements
+            document.getElementById('productContainer').addEventListener('input', function(e) {
+                if (e.target.classList.contains('material-cost') || 
+                    e.target.classList.contains('material-unit') || 
+                    e.target.classList.contains('material-quantity') ||
+                    e.target.classList.contains('material-name')) {
+                    const row = e.target.closest('.product-row');
+                    if (row) {
+                        if (e.target.classList.contains('material-cost') || 
+                            e.target.classList.contains('material-unit') || 
+                            e.target.classList.contains('material-quantity')) {
+                            updateProductTotal(row);
+                        }
+                        validateMaterialRow(row);
+                        debounceUpdateSummary();
+                        autoSave();
+                    }
+                }
+            });
+            
+            // Add event listeners for remove buttons using delegation
+            document.getElementById('productContainer').addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-product')) {
+                    const row = e.target.closest('.product-row');
+                    if (row && document.querySelectorAll('.product-row').length > 1) {
+                        row.remove();
+                        updateSummaryCards();
+                        autoSave();
+                    } else {
+                        showNotification('You need at least one material.', 'warning');
+                    }
+                }
+            });
+            
             // Add event listeners
             document.getElementById('addProduct').addEventListener('click', addProductRow);
             document.getElementById('calculateBtn').addEventListener('click', calculatePricing);
@@ -751,25 +832,34 @@
             document.getElementById('printReport').addEventListener('click', preparePrintReport);
             document.getElementById('printResults').addEventListener('click', preparePrintReport);
             
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                // Enter key to calculate
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    calculatePricing();
+                }
+                
+                // Escape key to reset
+                if (e.key === 'Escape' && e.ctrlKey) {
+                    e.preventDefault();
+                    resetData();
+                }
+            });
+            
             // Add event listeners for input changes with debouncing
-            document.getElementById('laborCost').addEventListener('input', function() {
-                validateNumberInput(this, 0);
-                debounceUpdateSummary();
-            });
-            document.getElementById('utilityCost').addEventListener('input', function() {
-                validateNumberInput(this, 0);
-                debounceUpdateSummary();
-            });
-            document.getElementById('profitPercentage').addEventListener('input', function() {
-                validateNumberInput(this, 0);
-                debounceUpdateSummary();
-            });
-            document.getElementById('productionQuantity').addEventListener('input', function() {
-                validateNumberInput(this, 0.01);
-                debounceUpdateSummary();
-            });
-            document.getElementById('productName').addEventListener('input', function() {
-                validateTextInput(this);
+            const inputsToWatch = ['laborCost', 'utilityCost', 'profitPercentage', 'productionQuantity', 'productName'];
+            inputsToWatch.forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    if (id === 'productName') {
+                        validateTextInput(this);
+                    } else {
+                        const minValue = id === 'productionQuantity' ? 0.01 : 0;
+                        validateNumberInput(this, minValue, 1000000);
+                    }
+                    debounceUpdateSummary();
+                    autoSave();
+                });
             });
             
             // Add beforeunload event to warn about unsaved changes
@@ -784,43 +874,37 @@
             updateSummaryCards();
         });
         
-        // Check if there are unsaved changes
-        function hasUnsavedChanges() {
-            // Simple check - if any field has a non-default value
-            const productName = document.getElementById('productName').value;
-            const productionQuantity = parseFloat(document.getElementById('productionQuantity').value);
-            const laborCost = parseFloat(document.getElementById('laborCost').value);
-            const utilityCost = parseFloat(document.getElementById('utilityCost').value);
-            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value);
-            
-            return productName !== '' || productionQuantity !== 1 || laborCost !== 0 || 
-                   utilityCost !== 0 || profitPercentage !== 20;
-        }
-        
-        // Debounce function to limit how often calculations are performed
-        function debounceUpdateSummary() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(updateSummaryCards, 300);
-        }
-        
-        // Validate number input
-        function validateNumberInput(input, minValue) {
+        // Enhanced number input validation with bounds checking
+        function validateNumberInput(input, minValue, maxValue = 1000000) {
             const value = parseFloat(input.value);
             const errorId = input.id + 'Error';
             const errorElement = document.getElementById(errorId);
             
-            if (isNaN(value) || value < minValue) {
+            // Check if value is a valid number
+            if (isNaN(value) || value < minValue || value > maxValue) {
                 input.classList.add('error');
-                if (errorElement) errorElement.style.display = 'block';
+                if (errorElement) {
+                    errorElement.textContent = value < minValue 
+                        ? `Value must be at least ${minValue}` 
+                        : `Value cannot exceed ${maxValue}`;
+                    errorElement.style.display = 'block';
+                }
                 return false;
-            } else {
-                input.classList.remove('error');
-                if (errorElement) errorElement.style.display = 'none';
-                return true;
             }
+            
+            // Check decimal places
+            const decimalPlaces = (input.value.split('.')[1] || '').length;
+            if (decimalPlaces > 2) {
+                input.value = preciseRound(value, 2);
+                showNotification('Value rounded to 2 decimal places', 'warning');
+            }
+            
+            input.classList.remove('error');
+            if (errorElement) errorElement.style.display = 'none';
+            return true;
         }
         
-        // Validate text input
+        // Enhanced text input validation
         function validateTextInput(input) {
             const errorId = input.id + 'Error';
             const errorElement = document.getElementById(errorId);
@@ -834,6 +918,316 @@
                 if (errorElement) errorElement.style.display = 'none';
                 return true;
             }
+        }
+        
+        // Enhanced unit conversion with proper factors
+        function getUnitConversionFactor(unit) {
+            switch(unit) {
+                case 'g': return 10;    // 100g to kg: 10 × 100g = 1kg
+                case 'l': return 1;     // Assuming 1:1 with kg
+                case 'unit': return 1;
+                case 'kg': 
+                default: return 1;
+            }
+        }
+        
+        // Enhanced product total calculation
+        function updateProductTotal(row) {
+            const cost = parseFloat(row.querySelector('.material-cost').value) || 0;
+            const unit = row.querySelector('.material-unit').value;
+            const quantity = parseFloat(row.querySelector('.material-quantity').value) || 0;
+            
+            // Use proper conversion factor
+            const conversionFactor = getUnitConversionFactor(unit);
+            const costPerKg = cost * conversionFactor;
+            const total = preciseRound(costPerKg * quantity);
+            
+            row.querySelector('.material-total').value = `₹${total.toFixed(2)}`;
+            updateSummaryCards();
+        }
+        
+        // Enhanced pricing calculation with proper validation
+        function calculatePricing() {
+            // Set loading state
+            setLoadingState(true);
+            
+            try {
+                if (!validateAllInputs()) {
+                    showNotification('Please fix the errors in the form before calculating.', 'error');
+                    return;
+                }
+                
+                const productionQuantity = parseFloat(document.getElementById('productionQuantity').value) || 1;
+                
+                // Critical: Validate production quantity
+                if (productionQuantity <= 0) {
+                    showNotification('Production quantity must be greater than zero', 'error');
+                    setLoadingState(false);
+                    return;
+                }
+                
+                // Get basic values
+                const productName = document.getElementById('productName').value || 'Product';
+                const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+                const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
+                const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
+                
+                // Calculate total material cost with proper unit conversions
+                let totalMaterialCost = 0;
+                const materials = [];
+                
+                document.querySelectorAll('.product-row').forEach(row => {
+                    const name = row.querySelector('.material-name').value || 'Unnamed Material';
+                    const cost = parseFloat(row.querySelector('.material-cost').value) || 0;
+                    const unit = row.querySelector('.material-unit').value;
+                    const quantity = parseFloat(row.querySelector('.material-quantity').value) || 0;
+                    
+                    // Use proper conversion
+                    const conversionFactor = getUnitConversionFactor(unit);
+                    const costPerKg = cost * conversionFactor;
+                    const total = preciseRound(costPerKg * quantity);
+                    
+                    totalMaterialCost = preciseRound(totalMaterialCost + total);
+                    
+                    let displayUnit = 'kg';
+                    switch(unit) {
+                        case 'g': displayUnit = '100g'; break;
+                        case 'l': displayUnit = 'liter'; break;
+                        case 'unit': displayUnit = 'unit'; break;
+                    }
+                    
+                    materials.push({
+                        name,
+                        cost,
+                        unit: displayUnit,
+                        quantity,
+                        total
+                    });
+                });
+                
+                // Calculate total cost with precise rounding
+                const totalCost = preciseRound(totalMaterialCost + laborCost + utilityCost);
+                
+                // Calculate selling price with profit
+                const profitFactor = 1 + (profitPercentage / 100);
+                const totalWithProfit = preciseRound(totalCost * profitFactor);
+                const profitAmount = preciseRound(totalCost * (profitPercentage / 100));
+                
+                // Calculate price per kg
+                const pricePerKg = preciseRound(totalWithProfit / productionQuantity);
+                
+                // Store results for printing
+                calculationResults = {
+                    productName,
+                    productionQuantity,
+                    laborCost,
+                    utilityCost,
+                    profitPercentage,
+                    materials,
+                    totalMaterialCost,
+                    totalCost,
+                    profitAmount,
+                    totalWithProfit,
+                    pricePerKg
+                };
+                
+                // Update results table
+                updateResultsTable(materials, laborCost, utilityCost, totalCost, profitPercentage, profitAmount, totalWithProfit, productionQuantity, pricePerKg);
+                
+                // Show results section
+                document.getElementById('results').style.display = 'block';
+                
+                // Scroll to results
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                
+                showNotification('Pricing calculated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Calculation error:', error);
+                showNotification('An error occurred during calculation. Please check your inputs.', 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        // Enhanced print functionality with proper cleanup
+        function preparePrintReport() {
+            if (calculationResults.totalCost === 0) {
+                showNotification('Please calculate pricing first.', 'error');
+                return;
+            }
+            
+            try {
+                // Update printable report content
+                document.getElementById('print-product-name').textContent = 
+                    calculationResults.productName ? `${escapeHtml(calculationResults.productName)} - Pricing Report` : 'Product Pricing Report';
+                
+                document.getElementById('print-date').textContent = `Date: ${new Date().toLocaleDateString()}`;
+                
+                // Update cost breakdown for printing
+                const printCostBreakdown = document.getElementById('print-cost-breakdown');
+                printCostBreakdown.innerHTML = '';
+                
+                // Add materials to print table
+                calculationResults.materials.forEach(material => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${escapeHtml(material.name)}</td>
+                        <td>₹${material.cost.toFixed(2)}/${material.unit}</td>
+                        <td>${material.quantity.toFixed(2)}</td>
+                        <td>₹${material.total.toFixed(2)}</td>
+                    `;
+                    printCostBreakdown.appendChild(row);
+                });
+                
+                // Add other costs
+                const laborRow = document.createElement('tr');
+                laborRow.innerHTML = `
+                    <td>Labor Cost</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>₹${calculationResults.laborCost.toFixed(2)}</td>
+                `;
+                printCostBreakdown.appendChild(laborRow);
+                
+                const utilityRow = document.createElement('tr');
+                utilityRow.innerHTML = `
+                    <td>Utility Cost</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>₹${calculationResults.utilityCost.toFixed(2)}</td>
+                `;
+                printCostBreakdown.appendChild(utilityRow);
+                
+                const totalCostRow = document.createElement('tr');
+                totalCostRow.innerHTML = `
+                    <td colspan="3"><strong>Total Production Cost</strong></td>
+                    <td><strong>₹${calculationResults.totalCost.toFixed(2)}</strong></td>
+                `;
+                printCostBreakdown.appendChild(totalCostRow);
+                
+                // Update summary section
+                document.getElementById('print-quantity').textContent = calculationResults.productionQuantity;
+                document.getElementById('print-total-cost').textContent = calculationResults.totalCost.toFixed(2);
+                document.getElementById('print-profit-percent').textContent = calculationResults.profitPercentage;
+                document.getElementById('print-profit-amount').textContent = calculationResults.profitAmount.toFixed(2);
+                document.getElementById('print-final-price').textContent = calculationResults.totalWithProfit.toFixed(2);
+                document.getElementById('print-price-per-kg').textContent = calculationResults.pricePerKg.toFixed(2);
+                
+                // Show the printable section and print
+                const printableElement = document.getElementById('printable-report');
+                printableElement.style.display = 'block';
+                
+                // Use window.onafterprint for proper cleanup
+                window.onafterprint = function() {
+                    printableElement.style.display = 'none';
+                    window.onafterprint = null;
+                };
+                
+                setTimeout(() => {
+                    window.print();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Error preparing print report', 'error');
+            }
+        }
+        
+        // Auto-save functionality
+        function autoSave() {
+            try {
+                const data = gatherFormData();
+                localStorage.setItem('pricingCalculatorAutoSave', JSON.stringify(data));
+            } catch (error) {
+                console.warn('Auto-save failed:', error);
+            }
+        }
+        
+        function loadAutoSave() {
+            try {
+                const saved = localStorage.getItem('pricingCalculatorAutoSave');
+                if (saved) {
+                    // Don't auto-load, but offer option on button
+                    const loadBtn = document.createElement('button');
+                    loadBtn.className = 'btn btn-info btn-sm';
+                    loadBtn.innerHTML = '<span class="icon">🕒</span>Load Auto-saved';
+                    loadBtn.onclick = function() {
+                        if (confirm('Load auto-saved data? Current data will be lost.')) {
+                            loadCalculationData(JSON.parse(saved));
+                        }
+                    };
+                    document.querySelector('.database-actions').appendChild(loadBtn);
+                }
+            } catch (error) {
+                console.warn('Auto-load failed:', error);
+            }
+        }
+        
+        // Loading state management
+        function setLoadingState(isLoading) {
+            const calculateBtn = document.getElementById('calculateBtn');
+            if (isLoading) {
+                calculateBtn.innerHTML = '<span class="icon">⏳</span>Calculating...';
+                calculateBtn.disabled = true;
+                document.body.classList.add('loading');
+            } else {
+                calculateBtn.innerHTML = '<span class="icon">🧮</span>Calculate Selling Price';
+                calculateBtn.disabled = false;
+                document.body.classList.remove('loading');
+            }
+        }
+        
+        // Error boundary for critical operations
+        function safeExecute(operation, errorMessage) {
+            try {
+                return operation();
+            } catch (error) {
+                console.error(errorMessage, error);
+                showNotification(errorMessage, 'error');
+                return null;
+            }
+        }
+        
+        // Add a new product row
+        function addProductRow() {
+            const productContainer = document.getElementById('productContainer');
+            const newRow = document.createElement('div');
+            newRow.innerHTML = productRowTemplate;
+            
+            // Add event listeners to new inputs
+            const rowElement = newRow.firstElementChild;
+            
+            productContainer.appendChild(rowElement);
+            updateProductTotal(rowElement);
+        }
+        
+        // Update the summary cards with current values
+        function updateSummaryCards() {
+            // Calculate total material cost
+            let totalMaterialCost = 0;
+            document.querySelectorAll('.product-row').forEach(row => {
+                const totalText = row.querySelector('.material-total').value;
+                const totalValue = parseFloat(totalText.replace('₹', '')) || 0;
+                totalMaterialCost += totalValue;
+            });
+            
+            // Get other values
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+            const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
+            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
+            
+            // Update summary cards
+            document.getElementById('totalMaterialCost').textContent = `₹${totalMaterialCost.toFixed(2)}`;
+            document.getElementById('laborCostDisplay').textContent = `₹${laborCost.toFixed(2)}`;
+            document.getElementById('utilityCostDisplay').textContent = `₹${utilityCost.toFixed(2)}`;
+            document.getElementById('profitPercentageDisplay').textContent = `${profitPercentage}%`;
+        }
+        
+        // Debounce function to limit how often calculations are performed
+        function debounceUpdateSummary() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateSummaryCards, 300);
         }
         
         // Validate material inputs in a row
@@ -865,93 +1259,6 @@
             }
             
             return isValid;
-        }
-        
-        // Add a new product row
-        function addProductRow() {
-            const productContainer = document.getElementById('productContainer');
-            const newRow = document.createElement('div');
-            newRow.innerHTML = productRowTemplate;
-            
-            // Add event listeners to new inputs
-            const rowElement = newRow.firstElementChild;
-            const costInput = rowElement.querySelector('.material-cost');
-            const unitSelect = rowElement.querySelector('.material-unit');
-            const quantityInput = rowElement.querySelector('.material-quantity');
-            const nameInput = rowElement.querySelector('.material-name');
-            
-            costInput.addEventListener('input', function() {
-                validateNumberInput(this, 0);
-                updateProductTotal(rowElement);
-            });
-            
-            unitSelect.addEventListener('change', function() {
-                updateProductTotal(rowElement);
-            });
-            
-            quantityInput.addEventListener('input', function() {
-                validateNumberInput(this, 0.01);
-                updateProductTotal(rowElement);
-            });
-            
-            nameInput.addEventListener('input', function() {
-                validateTextInput(this);
-            });
-            
-            // Add remove button functionality
-            rowElement.querySelector('.remove-product').addEventListener('click', function() {
-                if (document.querySelectorAll('.product-row').length > 1) {
-                    rowElement.remove();
-                    updateSummaryCards();
-                } else {
-                    showNotification('You need at least one material.', 'warning');
-                }
-            });
-            
-            productContainer.appendChild(rowElement);
-            updateProductTotal(rowElement);
-        }
-        
-        // Update the total cost for a product row
-        function updateProductTotal(row) {
-            const cost = parseFloat(row.querySelector('.material-cost').value) || 0;
-            const unit = row.querySelector('.material-unit').value;
-            const quantity = parseFloat(row.querySelector('.material-quantity').value) || 0;
-            
-            // Convert to cost per kg for calculation
-            let costPerKg = cost;
-            if (unit === 'g') {
-                costPerKg = cost * 10; // Convert from per 100g to per kg (100g * 10 = 1kg)
-            }
-            // For liters and units, we assume 1:1 ratio with kg for calculation purposes
-            // You might want to adjust this based on your specific needs
-            
-            const total = costPerKg * quantity;
-            row.querySelector('.material-total').value = `₹${total.toFixed(2)}`;
-            
-            updateSummaryCards();
-        }
-        
-        // Update the summary cards with current values
-        function updateSummaryCards() {
-            // Calculate total material cost
-            let totalMaterialCost = 0;
-            document.querySelectorAll('.product-row').forEach(row => {
-                const totalText = row.querySelector('.material-total').value;
-                const totalValue = parseFloat(totalText.replace('₹', '')) || 0;
-                totalMaterialCost += totalValue;
-            });
-            
-            // Get other values
-            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
-            const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
-            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
-            
-            // Update summary cards
-            document.getElementById('totalMaterialCost').textContent = `₹${totalMaterialCost.toFixed(2)}`;
-            document.getElementById('laborCostDisplay').textContent = `₹${laborCost.toFixed(2)}`;
-            document.getElementById('utilityCostDisplay').textContent = `₹${utilityCost.toFixed(2)}`;
-            document.getElementById('profitPercentageDisplay').textContent = `${profitPercentage}%`;
         }
         
         // Validate all inputs before calculation
@@ -990,81 +1297,8 @@
             return isValid;
         }
         
-        // Calculate the final pricing
-        function calculatePricing() {
-            if (!validateAllInputs()) {
-                showNotification('Please fix the errors in the form before calculating.', 'error');
-                return;
-            }
-            
-            // Get basic values
-            const productName = document.getElementById('productName').value || 'Product';
-            const productionQuantity = parseFloat(document.getElementById('productionQuantity').value) || 1;
-            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
-            const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
-            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
-            
-            // Calculate total material cost
-            let totalMaterialCost = 0;
-            const materials = [];
-            
-            document.querySelectorAll('.product-row').forEach(row => {
-                const name = row.querySelector('.material-name').value || 'Unnamed Material';
-                const cost = parseFloat(row.querySelector('.material-cost').value) || 0;
-                const unit = row.querySelector('.material-unit').value;
-                const quantity = parseFloat(row.querySelector('.material-quantity').value) || 0;
-                
-                // Convert to cost per kg for calculation
-                let costPerKg = cost;
-                let displayUnit = 'kg';
-                if (unit === 'g') {
-                    costPerKg = cost * 10; // Convert from per 100g to per kg
-                    displayUnit = '100g';
-                } else if (unit === 'l') {
-                    displayUnit = 'liter';
-                } else if (unit === 'unit') {
-                    displayUnit = 'unit';
-                }
-                
-                const total = costPerKg * quantity;
-                totalMaterialCost += total;
-                
-                materials.push({
-                    name,
-                    cost,
-                    unit: displayUnit,
-                    quantity,
-                    total
-                });
-            });
-            
-            // Calculate total cost
-            const totalCost = totalMaterialCost + laborCost + utilityCost;
-            
-            // Calculate selling price with profit
-            const profitFactor = 1 + (profitPercentage / 100);
-            const totalWithProfit = totalCost * profitFactor;
-            const profitAmount = totalCost * (profitPercentage / 100);
-            
-            // Calculate price per kg (with division by zero protection)
-            const pricePerKg = productionQuantity > 0 ? totalWithProfit / productionQuantity : 0;
-            
-            // Store results for printing
-            calculationResults = {
-                productName,
-                productionQuantity,
-                laborCost,
-                utilityCost,
-                profitPercentage,
-                materials,
-                totalMaterialCost,
-                totalCost,
-                profitAmount,
-                totalWithProfit,
-                pricePerKg
-            };
-            
-            // Update results table
+        // Update results table
+        function updateResultsTable(materials, laborCost, utilityCost, totalCost, profitPercentage, profitAmount, totalWithProfit, productionQuantity, pricePerKg) {
             const costBreakdown = document.getElementById('costBreakdown');
             costBreakdown.innerHTML = '';
             
@@ -1126,102 +1360,73 @@
             
             // Update final price per kg
             document.getElementById('finalPricePerKg').textContent = `₹${pricePerKg.toFixed(2)}`;
-            
-            // Show results section
-            document.getElementById('results').style.display = 'block';
-            
-            // Scroll to results
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-            
-            showNotification('Pricing calculated successfully!', 'success');
         }
         
-        // Escape HTML to prevent XSS
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-        
-        // Prepare the print report
-        function preparePrintReport() {
-            if (calculationResults.totalCost === 0) {
-                showNotification('Please calculate pricing first.', 'error');
-                return;
-            }
+        // Gather form data for saving
+        function gatherFormData() {
+            const productName = document.getElementById('productName').value;
+            const productionQuantity = parseFloat(document.getElementById('productionQuantity').value) || 1;
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+            const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
+            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
             
-            // Update printable report content
-            document.getElementById('print-product-name').textContent = 
-                calculationResults.productName ? `${escapeHtml(calculationResults.productName)} - Pricing Report` : 'Product Pricing Report';
-            
-            document.getElementById('print-date').textContent = `Date: ${new Date().toLocaleDateString()}`;
-            
-            // Update cost breakdown for printing
-            const printCostBreakdown = document.getElementById('print-cost-breakdown');
-            printCostBreakdown.innerHTML = '';
-            
-            // Add materials to print table
-            calculationResults.materials.forEach(material => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${escapeHtml(material.name)}</td>
-                    <td>₹${material.cost.toFixed(2)}/${material.unit}</td>
-                    <td>${material.quantity.toFixed(2)}</td>
-                    <td>₹${material.total.toFixed(2)}</td>
-                `;
-                printCostBreakdown.appendChild(row);
+            // Gather materials data
+            const materials = [];
+            document.querySelectorAll('.product-row').forEach(row => {
+                materials.push({
+                    name: row.querySelector('.material-name').value,
+                    cost: parseFloat(row.querySelector('.material-cost').value) || 0,
+                    unit: row.querySelector('.material-unit').value,
+                    quantity: parseFloat(row.querySelector('.material-quantity').value) || 0
+                });
             });
             
-            // Add other costs
-            const laborRow = document.createElement('tr');
-            laborRow.innerHTML = `
-                <td>Labor Cost</td>
-                <td>-</td>
-                <td>-</td>
-                <td>₹${calculationResults.laborCost.toFixed(2)}</td>
-            `;
-            printCostBreakdown.appendChild(laborRow);
+            // Create data object
+            return {
+                productName,
+                productionQuantity,
+                laborCost,
+                utilityCost,
+                profitPercentage,
+                materials,
+                timestamp: new Date().toISOString()
+            };
+        }
+        
+        // Load calculation data
+        function loadCalculationData(data) {
+            // Set basic values
+            document.getElementById('productName').value = data.productName || '';
+            document.getElementById('productionQuantity').value = data.productionQuantity || 1;
+            document.getElementById('laborCost').value = data.laborCost || 0;
+            document.getElementById('utilityCost').value = data.utilityCost || 0;
+            document.getElementById('profitPercentage').value = data.profitPercentage || 0;
             
-            const utilityRow = document.createElement('tr');
-            utilityRow.innerHTML = `
-                <td>Utility Cost</td>
-                <td>-</td>
-                <td>-</td>
-                <td>₹${calculationResults.utilityCost.toFixed(2)}</td>
-            `;
-            printCostBreakdown.appendChild(utilityRow);
+            // Clear existing materials
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = '';
             
-            const totalCostRow = document.createElement('tr');
-            totalCostRow.innerHTML = `
-                <td colspan="3"><strong>Total Production Cost</strong></td>
-                <td><strong>₹${calculationResults.totalCost.toFixed(2)}</strong></td>
-            `;
-            printCostBreakdown.appendChild(totalCostRow);
+            // Add materials from data
+            if (data.materials && Array.isArray(data.materials)) {
+                data.materials.forEach(material => {
+                    addProductRow();
+                    const rows = productContainer.querySelectorAll('.product-row');
+                    const lastRow = rows[rows.length - 1];
+                    
+                    lastRow.querySelector('.material-name').value = material.name || '';
+                    lastRow.querySelector('.material-cost').value = material.cost || 0;
+                    lastRow.querySelector('.material-unit').value = material.unit || 'kg';
+                    lastRow.querySelector('.material-quantity').value = material.quantity || 0;
+                    
+                    updateProductTotal(lastRow);
+                });
+            } else {
+                // Add at least one empty row
+                addProductRow();
+            }
             
-            // Update summary section
-            document.getElementById('print-quantity').textContent = calculationResults.productionQuantity;
-            document.getElementById('print-total-cost').textContent = calculationResults.totalCost.toFixed(2);
-            document.getElementById('print-profit-percent').textContent = calculationResults.profitPercentage;
-            document.getElementById('print-profit-amount').textContent = calculationResults.profitAmount.toFixed(2);
-            document.getElementById('print-final-price').textContent = calculationResults.totalWithProfit.toFixed(2);
-            document.getElementById('print-price-per-kg').textContent = calculationResults.pricePerKg.toFixed(2);
-            
-            // Show the printable section and print
-            const printableElement = document.getElementById('printable-report');
-            printableElement.style.display = 'block';
-            
-            // Use a timeout to ensure the content is visible before printing
-            setTimeout(() => {
-                window.print();
-                
-                // Hide the printable section after printing with a delay
-                setTimeout(() => {
-                    printableElement.style.display = 'none';
-                }, 500);
-            }, 100);
+            updateSummaryCards();
+            showNotification('Calculation loaded successfully!', 'success');
         }
         
         // Save calculation to JSON file
@@ -1232,34 +1437,7 @@
             }
             
             try {
-                // Gather all data
-                const productName = document.getElementById('productName').value;
-                const productionQuantity = parseFloat(document.getElementById('productionQuantity').value) || 1;
-                const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
-                const utilityCost = parseFloat(document.getElementById('utilityCost').value) || 0;
-                const profitPercentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
-                
-                // Gather materials data
-                const materials = [];
-                document.querySelectorAll('.product-row').forEach(row => {
-                    materials.push({
-                        name: row.querySelector('.material-name').value,
-                        cost: parseFloat(row.querySelector('.material-cost').value) || 0,
-                        unit: row.querySelector('.material-unit').value,
-                        quantity: parseFloat(row.querySelector('.material-quantity').value) || 0
-                    });
-                });
-                
-                // Create data object
-                const data = {
-                    productName,
-                    productionQuantity,
-                    laborCost,
-                    utilityCost,
-                    profitPercentage,
-                    materials,
-                    timestamp: new Date().toISOString()
-                };
+                const data = gatherFormData();
                 
                 // Convert to JSON string
                 const jsonData = JSON.stringify(data, null, 2);
@@ -1270,7 +1448,7 @@
                 
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = url;
-                downloadLink.download = `${productName || 'product'}_pricing_${new Date().toISOString().slice(0, 10)}.json`;
+                downloadLink.download = `${data.productName || 'product'}_pricing_${new Date().toISOString().slice(0, 10)}.json`;
                 downloadLink.click();
                 
                 // Clean up
@@ -1300,44 +1478,7 @@
             reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    
-                    // Validate JSON structure
-                    if (!data || typeof data !== 'object') {
-                        throw new Error('Invalid file format');
-                    }
-                    
-                    // Set basic values
-                    document.getElementById('productName').value = data.productName || '';
-                    document.getElementById('productionQuantity').value = data.productionQuantity || 1;
-                    document.getElementById('laborCost').value = data.laborCost || 0;
-                    document.getElementById('utilityCost').value = data.utilityCost || 0;
-                    document.getElementById('profitPercentage').value = data.profitPercentage || 0;
-                    
-                    // Clear existing materials
-                    const productContainer = document.getElementById('productContainer');
-                    productContainer.innerHTML = '';
-                    
-                    // Add materials from data
-                    if (data.materials && Array.isArray(data.materials)) {
-                        data.materials.forEach(material => {
-                            addProductRow();
-                            const rows = productContainer.querySelectorAll('.product-row');
-                            const lastRow = rows[rows.length - 1];
-                            
-                            lastRow.querySelector('.material-name').value = material.name || '';
-                            lastRow.querySelector('.material-cost').value = material.cost || 0;
-                            lastRow.querySelector('.material-unit').value = material.unit || 'kg';
-                            lastRow.querySelector('.material-quantity').value = material.quantity || 0;
-                            
-                            updateProductTotal(lastRow);
-                        });
-                    } else {
-                        // Add at least one empty row
-                        addProductRow();
-                    }
-                    
-                    updateSummaryCards();
-                    showNotification('Calculation loaded successfully!', 'success');
+                    loadCalculationData(data);
                 } catch (error) {
                     showNotification('Error loading calculation: Invalid file format', 'error');
                 }
@@ -1390,8 +1531,24 @@
                 document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
                 document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
                 
+                // Clear auto-save
+                localStorage.removeItem('pricingCalculatorAutoSave');
+                
                 showNotification('Data reset successfully!', 'success');
             }
+        }
+        
+        // Check if there are unsaved changes
+        function hasUnsavedChanges() {
+            // Simple check - if any field has a non-default value
+            const productName = document.getElementById('productName').value;
+            const productionQuantity = parseFloat(document.getElementById('productionQuantity').value);
+            const laborCost = parseFloat(document.getElementById('laborCost').value);
+            const utilityCost = parseFloat(document.getElementById('utilityCost').value);
+            const profitPercentage = parseFloat(document.getElementById('profitPercentage').value);
+            
+            return productName !== '' || productionQuantity !== 1 || laborCost !== 0 || 
+                   utilityCost !== 0 || profitPercentage !== 20;
         }
         
         // Show notification
