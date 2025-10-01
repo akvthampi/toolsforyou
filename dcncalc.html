@@ -122,6 +122,64 @@
     .result-value{font-size:1.2rem;font-weight:700;margin-top:4px}
     .result-note{margin:10px 0 0;color:var(--muted);font-size:.92rem}
 
+    /* ========== Food Suggestions ========== */
+    .food-suggestions {
+      margin-top: 24px;
+      display: none;
+    }
+    .food-suggestions.show {
+      display: block;
+    }
+    .food-category {
+      margin-bottom: 20px;
+    }
+    .food-category-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--primary);
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      padding-bottom: 6px;
+    }
+    .food-item {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .food-name {
+      font-weight: 500;
+    }
+    .food-calories {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .food-serving {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    .food-diet-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .veg {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+    .non-veg {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
     .footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:16px}
 
     /* Responsive */
@@ -130,6 +188,10 @@
       .row{grid-template-columns:1fr}
       .row.three{grid-template-columns:1fr}
       .result-grid{grid-template-columns:1fr}
+      .food-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
     @media (max-width:420px){.input,.select{padding:11px 12px}}
   </style>
@@ -176,6 +238,22 @@
                 <span>Female</span>
               </label>
             </div>
+          </fieldset>
+
+          <!-- Dietary Preference -->
+          <fieldset class="fieldset">
+            <legend class="legend">Dietary Preference</legend>
+            <div class="units-inline">
+              <label class="radio">
+                <input type="radio" name="diet" value="vegetarian" checked>
+                <span>Vegetarian</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="diet" value="non-vegetarian">
+                <span>Non-Vegetarian</span>
+              </label>
+            </div>
+            <p class="hint">This will affect food recommendations.</p>
           </fieldset>
 
           <!-- Age, Weight, Height -->
@@ -278,6 +356,14 @@
             Numbers are estimates based on Mifflin–St Jeor BMR and activity factors. Track progress and adjust as needed.
           </p>
 
+          <!-- Food Suggestions -->
+          <div id="food-suggestions" class="food-suggestions">
+            <h3 class="section-title">Food Suggestions</h3>
+            <div id="food-content">
+              <!-- Food items will be populated here by JavaScript -->
+            </div>
+          </div>
+
           <div class="actions">
             <button type="button" id="recalc" class="btn primary">Recalculate</button>
             <button type="button" id="reset-all" class="btn ghost">Clear</button>
@@ -300,9 +386,12 @@
     const formSection = $('#form-section');
     const resultsSection = $('#results-section');
     const form = $('#calorie-form');
+    const foodSuggestions = $('#food-suggestions');
+    const foodContent = $('#food-content');
 
     const unitRadios = $$('input[name="units"]');
     const genderRadios = $$('input[name="gender"]');
+    const dietRadios = $$('input[name="diet"]');
 
     const ageEl = $('#age');
     const weightEl = $('#weight');
@@ -333,6 +422,70 @@
     const lossVal = $('#loss-val');
     const mildGainVal = $('#mild-gain-val');
     const gainVal = $('#gain-val');
+
+    // Food Database
+    const foodDatabase = {
+      vegetarian: {
+        breakfast: [
+          { name: "Oatmeal with fruits", calories: 300, serving: "1 bowl", type: "veg" },
+          { name: "Scrambled tofu", calories: 250, serving: "1 serving", type: "veg" },
+          { name: "Greek yogurt with honey", calories: 200, serving: "1 cup", type: "veg" },
+          { name: "Avocado toast", calories: 350, serving: "2 slices", type: "veg" },
+          { name: "Vegetable poha", calories: 280, serving: "1 plate", type: "veg" }
+        ],
+        lunch: [
+          { name: "Lentil soup", calories: 320, serving: "1 bowl", type: "veg" },
+          { name: "Vegetable stir-fry with rice", calories: 450, serving: "1 plate", type: "veg" },
+          { name: "Chickpea salad", calories: 380, serving: "1 bowl", type: "veg" },
+          { name: "Paneer tikka", calories: 420, serving: "1 serving", type: "veg" },
+          { name: "Quinoa bowl", calories: 400, serving: "1 bowl", type: "veg" }
+        ],
+        dinner: [
+          { name: "Vegetable curry with roti", calories: 500, serving: "2 rotis + curry", type: "veg" },
+          { name: "Stuffed bell peppers", calories: 350, serving: "2 peppers", type: "veg" },
+          { name: "Mushroom risotto", calories: 450, serving: "1 plate", type: "veg" },
+          { name: "Dal with rice", calories: 400, serving: "1 plate", type: "veg" },
+          { name: "Vegetable pasta", calories: 480, serving: "1 plate", type: "veg" }
+        ],
+        snacks: [
+          { name: "Mixed nuts", calories: 200, serving: "1/4 cup", type: "veg" },
+          { name: "Apple with peanut butter", calories: 250, serving: "1 apple + 2 tbsp", type: "veg" },
+          { name: "Protein shake", calories: 180, serving: "1 glass", type: "veg" },
+          { name: "Hummus with veggies", calories: 150, serving: "1/2 cup", type: "veg" },
+          { name: "Energy bars", calories: 220, serving: "1 bar", type: "veg" }
+        ]
+      },
+      "non-vegetarian": {
+        breakfast: [
+          { name: "Scrambled eggs", calories: 280, serving: "2 eggs", type: "non-veg" },
+          { name: "Chicken sausage", calories: 200, serving: "2 sausages", type: "non-veg" },
+          { name: "Smoked salmon toast", calories: 320, serving: "2 slices", type: "non-veg" },
+          { name: "Turkey bacon", calories: 150, serving: "3 strips", type: "non-veg" },
+          { name: "Egg omelette", calories: 300, serving: "2 eggs", type: "non-veg" }
+        ],
+        lunch: [
+          { name: "Grilled chicken breast", calories: 350, serving: "200g", type: "non-veg" },
+          { name: "Fish curry with rice", calories: 500, serving: "1 plate", type: "non-veg" },
+          { name: "Beef stir-fry", calories: 450, serving: "1 plate", type: "non-veg" },
+          { name: "Chicken salad", calories: 380, serving: "1 bowl", type: "non-veg" },
+          { name: "Tuna sandwich", calories: 420, serving: "1 sandwich", type: "non-veg" }
+        ],
+        dinner: [
+          { name: "Baked salmon", calories: 450, serving: "200g", type: "non-veg" },
+          { name: "Chicken curry with rice", calories: 550, serving: "1 plate", type: "non-veg" },
+          { name: "Steak with vegetables", calories: 600, serving: "200g steak", type: "non-veg" },
+          { name: "Lamb chops", calories: 500, serving: "2 chops", type: "non-veg" },
+          { name: "Shrimp pasta", calories: 480, serving: "1 plate", type: "non-veg" }
+        ],
+        snacks: [
+          { name: "Beef jerky", calories: 150, serving: "50g", type: "non-veg" },
+          { name: "Hard-boiled eggs", calories: 140, serving: "2 eggs", type: "non-veg" },
+          { name: "Protein shake", calories: 180, serving: "1 glass", type: "non-veg" },
+          { name: "Chicken skewers", calories: 200, serving: "2 skewers", type: "non-veg" },
+          { name: "Tuna salad", calories: 220, serving: "1/2 cup", type: "non-veg" }
+        ]
+      }
+    };
 
     // Unit switching
     const updateUnits = () => {
@@ -368,6 +521,7 @@
     const readInputs = () => {
       const units = ($('input[name="units"]:checked')||{}).value || 'metric';
       const gender = ($('input[name="gender"]:checked')||{}).value || 'male';
+      const diet = ($('input[name="diet"]:checked')||{}).value || 'vegetarian';
       const age = parseFloat(ageEl.value);
       const weight = parseFloat(weightEl.value);
       let heightCm = null;
@@ -419,7 +573,7 @@
       }
 
       return {
-        valid, units, gender, age, weightKg, heightCm, activityFactor: parseFloat(activityEl.value || '0')
+        valid, units, gender, diet, age, weightKg, heightCm, activityFactor: parseFloat(activityEl.value || '0')
       };
     };
 
@@ -435,6 +589,60 @@
     // Format kcal
     const fmt = n => `${Math.round(n).toLocaleString()} kcal/day`;
 
+    // Generate food suggestions
+    const generateFoodSuggestions = (targetCalories, dietType) => {
+      const dietFoods = foodDatabase[dietType];
+      let html = '';
+      
+      // Calculate target calories per meal (rough estimate)
+      const breakfastTarget = targetCalories * 0.25; // 25% for breakfast
+      const lunchTarget = targetCalories * 0.35;     // 35% for lunch
+      const dinnerTarget = targetCalories * 0.30;    // 30% for dinner
+      const snacksTarget = targetCalories * 0.10;    // 10% for snacks
+      
+      // Function to find closest matching foods
+      const findClosestFoods = (foods, target, count = 3) => {
+        return foods
+          .map(food => ({ ...food, diff: Math.abs(food.calories - target) }))
+          .sort((a, b) => a.diff - b.diff)
+          .slice(0, count);
+      };
+      
+      // Generate suggestions for each meal category
+      for (const [category, target] of [
+        ['breakfast', breakfastTarget],
+        ['lunch', lunchTarget],
+        ['dinner', dinnerTarget],
+        ['snacks', snacksTarget]
+      ]) {
+        const closestFoods = findClosestFoods(dietFoods[category], target, 3);
+        
+        html += `
+          <div class="food-category">
+            <div class="food-category-title">${category.charAt(0).toUpperCase() + category.slice(1)} (Target: ~${Math.round(target)} kcal)</div>
+        `;
+        
+        closestFoods.forEach(food => {
+          html += `
+            <div class="food-item">
+              <div>
+                <div class="food-name">
+                  ${food.name}
+                  <span class="food-diet-badge ${food.type}">${food.type === 'veg' ? 'VEG' : 'NON-VEG'}</span>
+                </div>
+                <div class="food-serving">${food.serving}</div>
+              </div>
+              <div class="food-calories">${food.calories} kcal</div>
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+      }
+      
+      return html;
+    };
+
     // Compute pipeline
     const compute = () => {
       const data = readInputs();
@@ -446,7 +654,8 @@
         mildLoss: tdee - 250,
         loss: tdee - 500,
         mildGain: tdee + 250,
-        gain: tdee + 500
+        gain: tdee + 500,
+        diet: data.diet
       };
     };
 
@@ -459,6 +668,10 @@
       mildGainVal.textContent = fmt(res.mildGain);
       gainVal.textContent = fmt(res.gain);
 
+      // Generate and display food suggestions for maintenance calories
+      foodContent.innerHTML = generateFoodSuggestions(res.tdee, res.diet);
+      foodSuggestions.classList.add('show');
+
       formSection.style.display = 'none';
       resultsSection.classList.add('show');
     };
@@ -466,6 +679,7 @@
     // Back to form
     const showForm = () => {
       resultsSection.classList.remove('show');
+      foodSuggestions.classList.remove('show');
       // allow CSS transition end then display form
       setTimeout(() => { formSection.style.display = ''; }, 200);
     };
